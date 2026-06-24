@@ -5,14 +5,7 @@
  */
 import { buildStepExpression, NO_DATA_COLOR } from './colorScale.js';
 import { buildBivariatePaint } from './bivariate.js';
-
-export const LISA_COLORS = {
-	0: '#e6e2db', // not significant
-	1: '#c2334d', // high-high
-	2: '#9ecae1', // low-high
-	3: '#2c7fb8', // low-low
-	4: '#f4a6a6' // high-low
-};
+import { LISA_COLORS } from './lisaColors.js';
 
 function buildLisaPaint() {
 	return [

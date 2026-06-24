@@ -8,6 +8,10 @@ node_modules
 /.svelte-kit
 /build
 
+# Generated data artifacts (produced by build:og / build:sitemap)
+/static/og
+/static/sitemap.xml
+
 # OS
 .DS_Store
 Thumbs.db

@@ -18,6 +18,7 @@
 	title="{county.name} — Carolinas Regional Explorer"
 	description={lead}
 	url="{base}/county/{county.fips}/"
+	image="{base}/og/county/{county.fips}.png"
 />
 
 <article class="container profile">

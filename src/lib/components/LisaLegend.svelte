@@ -1,5 +1,5 @@
 <script>
-	import { LISA_COLORS } from '$lib/map/MapController.js';
+	import { LISA_COLORS } from '$lib/map/lisaColors.js';
 	let { active = [1, 2, 3, 4], onToggle = () => {} } = $props();
 	const quads = [
 		{ code: 1, label: 'High–High (hot spot)', color: LISA_COLORS[1] },
