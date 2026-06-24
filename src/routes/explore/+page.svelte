@@ -6,18 +6,25 @@
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
 	import YearSlider from '$lib/components/YearSlider.svelte';
+	import Legend from '$lib/components/Legend.svelte';
+	import PercentileStrip from '$lib/components/PercentileStrip.svelte';
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
+	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
+	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
+	import { legendClasses } from '$lib/map/colorScale.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
 	let valueFile = $state(null);
+	let aggregates = $state(null);
 	let booted = $state(false);
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
 
 	onMount(async () => {
 		await loadManifest();
+		loadAggregates().then((a) => (aggregates = a));
 		// hydrate from URL if present
 		const urlState = paramsToState(page.url.searchParams);
 		const fromUrl = urlState.i ? indicatorBySlug(urlState.i) : null;
@@ -45,9 +52,31 @@
 	let choropleth = $derived.by(() => {
 		if (!valueFile || !indicator || explorer.year == null) return null;
 		if (valueFile.indicatorId !== indicator.id) return null;
-		const { breaks, colors } = breaksAndColors(valueFile, explorer.year, indicator);
-		return { valuesByGeoid: valuesForYear(valueFile, explorer.year), breaks, colors };
+		const { breaks, colors, stats } = breaksAndColors(valueFile, explorer.year, indicator);
+		return { valuesByGeoid: valuesForYear(valueFile, explorer.year), breaks, colors, stats };
 	});
+
+	let classes = $derived(
+		choropleth
+			? legendClasses(choropleth.breaks, choropleth.colors, {
+					format: indicator.format,
+					decimals: indicator.decimals ?? 1,
+					min: choropleth.stats.min,
+					max: choropleth.stats.max
+				})
+			: []
+	);
+
+	let selectedValue = $derived(
+		choropleth && selection.selected ? choropleth.valuesByGeoid[selection.selected] ?? null : null
+	);
+	let selectedName = $derived.by(() => {
+		if (!selection.selected) return '';
+		return valueFile?.values[selection.selected] ? selection.selected : selection.selected;
+	});
+	let regionAvg = $derived(
+		aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null
+	);
 
 	// reflect state to the URL (shareable deep links)
 	$effect(() => {
@@ -63,6 +92,18 @@
 
 	function pickIndicator(e) {
 		setIndicator(Number(e.target.value));
+		setSelected(null);
+	}
+
+	function onClassHover(range) {
+		if (!selection.legendSticky) setLegendFilter(range, false);
+	}
+	function onClassSelect(range) {
+		if (range) setLegendFilter(range, true);
+		else setLegendFilter(null, false);
+	}
+	function onSelect(id) {
+		setSelected(selection.selected === id ? null : id);
 	}
 </script>
 
@@ -99,7 +140,44 @@
 	</aside>
 
 	<div class="map-wrap">
-		<MapView geoLevel={explorer.geoLevel} {choropleth} />
+		<MapView
+			geoLevel={explorer.geoLevel}
+			{choropleth}
+			legendFilter={selection.legendFilter}
+			selected={selection.selected}
+			{onSelect}
+		/>
+
+		{#if classes.length}
+			<div class="legend-float no-print">
+				<Legend
+					{classes}
+					title={indicator?.label}
+					activeRange={selection.legendFilter}
+					sticky={selection.legendSticky}
+					{onClassHover}
+					{onClassSelect}
+				/>
+				{#if selection.selected}
+					<div class="card strip-card">
+						<div class="strip-head">
+							<span>{selectedName}</span>
+							<button class="link" onclick={() => setSelected(null)}>✕</button>
+						</div>
+						<PercentileStrip
+							value={selectedValue}
+							{regionAvg}
+							min={choropleth.stats.min}
+							max={choropleth.stats.max}
+							colors={choropleth.colors}
+							format={indicator.format}
+							decimals={indicator.decimals ?? 1}
+						/>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
 		<div class="bottom-bar no-print">
 			{#if indicator}
 				<YearSlider years={indicator.years} value={explorer.year} onChange={setYear} />
@@ -156,6 +234,32 @@
 	.map-wrap {
 		position: relative;
 		min-height: 0;
+	}
+	.legend-float {
+		position: absolute;
+		left: var(--sp-4);
+		bottom: var(--sp-4);
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		max-width: 14rem;
+	}
+	.strip-card {
+		padding: var(--sp-3);
+	}
+	.strip-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: var(--t-sm);
+		font-weight: 600;
+		margin-bottom: var(--sp-2);
+	}
+	.link {
+		border: 0;
+		background: transparent;
+		color: var(--c-text-3);
+		font-size: var(--t-sm);
 	}
 	.bottom-bar {
 		position: absolute;
