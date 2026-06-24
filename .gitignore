@@ -12,6 +12,9 @@ node_modules
 /static/og
 /static/sitemap.xml
 
+# Test/inspection artifacts
+/.playwright-mcp
+
 # OS
 .DS_Store
 Thumbs.db

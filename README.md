@@ -1,42 +1,71 @@
-# sv
+# Carolinas Regional Explorer (CRXP)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+An extensible community-data platform for the 14-county Charlotte region. Explore quality-of-life
+indicators across Census tracts, with interactive legend filtering, animated trend charts, integrated
+bivariate and spatial-cluster (LISA) analysis, and prebuilt county profiles.
 
-## Creating a project
+**Stack:** SvelteKit (Svelte 5 runes) · MapLibre GL · static prerendered data · `adapter-static`.
 
-If you're seeing this, you've probably already done this step. Congrats!
+See the design spec in [`docs/superpowers/specs/`](docs/superpowers/specs/) and the implementation plan in
+[`docs/superpowers/plans/`](docs/superpowers/plans/).
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Develop
 
 ```sh
-# recreate this project
-npx sv@0.16.1 create --template minimal --types jsdoc --no-install crxp-init
+npm install
+npm run dev          # http://localhost:5173
+npm run test         # vitest
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Build
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm run build        # validate data + prerender (fast)
+npm run build:full   # + OG cards + sitemap (production)
+npm run preview
 ```
 
-## Building
+Deployed as a static site (Netlify config in `netlify.toml`, publish dir `build/`).
 
-To create a production version of your app:
+## Architecture
 
-```sh
-npm run build
-```
+- **No god service.** All imperative MapLibre code lives in `src/lib/map/MapController.js`. Components are
+  presentational; small rune state slices (`src/lib/state/*.svelte.js`) hold app state; the `/explore` page
+  composes them and drives the controller one-directionally (state → `$effect` → controller method).
+- **Geometry is value-free.** Tract/county geometry carries only `geoid`; indicator values join at runtime
+  via MapLibre feature-state, so one geometry serves every indicator/year.
+- **Lazy data.** The manifest loads once; per-indicator value/analytics files load on demand.
 
-You can preview the production build with `npm run preview`.
+## Data contract (`static/data/`)
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The app consumes static files — this is the **build target for the Phase 2 pipeline**:
+
+| Path | Purpose |
+|---|---|
+| `manifest.json` | indicator catalog + config (single source of truth) |
+| `geo/tracts.geojson`, `geo/counties.geojson` | geometry (geoid only) |
+| `values/<id>.json` | per-indicator values + precomputed per-year breaks/stats |
+| `analytics/z/<id>.json`, `analytics/lisa/<id>.json` | bivariate z-scores, LISA quadrants |
+| `aggregates.json` | county + region averages by year |
+| `areas/{tracts,counties,places}.json` | area manifests (drive prerender + search) |
+| `meta/m<id>.md` | indicator metadata (what / how / why / source) |
+
+`scripts/build-data.mjs` validates this contract and fails the build on any violation.
+
+## Bootstrapping fixture
+
+`scripts/gen-fixture.mjs` builds the current `static/data/` from existing Charlotte Regional Explorer
+source assets (ACS 2018–2023 + tract geometry). It stands in for the Phase 2 pipeline, which will replace
+it by producing the same contract from a broader set of sources (CDC Places, FCC, USDA, HUD, USALEEP,
+Opportunity Atlas, SVI, Eviction Lab) plus dissolved county and municipal boundaries.
+
+## Known v1 limitations
+
+- County boundaries are simplified bounding-box extents (Phase 2 will publish dissolved polygons).
+- City/place profiles are routed/architected but **data-pending** (no municipal boundaries in the fixture yet).
+- Year transitions cross-fade opacity; per-feature value tweening is a v2 item.
+
+## v2+ roadmap
+
+Custom report builder + print/PDF · onboarding tour · richer data downloads · true value-tween transitions ·
+satellite basemap · indicator-page OG cards · two-year comparison.
