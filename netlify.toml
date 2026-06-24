@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build:full"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/og/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
