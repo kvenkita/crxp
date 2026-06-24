@@ -4,6 +4,7 @@
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
+
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
 	import YearSlider from '$lib/components/YearSlider.svelte';
@@ -15,18 +16,27 @@
 	import AreaSearch from '$lib/components/AreaSearch.svelte';
 	import ComparePanel from '$lib/components/ComparePanel.svelte';
 	import PinButton from '$lib/components/PinButton.svelte';
-	import { loadMeta } from '$lib/data/meta.js';
-	import { loadAreas, areaName } from '$lib/data/areas.js';
-	import { seriesFor } from '$lib/data/series.js';
-	import { pins, unpin } from '$lib/state/pins.svelte.js';
+	import AnalysisModeBar from '$lib/components/AnalysisModeBar.svelte';
+	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
+	import LisaPanel from '$lib/components/LisaPanel.svelte';
+
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
+	import { analysis, setMode, setBivariate, setLisaIndicator, toggleQuadrant } from '$lib/state/analysis.svelte.js';
+	import { pins, unpin } from '$lib/state/pins.svelte.js';
+
 	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
+	import { loadAreas, areaName } from '$lib/data/areas.js';
+	import { loadMeta } from '$lib/data/meta.js';
+	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
+	import { seriesFor } from '$lib/data/series.js';
 	import { legendClasses } from '$lib/map/colorScale.js';
+	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
+	let map = $state(null); // MapController, set on ready
 	let valueFile = $state(null);
 	let aggregates = $state(null);
 	let areas = $state(null);
@@ -41,17 +51,18 @@
 		await loadManifest();
 		loadAggregates().then((a) => (aggregates = a));
 		loadAreas().then((a) => (areas = a));
-		// hydrate from URL if present
-		const urlState = paramsToState(page.url.searchParams);
-		const fromUrl = urlState.i ? indicatorBySlug(urlState.i) : null;
-		const ind = fromUrl ?? manifest.indicators[0];
+		const u = paramsToState(page.url.searchParams);
+		const ind = (u.i && indicatorBySlug(u.i)) || manifest.indicators[0];
 		setIndicator(ind?.id ?? null);
-		setGeoLevel(urlState.geo === 'county' ? 'county' : 'tract');
-		setYear(urlState.y && ind?.years.includes(urlState.y) ? urlState.y : ind?.years.at(-1) ?? null);
+		setGeoLevel(u.geo === 'county' ? 'county' : 'tract');
+		setYear(u.y && ind?.years.includes(u.y) ? u.y : ind?.years.at(-1) ?? null);
+		if (u.mode) setMode(u.mode);
+		if (u.biA) setBivariate(indicatorBySlug(u.biA)?.id ?? ind?.id, indicatorBySlug(u.biB)?.id ?? null);
+		if (u.lisa) setLisaIndicator(indicatorBySlug(u.lisa)?.id ?? ind?.id);
 		booted = true;
 	});
 
-	// load value file whenever the indicator changes
+	// value file for the active indicator
 	$effect(() => {
 		const id = explorer.indicatorId;
 		if (id == null) return;
@@ -59,13 +70,12 @@
 		loadValueFile(id).then((file) => {
 			if (cancelled) return;
 			valueFile = file;
-			// snap year into available range
 			if (!file.years.includes(explorer.year)) setYear(file.years.at(-1));
 		});
 		return () => (cancelled = true);
 	});
 
-	// load metadata markdown when the indicator changes
+	// metadata
 	$effect(() => {
 		const ind = indicator;
 		if (!ind) return;
@@ -93,61 +103,110 @@
 			: []
 	);
 
-	let selectedValue = $derived(
-		choropleth && selection.selected ? choropleth.valuesByGeoid[selection.selected] ?? null : null
-	);
-	let selectedName = $derived(
-		selection.selected ? areaName(areas, selection.selected) : ''
-	);
-	let regionAvg = $derived(
-		aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null
-	);
+	// ---- map driving effects (page composes; controller is imperative) ----
 
-	// trend: hovered tract takes priority, else the selected one
-	let activeGeoid = $derived(selection.hover ?? selection.selected);
-	let activeName = $derived(activeGeoid ? areaName(areas, activeGeoid) : '');
-	let currentYearIndex = $derived(valueFile ? valueFile.years.indexOf(explorer.year) : -1);
-	let trend = $derived.by(() => {
-		if (!valueFile || !aggregates || !activeGeoid) return null;
-		if (valueFile.indicatorId !== indicator?.id) return null;
-		return seriesFor({ valueFile, aggregates, geoid: activeGeoid, level: explorer.geoLevel });
+	// EXPLORE choropleth
+	$effect(() => {
+		if (!map || analysis.mode !== 'explore' || !choropleth) return;
+		map.setGeoLevel(explorer.geoLevel);
+		map.applyChoropleth(choropleth.valuesByGeoid, choropleth.breaks, choropleth.colors);
+		map.setLegendFilter(selection.legendFilter, choropleth.valuesByGeoid);
 	});
-	let activeArea = $derived(
-		activeGeoid
-			? areas?.byId.get(activeGeoid) ?? { geoid: activeGeoid, name: activeName, level: explorer.geoLevel }
-			: null
-	);
 
-	// compare rows from pinned areas, valued for the current indicator/year
-	function rowFor(area) {
-		const years = valueFile?.years ?? [];
-		const yi = currentYearIndex;
-		let values;
-		if (area.level === 'county') values = aggregates?.[indicator?.id]?.countyAvg?.[area.geoid] ?? years.map(() => null);
-		else values = valueFile?.values?.[area.geoid] ?? years.map(() => null);
-		return { geoid: area.geoid, name: area.name, level: area.level, values, current: values?.[yi] ?? null };
-	}
-	let compareRows = $derived(
-		valueFile && indicator && valueFile.indicatorId === indicator.id ? pins.items.map(rowFor) : []
-	);
+	// BIVARIATE
+	$effect(() => {
+		if (!map || analysis.mode !== 'bivariate' || analysis.biA == null || analysis.biB == null || explorer.year == null)
+			return;
+		const a = analysis.biA;
+		const b = analysis.biB;
+		const yr = explorer.year;
+		const lvl = explorer.geoLevel;
+		let cancelled = false;
+		Promise.all([loadValueFile(a), loadValueFile(b)]).then(([fa, fb]) => {
+			if (cancelled || !map) return;
+			map.setGeoLevel(lvl);
+			const ca = terciles(valuesForYear(fa, yr));
+			const cb = terciles(valuesForYear(fb, yr));
+			map.setBivariateMode(ca, cb, BIVARIATE_MATRIX);
+		});
+		return () => (cancelled = true);
+	});
 
-	// reflect state to the URL (shareable deep links)
+	// LISA
+	$effect(() => {
+		if (!map || analysis.mode !== 'lisa' || analysis.lisaId == null || explorer.year == null) return;
+		const id = analysis.lisaId;
+		const yr = explorer.year;
+		const lvl = explorer.geoLevel;
+		const quads = analysis.lisaQuadrants.slice();
+		let cancelled = false;
+		loadLisa(id).then((file) => {
+			if (cancelled || !map) return;
+			map.setGeoLevel(lvl);
+			map.setLisaMode(quadForYear(file, yr), quads);
+		});
+		return () => (cancelled = true);
+	});
+
+	// selection + fly
+	$effect(() => {
+		if (map) map.setSelected(selection.selected);
+	});
+	$effect(() => {
+		if (map && flyBbox) map.flyToBbox(flyBbox);
+	});
+
+	// ---- URL sync ----
 	$effect(() => {
 		if (!browser || !booted || !indicator) return;
 		const params = stateToParams({
 			i: indicator.slug,
 			y: explorer.year,
-			geo: explorer.geoLevel
+			geo: explorer.geoLevel,
+			mode: analysis.mode,
+			biA: indicatorById(analysis.biA)?.slug,
+			biB: indicatorById(analysis.biB)?.slug,
+			lisa: indicatorById(analysis.lisaId)?.slug,
+			q: analysis.lisaQuadrants.map(String)
 		});
 		const qs = new URLSearchParams(params).toString();
 		replaceState(qs ? `?${qs}` : page.url.pathname, {});
 	});
 
+	// ---- derivations for panels ----
+	let selectedValue = $derived(
+		choropleth && selection.selected ? choropleth.valuesByGeoid[selection.selected] ?? null : null
+	);
+	let selectedName = $derived(selection.selected ? areaName(areas, selection.selected) : '');
+	let regionAvg = $derived(aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null);
+
+	let activeGeoid = $derived(selection.hover ?? selection.selected);
+	let activeName = $derived(activeGeoid ? areaName(areas, activeGeoid) : '');
+	let currentYearIndex = $derived(valueFile ? valueFile.years.indexOf(explorer.year) : -1);
+	let trend = $derived.by(() => {
+		if (!valueFile || !aggregates || !activeGeoid || valueFile.indicatorId !== indicator?.id) return null;
+		return seriesFor({ valueFile, aggregates, geoid: activeGeoid, level: explorer.geoLevel });
+	});
+	let activeArea = $derived(
+		activeGeoid ? areas?.byId.get(activeGeoid) ?? { geoid: activeGeoid, name: activeName, level: explorer.geoLevel } : null
+	);
+
+	function rowFor(area) {
+		const years = valueFile?.years ?? [];
+		let values;
+		if (area.level === 'county') values = aggregates?.[indicator?.id]?.countyAvg?.[area.geoid] ?? years.map(() => null);
+		else values = valueFile?.values?.[area.geoid] ?? years.map(() => null);
+		return { geoid: area.geoid, name: area.name, level: area.level, values, current: values?.[currentYearIndex] ?? null };
+	}
+	let compareRows = $derived(
+		valueFile && indicator && valueFile.indicatorId === indicator.id ? pins.items.map(rowFor) : []
+	);
+
+	// ---- handlers ----
 	function pickIndicatorId(id) {
 		setIndicator(id);
 		setSelected(null);
 	}
-
 	function onClassHover(range) {
 		if (!selection.legendSticky) setLegendFilter(range, false);
 	}
@@ -163,6 +222,14 @@
 		setSelected(area.geoid);
 		if (area.bbox) flyBbox = area.bbox.slice();
 	}
+	function changeMode(m) {
+		if (m === 'bivariate' && analysis.biA == null) {
+			const other = manifest.indicators.find((i) => i.id !== explorer.indicatorId);
+			setBivariate(explorer.indicatorId, other?.id ?? explorer.indicatorId);
+		}
+		if (m === 'lisa' && analysis.lisaId == null) setLisaIndicator(explorer.indicatorId);
+		setMode(m);
+	}
 </script>
 
 <svelte:head>
@@ -172,47 +239,64 @@
 <div class="explore">
 	<aside class="panel" aria-label="Map controls">
 		<div class="panel-section">
+			<AnalysisModeBar mode={analysis.mode} onChange={changeMode} />
+		</div>
+		<div class="panel-section">
 			<span class="field-label">Geographic level</span>
 			<GeoLevelToggle value={explorer.geoLevel} onChange={setGeoLevel} />
 		</div>
 
-		<div class="panel-section browser-section">
-			<span class="field-label">Indicator</span>
-			<IndicatorBrowser variant="panel" selectedId={explorer.indicatorId} onSelect={pickIndicatorId} />
-		</div>
+		{#if analysis.mode === 'explore'}
+			<div class="panel-section browser-section">
+				<span class="field-label">Indicator</span>
+				<IndicatorBrowser variant="panel" selectedId={explorer.indicatorId} onSelect={pickIndicatorId} />
+			</div>
 
-		{#if indicator}
-			<div class="panel-section about">
-				<button class="about-toggle" aria-expanded={showAbout} onclick={() => (showAbout = !showAbout)}>
-					<span>About this indicator</span>
-					<span class="chev" class:open={showAbout}>▸</span>
-				</button>
-				{#if showAbout}
-					<MetricInfoPanel {indicator} meta={metaText} compact />
-					<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page →</a>
-				{/if}
+			{#if indicator}
+				<div class="panel-section about">
+					<button class="about-toggle" aria-expanded={showAbout} onclick={() => (showAbout = !showAbout)}>
+						<span>About this indicator</span>
+						<span class="chev" class:open={showAbout}>▸</span>
+					</button>
+					{#if showAbout}
+						<MetricInfoPanel {indicator} meta={metaText} compact />
+						<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page →</a>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="panel-section">
+				<ComparePanel
+					rows={compareRows}
+					{indicator}
+					domain={choropleth ? { min: choropleth.stats.min, max: choropleth.stats.max } : { min: 0, max: 100 }}
+					onUnpin={unpin}
+				/>
+			</div>
+		{:else if analysis.mode === 'bivariate'}
+			<div class="panel-section">
+				<BivariatePanel
+					indicators={manifest.indicators}
+					biA={analysis.biA}
+					biB={analysis.biB}
+					onChange={setBivariate}
+				/>
+			</div>
+		{:else if analysis.mode === 'lisa'}
+			<div class="panel-section">
+				<LisaPanel
+					indicators={manifest.indicators}
+					lisaId={analysis.lisaId}
+					quadrants={analysis.lisaQuadrants}
+					onIndicator={setLisaIndicator}
+					onToggle={toggleQuadrant}
+				/>
 			</div>
 		{/if}
-
-		<div class="panel-section">
-			<ComparePanel
-				rows={compareRows}
-				{indicator}
-				domain={choropleth ? { min: choropleth.stats.min, max: choropleth.stats.max } : { min: 0, max: 100 }}
-				onUnpin={unpin}
-			/>
-		</div>
 	</aside>
 
 	<div class="map-wrap">
-		<MapView
-			geoLevel={explorer.geoLevel}
-			{choropleth}
-			legendFilter={selection.legendFilter}
-			selected={selection.selected}
-			{flyBbox}
-			{onSelect}
-		/>
+		<MapView onReady={(c) => (map = c)} onHover={(id) => (selection.hover = id ?? null)} {onSelect} />
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
@@ -238,7 +322,7 @@
 			</div>
 		{/if}
 
-		{#if classes.length}
+		{#if analysis.mode === 'explore' && classes.length}
 			<div class="legend-float no-print">
 				<Legend
 					{classes}
@@ -280,7 +364,7 @@
 	.explore {
 		flex: 1;
 		display: grid;
-		grid-template-columns: 20rem 1fr;
+		grid-template-columns: 21rem 1fr;
 		min-height: 0;
 	}
 	.panel {
@@ -290,7 +374,7 @@
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-5);
+		gap: var(--sp-4);
 	}
 	.panel-section {
 		display: flex;
@@ -306,7 +390,7 @@
 	}
 	.browser-section {
 		flex: 1;
-		min-height: 0;
+		min-height: 8rem;
 		overflow-y: auto;
 	}
 	.about-toggle {
@@ -340,7 +424,7 @@
 	.legend-float {
 		position: absolute;
 		left: var(--sp-4);
-		bottom: var(--sp-4);
+		bottom: var(--sp-6);
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-2);
@@ -361,13 +445,6 @@
 		gap: var(--sp-2);
 		margin-bottom: var(--sp-2);
 	}
-	.search-float {
-		position: absolute;
-		top: var(--sp-4);
-		left: var(--sp-4);
-		width: min(22rem, calc(100% - 2rem));
-		z-index: 20;
-	}
 	.trend-head strong {
 		display: block;
 		font-size: var(--t-sm);
@@ -375,6 +452,13 @@
 	.trend-sub {
 		font-size: var(--t-xs);
 		color: var(--c-text-3);
+	}
+	.search-float {
+		position: absolute;
+		top: var(--sp-4);
+		left: var(--sp-4);
+		width: min(22rem, calc(100% - 2rem));
+		z-index: 20;
 	}
 	.strip-card {
 		padding: var(--sp-3);
@@ -406,17 +490,13 @@
 		box-shadow: var(--shadow-md);
 		padding: var(--sp-2) var(--sp-4);
 	}
-	@media (max-width: 760px) {
+	@media (max-width: 820px) {
 		.explore {
 			grid-template-columns: 1fr;
 			grid-template-rows: auto 1fr;
 		}
 		.panel {
-			border-right: 0;
-			border-bottom: 1px solid var(--c-border);
-			flex-direction: row;
-			flex-wrap: wrap;
-			align-items: center;
+			max-height: 42vh;
 		}
 	}
 </style>

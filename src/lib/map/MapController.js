@@ -4,6 +4,28 @@
  * No imports from state slices — data flows in via method args, out via callbacks.
  */
 import { buildStepExpression, NO_DATA_COLOR } from './colorScale.js';
+import { buildBivariatePaint } from './bivariate.js';
+
+export const LISA_COLORS = {
+	0: '#e6e2db', // not significant
+	1: '#c2334d', // high-high
+	2: '#9ecae1', // low-high
+	3: '#2c7fb8', // low-low
+	4: '#f4a6a6' // high-low
+};
+
+function buildLisaPaint() {
+	return [
+		'match',
+		['coalesce', ['feature-state', 'q'], 0],
+		0, LISA_COLORS[0],
+		1, LISA_COLORS[1],
+		2, LISA_COLORS[2],
+		3, LISA_COLORS[3],
+		4, LISA_COLORS[4],
+		LISA_COLORS[0]
+	];
+}
 
 const CARTO = (variant) =>
 	['a', 'b', 'c'].map((s) => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{r}.png`);
@@ -190,6 +212,42 @@ export class MapController {
 		}
 		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildStepExpression(breaks, colors));
 		this.mode = 'explore';
+	}
+
+	/**
+	 * Bivariate mode: paint the 3×3 matrix from two tercile-class maps.
+	 * @param {Record<string,number|null>} classesA
+	 * @param {Record<string,number|null>} classesB
+	 * @param {string[][]} matrix
+	 */
+	setBivariateMode(classesA, classesB, matrix) {
+		if (!this.ready) return;
+		const level = this.geoLevel;
+		for (const id of this.ids[level]) {
+			const ca = classesA[id];
+			const cb = classesB[id];
+			const present = ca != null && cb != null;
+			this._setState(level, id, { za: ca ?? 0, zb: cb ?? 0, present, dim: false });
+		}
+		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildBivariatePaint(matrix));
+		this.mode = 'bivariate';
+	}
+
+	/**
+	 * Spatial-cluster (LISA) mode: color by quadrant, dim deselected quadrants.
+	 * @param {Record<string,number>} quadByGeoid quadrant 0..4
+	 * @param {number[]} activeQuadrants which quadrants to highlight (1..4)
+	 */
+	setLisaMode(quadByGeoid, activeQuadrants) {
+		if (!this.ready) return;
+		const level = this.geoLevel;
+		const active = new Set(activeQuadrants);
+		for (const id of this.ids[level]) {
+			const q = quadByGeoid[id] ?? 0;
+			this._setState(level, id, { q, present: true, dim: !active.has(q) });
+		}
+		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildLisaPaint());
+		this.mode = 'lisa';
 	}
 
 	/** Dim features whose value falls outside [min,max]; null clears. */

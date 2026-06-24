@@ -4,16 +4,7 @@
 	import { base } from '$app/paths';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
-	let {
-		geoLevel = 'tract',
-		choropleth = null, // { valuesByGeoid, breaks, colors }
-		legendFilter = null,
-		selected = null,
-		flyBbox = null,
-		onHover = () => {},
-		onSelect = () => {},
-		onReady = () => {}
-	} = $props();
+	let { onReady = () => {}, onHover = () => {}, onSelect = () => {} } = $props();
 
 	let container;
 	let controller = null;
@@ -48,28 +39,6 @@
 	// keep callbacks fresh (avoid stale closures in map handlers)
 	$effect(() => {
 		if (controller) controller.callbacks = { onHover: (...a) => onHover(...a), onSelect: (...a) => onSelect(...a) };
-	});
-
-	// geo level + choropleth together (ensures correct ordering)
-	$effect(() => {
-		if (!ready || !controller) return;
-		controller.setGeoLevel(geoLevel);
-		if (choropleth) {
-			controller.applyChoropleth(choropleth.valuesByGeoid, choropleth.breaks, choropleth.colors);
-			controller.setLegendFilter(legendFilter, choropleth.valuesByGeoid);
-		}
-	});
-
-	$effect(() => {
-		if (ready && controller && choropleth) controller.setLegendFilter(legendFilter, choropleth.valuesByGeoid);
-	});
-
-	$effect(() => {
-		if (ready && controller) controller.setSelected(selected);
-	});
-
-	$effect(() => {
-		if (ready && controller && flyBbox) controller.flyToBbox(flyBbox);
 	});
 </script>
 
