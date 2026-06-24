@@ -12,9 +12,13 @@
 	import IndicatorBrowser from '$lib/components/IndicatorBrowser.svelte';
 	import MetricInfoPanel from '$lib/components/MetricInfoPanel.svelte';
 	import TrendChart from '$lib/components/TrendChart.svelte';
+	import AreaSearch from '$lib/components/AreaSearch.svelte';
+	import ComparePanel from '$lib/components/ComparePanel.svelte';
+	import PinButton from '$lib/components/PinButton.svelte';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { seriesFor } from '$lib/data/series.js';
+	import { pins, unpin } from '$lib/state/pins.svelte.js';
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
@@ -28,6 +32,7 @@
 	let areas = $state(null);
 	let metaText = $state('');
 	let showAbout = $state(false);
+	let flyBbox = $state(null);
 	let booted = $state(false);
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
@@ -107,6 +112,24 @@
 		if (valueFile.indicatorId !== indicator?.id) return null;
 		return seriesFor({ valueFile, aggregates, geoid: activeGeoid, level: explorer.geoLevel });
 	});
+	let activeArea = $derived(
+		activeGeoid
+			? areas?.byId.get(activeGeoid) ?? { geoid: activeGeoid, name: activeName, level: explorer.geoLevel }
+			: null
+	);
+
+	// compare rows from pinned areas, valued for the current indicator/year
+	function rowFor(area) {
+		const years = valueFile?.years ?? [];
+		const yi = currentYearIndex;
+		let values;
+		if (area.level === 'county') values = aggregates?.[indicator?.id]?.countyAvg?.[area.geoid] ?? years.map(() => null);
+		else values = valueFile?.values?.[area.geoid] ?? years.map(() => null);
+		return { geoid: area.geoid, name: area.name, level: area.level, values, current: values?.[yi] ?? null };
+	}
+	let compareRows = $derived(
+		valueFile && indicator && valueFile.indicatorId === indicator.id ? pins.items.map(rowFor) : []
+	);
 
 	// reflect state to the URL (shareable deep links)
 	$effect(() => {
@@ -134,6 +157,11 @@
 	}
 	function onSelect(id) {
 		setSelected(selection.selected === id ? null : id);
+	}
+	function pickArea(area) {
+		setGeoLevel(area.level === 'county' ? 'county' : 'tract');
+		setSelected(area.geoid);
+		if (area.bbox) flyBbox = area.bbox.slice();
 	}
 </script>
 
@@ -165,6 +193,15 @@
 				{/if}
 			</div>
 		{/if}
+
+		<div class="panel-section">
+			<ComparePanel
+				rows={compareRows}
+				{indicator}
+				domain={choropleth ? { min: choropleth.stats.min, max: choropleth.stats.max } : { min: 0, max: 100 }}
+				onUnpin={unpin}
+			/>
+		</div>
 	</aside>
 
 	<div class="map-wrap">
@@ -173,8 +210,13 @@
 			{choropleth}
 			legendFilter={selection.legendFilter}
 			selected={selection.selected}
+			{flyBbox}
 			{onSelect}
 		/>
+
+		<div class="search-float no-print">
+			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
+		</div>
 
 		{#if trend && indicator}
 			<div class="trend-float card no-print">
@@ -183,6 +225,7 @@
 						<strong>{activeName}</strong>
 						<span class="trend-sub">{indicator.label}</span>
 					</div>
+					{#if activeArea}<PinButton area={activeArea} compact />{/if}
 				</div>
 				<TrendChart
 					years={trend.years}
@@ -312,7 +355,18 @@
 		padding: var(--sp-3) var(--sp-4);
 	}
 	.trend-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--sp-2);
 		margin-bottom: var(--sp-2);
+	}
+	.search-float {
+		position: absolute;
+		top: var(--sp-4);
+		left: var(--sp-4);
+		width: min(22rem, calc(100% - 2rem));
+		z-index: 20;
 	}
 	.trend-head strong {
 		display: block;
