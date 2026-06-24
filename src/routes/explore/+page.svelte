@@ -3,11 +3,15 @@
 	import { browser } from '$app/environment';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
 	import YearSlider from '$lib/components/YearSlider.svelte';
 	import Legend from '$lib/components/Legend.svelte';
 	import PercentileStrip from '$lib/components/PercentileStrip.svelte';
+	import IndicatorBrowser from '$lib/components/IndicatorBrowser.svelte';
+	import MetricInfoPanel from '$lib/components/MetricInfoPanel.svelte';
+	import { loadMeta } from '$lib/data/meta.js';
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
@@ -18,6 +22,8 @@
 
 	let valueFile = $state(null);
 	let aggregates = $state(null);
+	let metaText = $state('');
+	let showAbout = $state(false);
 	let booted = $state(false);
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
@@ -46,6 +52,16 @@
 			// snap year into available range
 			if (!file.years.includes(explorer.year)) setYear(file.years.at(-1));
 		});
+		return () => (cancelled = true);
+	});
+
+	// load metadata markdown when the indicator changes
+	$effect(() => {
+		const ind = indicator;
+		if (!ind) return;
+		metaText = '';
+		let cancelled = false;
+		loadMeta(ind.metaPath).then((t) => !cancelled && (metaText = t));
 		return () => (cancelled = true);
 	});
 
@@ -90,8 +106,8 @@
 		replaceState(qs ? `?${qs}` : page.url.pathname, {});
 	});
 
-	function pickIndicator(e) {
-		setIndicator(Number(e.target.value));
+	function pickIndicatorId(id) {
+		setIndicator(id);
 		setSelected(null);
 	}
 
@@ -114,27 +130,25 @@
 <div class="explore">
 	<aside class="panel" aria-label="Map controls">
 		<div class="panel-section">
-			<label class="field-label" for="indicator-select">Indicator</label>
-			<select id="indicator-select" value={explorer.indicatorId} onchange={pickIndicator}>
-				{#each manifest.categories as cat (cat.key)}
-					<optgroup label={cat.label}>
-						{#each manifest.indicators.filter((i) => i.category === cat.key) as ind (ind.id)}
-							<option value={ind.id}>{ind.label}</option>
-						{/each}
-					</optgroup>
-				{/each}
-			</select>
-		</div>
-
-		<div class="panel-section">
 			<span class="field-label">Geographic level</span>
 			<GeoLevelToggle value={explorer.geoLevel} onChange={setGeoLevel} />
 		</div>
 
+		<div class="panel-section browser-section">
+			<span class="field-label">Indicator</span>
+			<IndicatorBrowser variant="panel" selectedId={explorer.indicatorId} onSelect={pickIndicatorId} />
+		</div>
+
 		{#if indicator}
-			<div class="panel-section indicator-meta">
-				<h2>{indicator.label}</h2>
-				<p class="src">{indicator.source}</p>
+			<div class="panel-section about">
+				<button class="about-toggle" aria-expanded={showAbout} onclick={() => (showAbout = !showAbout)}>
+					<span>About this indicator</span>
+					<span class="chev" class:open={showAbout}>▸</span>
+				</button>
+				{#if showAbout}
+					<MetricInfoPanel {indicator} meta={metaText} compact />
+					<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page →</a>
+				{/if}
 			</div>
 		{/if}
 	</aside>
@@ -214,22 +228,34 @@
 		letter-spacing: 0.06em;
 		color: var(--c-text-3);
 	}
-	select {
+	.browser-section {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+	}
+	.about-toggle {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		width: 100%;
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid var(--c-border-strong);
-		border-radius: var(--r-md);
-		background: var(--c-surface);
-		font: inherit;
+		border: 0;
+		background: transparent;
+		padding: var(--sp-2) 0;
+		font-weight: 600;
+		font-size: var(--t-sm);
+		color: var(--c-text);
+		border-top: 1px solid var(--c-border);
 	}
-	.indicator-meta h2 {
-		font-size: var(--t-lg);
-		margin: 0;
+	.chev {
+		transition: transform 0.15s ease;
 	}
-	.indicator-meta .src {
-		font-size: var(--t-xs);
-		color: var(--c-text-3);
-		margin: 0;
+	.chev.open {
+		transform: rotate(90deg);
+	}
+	.full-link {
+		display: inline-block;
+		margin-top: var(--sp-2);
+		font-size: var(--t-sm);
 	}
 	.map-wrap {
 		position: relative;
