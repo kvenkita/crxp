@@ -11,7 +11,10 @@
 	import PercentileStrip from '$lib/components/PercentileStrip.svelte';
 	import IndicatorBrowser from '$lib/components/IndicatorBrowser.svelte';
 	import MetricInfoPanel from '$lib/components/MetricInfoPanel.svelte';
+	import TrendChart from '$lib/components/TrendChart.svelte';
 	import { loadMeta } from '$lib/data/meta.js';
+	import { loadAreas, areaName } from '$lib/data/areas.js';
+	import { seriesFor } from '$lib/data/series.js';
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
@@ -22,6 +25,7 @@
 
 	let valueFile = $state(null);
 	let aggregates = $state(null);
+	let areas = $state(null);
 	let metaText = $state('');
 	let showAbout = $state(false);
 	let booted = $state(false);
@@ -31,6 +35,7 @@
 	onMount(async () => {
 		await loadManifest();
 		loadAggregates().then((a) => (aggregates = a));
+		loadAreas().then((a) => (areas = a));
 		// hydrate from URL if present
 		const urlState = paramsToState(page.url.searchParams);
 		const fromUrl = urlState.i ? indicatorBySlug(urlState.i) : null;
@@ -86,13 +91,22 @@
 	let selectedValue = $derived(
 		choropleth && selection.selected ? choropleth.valuesByGeoid[selection.selected] ?? null : null
 	);
-	let selectedName = $derived.by(() => {
-		if (!selection.selected) return '';
-		return valueFile?.values[selection.selected] ? selection.selected : selection.selected;
-	});
+	let selectedName = $derived(
+		selection.selected ? areaName(areas, selection.selected) : ''
+	);
 	let regionAvg = $derived(
 		aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null
 	);
+
+	// trend: hovered tract takes priority, else the selected one
+	let activeGeoid = $derived(selection.hover ?? selection.selected);
+	let activeName = $derived(activeGeoid ? areaName(areas, activeGeoid) : '');
+	let currentYearIndex = $derived(valueFile ? valueFile.years.indexOf(explorer.year) : -1);
+	let trend = $derived.by(() => {
+		if (!valueFile || !aggregates || !activeGeoid) return null;
+		if (valueFile.indicatorId !== indicator?.id) return null;
+		return seriesFor({ valueFile, aggregates, geoid: activeGeoid, level: explorer.geoLevel });
+	});
 
 	// reflect state to the URL (shareable deep links)
 	$effect(() => {
@@ -161,6 +175,25 @@
 			selected={selection.selected}
 			{onSelect}
 		/>
+
+		{#if trend && indicator}
+			<div class="trend-float card no-print">
+				<div class="trend-head">
+					<div>
+						<strong>{activeName}</strong>
+						<span class="trend-sub">{indicator.label}</span>
+					</div>
+				</div>
+				<TrendChart
+					years={trend.years}
+					series={trend.series}
+					{currentYearIndex}
+					format={indicator.format}
+					decimals={indicator.decimals ?? 1}
+					animKey={activeGeoid}
+				/>
+			</div>
+		{/if}
 
 		{#if classes.length}
 			<div class="legend-float no-print">
@@ -269,6 +302,25 @@
 		flex-direction: column;
 		gap: var(--sp-2);
 		max-width: 14rem;
+	}
+	.trend-float {
+		position: absolute;
+		top: var(--sp-4);
+		right: var(--sp-4);
+		width: 20rem;
+		max-width: calc(100% - 2rem);
+		padding: var(--sp-3) var(--sp-4);
+	}
+	.trend-head {
+		margin-bottom: var(--sp-2);
+	}
+	.trend-head strong {
+		display: block;
+		font-size: var(--t-sm);
+	}
+	.trend-sub {
+		font-size: var(--t-xs);
+		color: var(--c-text-3);
 	}
 	.strip-card {
 		padding: var(--sp-3);

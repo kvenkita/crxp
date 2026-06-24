@@ -56,7 +56,7 @@ export class MapController {
 			maxZoom: 14,
 			attributionControl: { compact: true }
 		});
-		this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right');
+		this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-left');
 
 		await new Promise((resolve) => this.map.on('load', resolve));
 		await this._loadData();
