@@ -58,7 +58,14 @@
 	.app-shell {
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
+		height: 100dvh;
+	}
+	.site-main {
+		overflow-y: auto;
+	}
+	.site-header,
+	.site-footer {
+		flex-shrink: 0;
 	}
 	.site-header {
 		position: sticky;

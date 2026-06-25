@@ -21,14 +21,13 @@
 	}
 	let groups = $derived(grouped(results));
 
-	let collapsed = $state(new Set());
+	// accordion: at most one theme open at a time; all collapsed by default
+	let expandedKey = $state(null);
 	let searching = $derived(query.trim().length > 0);
 	function toggleCat(key) {
-		const next = new Set(collapsed);
-		next.has(key) ? next.delete(key) : next.add(key);
-		collapsed = next;
+		expandedKey = expandedKey === key ? null : key;
 	}
-	const isOpen = (key) => searching || !collapsed.has(key);
+	const isOpen = (key) => searching || expandedKey === key;
 </script>
 
 <div class="browser" class:grid={variant === 'grid'}>

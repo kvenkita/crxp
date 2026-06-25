@@ -461,7 +461,7 @@
 		border-right: 1px solid var(--c-border);
 		background: var(--c-surface);
 		padding: var(--sp-4);
-		overflow-y: auto;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-4);
