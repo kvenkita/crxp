@@ -1,0 +1,267 @@
+---
+title: "Carolinas Regional Explorer — Application Technical Documentation"
+subtitle: "Architecture, components, and maintenance guide (internal)"
+date: last-modified
+author: "CRXP team"
+toc: true
+toc-depth: 3
+toc-location: left
+number-sections: true
+format:
+  html:
+    theme: cosmo
+    code-copy: true
+    embed-resources: true
+    mermaid:
+      theme: neutral
+---
+
+::: callout-note
+**Living document.** This describes the CRXP web application (`crxp/`). Update it whenever the
+architecture, components, routes, build, or data contract change. Companion documents:
+*Data Pipeline Technical Documentation* and *Methodology Guide* (both in `crxp-data/docs/`).
+:::
+
+# Overview
+
+The **Carolinas Regional Explorer (CRXP)** is a community-data web application for the 14-county
+Charlotte region (11 NC + 3 SC counties, ~752 Census tracts, 2020 vintage). It presents tract- and
+county-level indicators as interactive choropleth maps with trend charts, bivariate analysis, and
+spatial-cluster (LISA) analysis, plus indicator metadata, county/city profiles, and printable reports.
+
+The app is a **static site**: all data is precomputed by the data pipeline (`crxp-data/`) into a
+documented JSON **data contract** under `static/data/`, and the app is prerendered to static HTML +
+assets. There is no runtime backend or database.
+
+## Tech stack
+
+| Concern | Choice |
+|---|---|
+| Framework | **SvelteKit** with **Svelte 5 runes** (`$state`, `$derived`, `$effect`, `$props`) |
+| Mapping | **MapLibre GL JS** (vector tiles + GeoJSON sources, feature-state value join) |
+| Build / dev | **Vite**; **`@sveltejs/adapter-static`** (full prerender) |
+| Search | **Fuse.js** (fuzzy area search) |
+| Charts | Hand-rolled inline **SVG** (no chart library) |
+| Hosting | **Netlify** (static) |
+| Tests | **Vitest** (unit tests co-located as `*.test.js`) |
+
+# High-level architecture
+
+```{mermaid}
+flowchart TB
+  subgraph Pipeline["crxp-data pipeline (separate repo)"]
+    PL[Ingest → calc → spatial → warehouse] --> EXP[Export / handoff]
+  end
+  EXP -->|writes| DC[("static/data/ — data contract\nmanifest, values, analytics,\naggregates, areas, meta, geo")]
+
+  subgraph App["crxp SvelteKit app"]
+    DC -->|fetch at runtime| DL[lib/data/* loaders]
+    DL --> ST[lib/state/* rune stores]
+    ST -->|$effect| MC[lib/map/MapController.js]
+    MC --> ML[(MapLibre GL map)]
+    ST --> UI[lib/components/* + routes/*]
+    UI --> ML
+  end
+
+  BD[scripts/build-data.mjs] -.validates.-> DC
+  App -->|adapter-static prerender| OUT[/build/ static site/]
+  OUT --> NF[Netlify]
+```
+
+**Key principle — separation of geometry and values.** GeoJSON layers carry only `geoid`; indicator
+values are joined at render time via MapLibre **feature-state**. This keeps geometry files small and
+lets the app swap indicators/years without reloading geometry.
+
+**Key principle — no god service.** All imperative MapLibre calls live in one controller
+(`MapController.js`). UI state lives in small **rune store slices**. The `/explore` page composes them:
+state changes flow through `$effect` into the controller, which mutates the map.
+
+# Repository structure
+
+```
+crxp/
+├─ src/
+│  ├─ lib/
+│  │  ├─ components/     # Svelte UI components (map, legends, panels, charts)
+│  │  ├─ data/          # data-contract loaders + pure transforms
+│  │  ├─ state/         # Svelte 5 rune stores (*.svelte.js)
+│  │  ├─ map/           # MapController + color/bivariate/lisa helpers
+│  │  ├─ analytics/     # spatial.js (z, breaks, LISA) — mirror of the pipeline's Python
+│  │  ├─ geo/           # point-in-polygon + geo helpers
+│  │  ├─ search/        # Fuse-based area index
+│  │  └─ util/          # url state, markdown, formatting, pins
+│  ├─ routes/           # SvelteKit pages (file-based routing)
+│  └─ app.css           # global tokens + styles
+├─ static/
+│  └─ data/             # THE DATA CONTRACT (produced by crxp-data)
+├─ scripts/             # build-data.mjs (validator) + legacy generators
+├─ docs/                # this documentation + specs/plans
+├─ svelte.config.js · vite.config.js · netlify.toml
+```
+
+# The data contract (`static/data/`)
+
+The app consumes a fixed set of JSON files. The pipeline is the **producer**; the app is the
+**consumer**. See the *Data Pipeline Technical Documentation* for how these are generated.
+
+| File | Purpose | Loaded by |
+|---|---|---|
+| `manifest.json` | Single source of truth: `categories[]` (themes) + `indicators[]` (id, slug, label, description, category, format, decimals, higherIsBetter, years, geoLevels, source, vintage, metaPath, hasZ, hasLisa) | `state/manifest.svelte.js` |
+| `geo/tracts.geojson`, `geo/counties.geojson` | Geometry keyed by `geoid` only | `MapController` |
+| `values/<id>.json` | Per-indicator `years`, `values{geoid:[…]}`, **`moe`/`cv`/`reliability`{geoid:[…]}**, shared `breaks`, `domain`, per-year `stats` | `data/values.js` |
+| `analytics/z/<id>.json` | Per-year z-scores | `data/analytics.js` |
+| `analytics/lisa/<id>.json` | Per-year LISA quadrants | `data/analytics.js` |
+| `aggregates.json` | County + region averages per indicator/year (+ breaks/domain) | `data/aggregates.js` |
+| `areas/{tracts,counties,places}.json` | Names/labels for search + profiles | `data/areas.js`, `search/areaIndex.js` |
+| `meta/m<id>.md` | Per-indicator markdown methodology shown in the info panel | `data/meta.js` |
+
+The contract is validated by **`scripts/build-data.mjs`** (`npm run build:data`) — it checks each value
+file's internal consistency (years vs value array lengths, per-year stats with breaks/min/max/p1/p99)
+and that all geoids exist in the area manifest. The full app build runs this first.
+
+::: callout-tip
+**MOE in the contract.** `values/<id>.json` carries per-tract `moe`/`cv`/`reliability` arrays. The app
+surfaces these in the trend chart (error band + reliability badge). Indicators without MOE (e.g. the
+legacy *private school* indicator) simply omit them, and the UI degrades gracefully.
+:::
+
+# State management (rune stores)
+
+Each store is a `*.svelte.js` module exporting a `$state` object plus mutator functions.
+
+| Store | Responsibility |
+|---|---|
+| `manifest.svelte.js` | Loads `manifest.json` once; exposes categories + indicators; lookup by id/slug |
+| `explorer.svelte.js` | Current indicator, year, geo level (`tract`/`county`); setters |
+| `selection.svelte.js` | Hovered geoid, multi-select `selectedIds[]`, legend class filter |
+| `analysis.svelte.js` | Analysis mode (`explore` / `bivariate` / `cluster`) + mode params |
+| `pins.svelte.js` | Pinned areas for comparison |
+
+URL state (indicator, year, geo, mode, selection, pins) is serialized/restored via `util/url.js` so
+views are deep-linkable.
+
+# Map layer
+
+`lib/map/MapController.js` is the **only** module that talks to MapLibre imperatively. It:
+
+- builds the map, tract/county fill + line layers, and basemap/overlay handling;
+- joins values via **feature-state** (`setFeatureState` per geoid) rather than re-styling per feature;
+- applies a **step color expression** built from the indicator's shared breaks and the theme color
+  ramp (`map/colorScale.js → themeRamp`, `buildStepExpression`, `legendClasses`);
+- supports legend-class **filtering/dimming**, hover, multi-select, and boundary highlight;
+- swaps into bivariate (3×3, `map/bivariate.js`) and LISA (`map/lisaColors.js`) styling for the
+  analysis modes.
+
+`colorScale.js` also provides `formatValue(value, format, decimals)` used across charts/legends
+(`number`, `percent`, `dollar`, `years`, etc.).
+
+# Components
+
+```{mermaid}
+flowchart LR
+  EX[/explore page/] --> MV[MapView]
+  EX --> AMB[AnalysisModeBar]
+  EX --> IB[IndicatorBrowser]
+  EX --> YS[YearSlider]
+  EX --> GLT[GeoLevelToggle]
+  EX --> LG[Legend / LisaLegend / BivariateLegend]
+  EX --> TC[TrendChart]
+  EX --> AS[AreaSearch]
+  EX --> CP[ComparePanel]
+  EX --> MS[MapSettings]
+  EX --> BP[BivariatePanel / LisaPanel]
+```
+
+| Component | Role |
+|---|---|
+| `MapView` | Hosts the map element; delegates to `MapController` |
+| `AnalysisModeBar` | Always-visible switch between Explore / Bivariate / Spatial clusters |
+| `IndicatorBrowser` | Theme accordion (collapsed by default) + indicator search; selects the active indicator |
+| `YearSlider` | Scrubs the active year (per-indicator `years`) |
+| `GeoLevelToggle` | Tract vs county view |
+| `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
+| `TrendChart` | Area vs county vs region SVG trend; **MOE error band, ±MOE readout, reliability badge** for the selected tract |
+| `AreaSearch` | Fuse-based search across tracts/counties/places |
+| `ComparePanel` / `PinButton` | Pin/compare areas |
+| `MapSettings` | Basemap choice, transparency, overlay toggle |
+| `MapSnapshot` | Export current map view (reports) |
+| `MetricInfoPanel` / `MarkdownBlock` | Render `meta/m<id>.md` |
+| `ProfileHero`, `MetricCardGrid`, `PercentileStrip`, `Sparkline`, `DumbbellChart` | County/city profile + report visuals |
+| `Seo`, `ShareButtons` | Metadata + sharing |
+
+# Analysis modes
+
+- **Explore** — single-indicator choropleth with shared cross-year breaks (so color = value is stable
+  across years), legend filtering, hover/selection, trend chart.
+- **Bivariate** — two indicators on a 3×3 tercile grid; hovering a grid cell filters matching tracts.
+- **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
+  not significant) from `analytics/lisa/<id>.json`.
+
+The z-scores and LISA are **precomputed by the pipeline**; `lib/analytics/spatial.js` mirrors the
+pipeline's Python so on-the-fly analytics (e.g. bivariate terciles) stay consistent.
+
+# Routing & pages
+
+File-based routes under `src/routes/`:
+
+| Route | Description | Prerender |
+|---|---|---|
+| `/` | Landing page | yes |
+| `/explore` | Main map explorer (deep-linkable via query state) | yes |
+| `/indicators`, `/indicators/[slug]` | Indicator browser + per-indicator metadata pages | yes (one per indicator) |
+| `/county/[fips]` | County profile pages with OG cards | yes (one per county) |
+| `/report` | Custom multi-tract printable report | yes |
+| `/data`, `/methods`, `/about` | Reference pages (Methods explains MOE/reliability + rolling 5-yr) | yes |
+
+All pages are prerendered by adapter-static; `/indicators/[slug]` and `/county/[fips]` enumerate their
+entries from the manifest/areas at build time.
+
+# Build, dev & deploy
+
+```bash
+npm install
+npm run dev          # local dev server (Vite)
+npm run build:data   # validate the data contract only (fast gate)
+npm run build        # build:data + Vite build (prerender) → build/
+npm run build:full   # build + OG cards + sitemap + tests
+npm run preview      # serve the production build locally
+npm test             # vitest
+```
+
+- **Deploy:** Netlify serves `build/`. `netlify.toml` sets `Cache-Control` on `/data/*`
+  (currently ~1 hour) — note this means updated data can take up to that long to appear on the live
+  site after a deploy.
+- **Adapter:** `adapter-static` with full prerender; the app must remain prerenderable (no
+  server-only endpoints).
+
+# Updating the DATA shown in the app
+
+Data is produced by the pipeline and handed off; the app itself rarely changes when indicators change.
+
+1. In `crxp-data`, run the pipeline for the indicator(s) **with `--handoff`** — this writes/merges the
+   value, analytics, meta, **manifest**, and **aggregates** files into `crxp/static/data/`.
+2. Run `npm run build:data` (or `node scripts/build-data.mjs`) to validate the contract.
+3. Run `npm run build`, review locally with `npm run preview`, then deploy.
+
+Adding a brand-new indicator requires **no app code change** — the manifest entry written by the
+pipeline makes it appear in the relevant theme automatically (themes are fixed in the manifest
+`categories`). See the *Data Pipeline Technical Documentation* → "Add a new indicator".
+
+# Conventions for maintainers
+
+- **Svelte 5 runes** throughout; prefer `$derived` over manual effects; keep effects in the page that
+  composes stores, not deep in components.
+- **One controller** for the map (`MapController.js`); components never call MapLibre directly.
+- **Geometry is value-free**; never bake values into GeoJSON — join via feature-state.
+- **Pure transforms** in `lib/data/*` (e.g. `series.js`) are unit-tested; keep them side-effect free.
+- Match existing file size/responsibility boundaries; co-locate `*.test.js`.
+- When you add a feature that consumes a new contract field, update `build-data.mjs` validation and
+  this document.
+
+# Testing
+
+- **Unit:** Vitest over pure modules (`series.js`, `spatial.js`, `colorScale.js`, `bivariate.js`,
+  `contract.js`, neighborhoods, search, url, pins, geo).
+- **Contract:** `scripts/build-data.mjs` is the integration gate for the data contract.
+- **Visual/e2e:** manual + Playwright spot-checks during data updates (verify a refreshed indicator
+  renders and shows the expected year/MOE).

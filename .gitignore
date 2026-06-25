@@ -15,6 +15,11 @@ node_modules
 # Test/inspection artifacts
 /.playwright-mcp
 
+# Quarto rendered docs (source .qmd is committed; render with `quarto render`)
+docs/*.html
+docs/.quarto/
+docs/*_files/
+
 # OS
 .DS_Store
 Thumbs.db
