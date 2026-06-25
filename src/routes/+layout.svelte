@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 
 	let { children } = $props();
 
@@ -22,11 +23,8 @@
 	<header class="site-header no-print">
 		<div class="header-inner">
 			<a class="brand" href="/">
-				<span class="brand-mark" aria-hidden="true">CR</span>
-				<span class="brand-text">
-					<strong>Carolinas Regional Explorer</strong>
-					<small>Charlotte 14-county region</small>
-				</span>
+				<img class="brand-logo" src="{base}/uncc-logo.png" alt="UNC Charlotte" />
+				<span class="brand-title">Carolinas Regional Explorer</span>
 			</a>
 			<nav class="site-nav" aria-label="Primary">
 				{#each nav as item (item.href)}
@@ -88,48 +86,36 @@
 	.brand {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-3);
+		gap: var(--sp-4);
 		color: var(--c-text);
 	}
 	.brand:hover {
 		text-decoration: none;
 	}
-	.brand-mark {
-		display: grid;
-		place-items: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: var(--r-md);
-		background: var(--c-teal);
-		color: var(--c-text-inv);
+	.brand-logo {
+		height: 2.25rem;
+		width: auto;
+		display: block;
+	}
+	.brand-title {
 		font-family: var(--font-display);
 		font-weight: 700;
-		font-size: var(--t-sm);
-	}
-	.brand-text {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.05;
-	}
-	.brand-text strong {
-		font-family: var(--font-display);
-		font-size: var(--t-base);
-	}
-	.brand-text small {
-		color: var(--c-text-3);
-		font-size: var(--t-xs);
+		font-size: var(--t-xl);
+		letter-spacing: -0.01em;
+		border-left: 1px solid var(--c-border-strong);
+		padding-left: var(--sp-4);
 	}
 	.site-nav {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-1);
+		gap: var(--sp-2);
 	}
 	.nav-link {
 		color: var(--c-text-2);
-		padding: var(--sp-2) var(--sp-3);
+		padding: var(--sp-2) var(--sp-4);
 		border-radius: var(--r-pill);
-		font-weight: 500;
-		font-size: var(--t-sm);
+		font-weight: 600;
+		font-size: var(--t-lg);
 	}
 	.nav-link:hover {
 		background: var(--c-surface-2);
@@ -163,15 +149,19 @@
 		margin: 0;
 		max-width: 70ch;
 	}
-	@media (max-width: 640px) {
-		.brand-text small {
+	@media (max-width: 760px) {
+		.brand-title {
 			display: none;
+		}
+		.brand-logo {
+			height: 1.9rem;
 		}
 		.site-nav {
 			gap: 0;
 		}
 		.nav-link {
-			padding: var(--sp-2);
+			padding: var(--sp-1) var(--sp-2);
+			font-size: var(--t-base);
 		}
 	}
 </style>
