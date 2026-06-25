@@ -49,6 +49,9 @@
 	let overlayOpacity = $state(0.82);
 	let overlayOn = $state(true);
 
+	// hovered bivariate matrix cell {a,b} (filters the map)
+	let bivarCell = $state(null);
+
 	let indicator = $derived(indicatorById(explorer.indicatorId));
 	let accent = $derived(
 		(indicator && manifest.categories.find((c) => c.key === indicator.category)?.color) || '#1f6f63'
@@ -155,8 +158,14 @@
 			const ca = terciles(valuesForYear(fa, yr));
 			const cb = terciles(valuesForYear(fb, yr));
 			map.setBivariateMode(ca, cb, BIVARIATE_MATRIX);
+			map.setBivariateFilter(bivarCell?.a ?? null, bivarCell?.b ?? null);
 		});
 		return () => (cancelled = true);
+	});
+
+	// hovering a bivariate color block filters the map to that class combination
+	$effect(() => {
+		if (map && analysis.mode === 'bivariate') map.setBivariateFilter(bivarCell?.a ?? null, bivarCell?.b ?? null);
 	});
 
 	// LISA (indicator = primary indicator)
@@ -278,7 +287,11 @@
 			const other = manifest.indicators.find((i) => i.id !== explorer.indicatorId);
 			setBivariateB(other?.id ?? explorer.indicatorId);
 		}
+		bivarCell = null;
 		setMode(m);
+	}
+	function onBivarCell(a, b) {
+		bivarCell = a == null ? null : { a, b };
 	}
 </script>
 
@@ -320,8 +333,10 @@
 					indicators={manifest.indicators}
 					biA={explorer.indicatorId}
 					biB={analysis.biB}
+					activeCell={bivarCell}
 					onChangeA={pickIndicatorId}
 					onChangeB={setBivariateB}
+					onCellHover={onBivarCell}
 				/>
 			</div>
 		{:else if analysis.mode === 'lisa'}

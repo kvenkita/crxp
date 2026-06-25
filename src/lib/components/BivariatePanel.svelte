@@ -1,6 +1,14 @@
 <script>
 	import BivariateLegend from './BivariateLegend.svelte';
-	let { indicators = [], biA = null, biB = null, onChangeA = () => {}, onChangeB = () => {} } = $props();
+	let {
+		indicators = [],
+		biA = null,
+		biB = null,
+		activeCell = null,
+		onChangeA = () => {},
+		onChangeB = () => {},
+		onCellHover = () => {}
+	} = $props();
 
 	let labelA = $derived(indicators.find((i) => i.id === biA)?.label ?? 'Variable A');
 	let labelB = $derived(indicators.find((i) => i.id === biB)?.label ?? 'Variable B');
@@ -28,9 +36,9 @@
 	</label>
 
 	<div class="legend-row">
-		<BivariateLegend {labelA} {labelB} />
+		<BivariateLegend {labelA} {labelB} active={activeCell} {onCellHover} />
 	</div>
-	<p class="hint">Darker = high on both. Each axis is split into thirds (low / middle / high).</p>
+	<p class="hint">Darker = high on both. Each axis is split into thirds (low / middle / high). Hover a color block to highlight matching tracts.</p>
 </div>
 
 <style>

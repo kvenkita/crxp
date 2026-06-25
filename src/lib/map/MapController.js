@@ -353,6 +353,7 @@ export class MapController {
 	setBivariateMode(classesA, classesB, matrix) {
 		if (!this.ready) return;
 		const level = this.geoLevel;
+		this._bivar = { classesA, classesB, level };
 		for (const id of this.ids[level]) {
 			const ca = classesA[id];
 			const cb = classesB[id];
@@ -361,6 +362,20 @@ export class MapController {
 		}
 		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildBivariatePaint(matrix));
 		this.mode = 'bivariate';
+	}
+
+	/**
+	 * Dim all tracts except those matching a 3×3 cell (class a of var A, class b of var B).
+	 * Pass (null) to clear.
+	 */
+	setBivariateFilter(a, b) {
+		if (!this.ready || !this._bivar) return;
+		const { classesA, classesB, level } = this._bivar;
+		const filtering = a != null && b != null;
+		for (const id of this.ids[level]) {
+			const dim = filtering && !(classesA[id] === a && classesB[id] === b);
+			this._setState(level, id, { dim });
+		}
 	}
 
 	/**
