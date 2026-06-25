@@ -273,6 +273,13 @@
 			addTract(area.geoid);
 			map?.clearBoundary?.();
 			if (area.bbox) flyBbox = area.bbox.slice();
+		} else if (area.level === 'neighborhood') {
+			// select the tract(s) this neighborhood labels, and zoom to them
+			setGeoLevel('tract');
+			clearTracts();
+			for (const g of area.tractGeoids ?? []) addTract(g);
+			map?.clearBoundary?.();
+			if (area.bbox) flyBbox = area.bbox.slice();
 		} else {
 			// county or city: outline the boundary and zoom in, keeping tracts visible beneath
 			setGeoLevel('tract');

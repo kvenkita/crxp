@@ -10,7 +10,7 @@
 	let index = $derived(buildAreaIndex(areas));
 	let results = $derived(searchAreas(index, query));
 
-	const LEVEL_LABEL = { tract: 'Tract', place: 'City', county: 'County' };
+	const LEVEL_LABEL = { tract: 'Tract', place: 'City', county: 'County', neighborhood: 'Neighborhood' };
 
 	function choose(area) {
 		onPick(area);

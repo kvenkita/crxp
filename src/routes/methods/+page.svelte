@@ -53,6 +53,19 @@
 		reconciled in the Phase 2 data pipeline.
 	</p>
 
+	<h2>Neighborhood names</h2>
+	<p>
+		To help residents orient themselves, each tract is labeled with one or more nearby
+		<strong>named neighborhoods</strong>. Neighborhood names and locations come from
+		<a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>,
+		which records them as points. We approximate each neighborhood's extent with a Voronoi area
+		(every location is assigned to its nearest neighborhood) and label each tract with the
+		neighborhood(s) covering the largest share of its area. Tracts with no nearby named neighborhood
+		fall back to their city or county. These labels are <strong>approximate and for orientation only</strong>;
+		neighborhood boundaries are informal and contested. Neighborhood names ©
+		<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).
+	</p>
+
 	<h2>Margins of error</h2>
 	<p>
 		ACS figures are survey estimates and carry margins of error that are larger for small

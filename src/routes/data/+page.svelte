@@ -24,6 +24,7 @@
 			<li><a href="{base}/data/manifest.json">manifest.json</a> — indicator catalog &amp; config</li>
 			<li><a href="{base}/data/geo/tracts.geojson">geo/tracts.geojson</a> — tract boundaries</li>
 			<li><a href="{base}/data/aggregates.json">aggregates.json</a> — county &amp; region averages</li>
+			<li><a href="{base}/data/areas/neighborhoods.json">areas/neighborhoods.json</a> — named neighborhoods (© OpenStreetMap, ODbL)</li>
 			<li><code>data/values/&lt;id&gt;.json</code> — per-indicator values, breaks &amp; stats by year</li>
 			<li><code>data/analytics/z/&lt;id&gt;.json</code>, <code>data/analytics/lisa/&lt;id&gt;.json</code> — bivariate z-scores &amp; LISA clusters</li>
 			<li><code>data/meta/m&lt;id&gt;.md</code> — indicator metadata</li>
