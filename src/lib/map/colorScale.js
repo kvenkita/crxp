@@ -13,6 +13,25 @@ import {
 	interpolateYlOrRd,
 	interpolatePuBuGn
 } from 'd3-scale-chromatic';
+import { interpolateLab } from 'd3-interpolate';
+import { rgb } from 'd3-color';
+
+/**
+ * Sequential single-hue ramp (light → dark) derived from a base theme color,
+ * so every indicator in a theme shares its color. @param {string} baseHex @param {number} n
+ * @returns {string[]}
+ */
+export function themeRamp(baseHex, n) {
+	const base = rgb(baseHex || '#1f6f63');
+	const mix = (a, b, t) => a + (b - a) * t;
+	const light = rgb(mix(base.r, 255, 0.86), mix(base.g, 255, 0.86), mix(base.b, 255, 0.86)).formatHex();
+	const dark = rgb(mix(base.r, 0, 0.32), mix(base.g, 0, 0.32), mix(base.b, 0, 0.32)).formatHex();
+	if (n <= 1) return [base.formatHex()];
+	const interp = interpolateLab(light, dark);
+	const out = [];
+	for (let i = 0; i < n; i++) out.push(rgb(interp(i / (n - 1))).formatHex());
+	return out;
+}
 
 const SCHEMES = {
 	BuPu: interpolateBuPu,

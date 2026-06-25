@@ -14,8 +14,6 @@
 	import MetricInfoPanel from '$lib/components/MetricInfoPanel.svelte';
 	import TrendChart from '$lib/components/TrendChart.svelte';
 	import AreaSearch from '$lib/components/AreaSearch.svelte';
-	import ComparePanel from '$lib/components/ComparePanel.svelte';
-	import PinButton from '$lib/components/PinButton.svelte';
 	import AnalysisModeBar from '$lib/components/AnalysisModeBar.svelte';
 	import MapSettings from '$lib/components/MapSettings.svelte';
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
@@ -25,12 +23,10 @@
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
-	import { pins, unpin } from '$lib/state/pins.svelte.js';
 
 	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
-	import { summarize } from '$lib/analytics/spatial.js';
-	import { schemeColors } from '$lib/map/colorScale.js';
+	import { themeRamp } from '$lib/map/colorScale.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
@@ -55,7 +51,7 @@
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
 	let accent = $derived(
-		(indicator && manifest.categories.find((c) => c.key === indicator.category)?.color) || 'var(--c-teal)'
+		(indicator && manifest.categories.find((c) => c.key === indicator.category)?.color) || '#1f6f63'
 	);
 	let aboutEl = $state(null);
 
@@ -113,12 +109,13 @@
 			if (yi < 0) return null;
 			const valuesByGeoid = {};
 			for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
-			const stats = summarize(Object.values(valuesByGeoid), 5);
-			const colors = schemeColors(indicator.colorScheme || 'YlGnBu', stats.breaks.length + 1);
-			return { valuesByGeoid, breaks: stats.breaks, colors, stats };
+			const breaks = agg.breaks ?? [];
+			const colors = themeRamp(accent, breaks.length + 1);
+			const stats = { min: agg.domain?.min ?? 0, max: agg.domain?.max ?? 0, breaks };
+			return { valuesByGeoid, breaks, colors, stats };
 		}
 		if (!valueFile || valueFile.indicatorId !== indicator.id) return null;
-		const { breaks, colors, stats } = breaksAndColors(valueFile, explorer.year, indicator);
+		const { breaks, colors, stats } = breaksAndColors(valueFile, accent);
 		return { valuesByGeoid: valuesForYear(valueFile, explorer.year), breaks, colors, stats };
 	});
 
@@ -239,22 +236,6 @@
 		return '';
 	});
 	let animKey = $derived(selection.hover ?? selection.selectedIds.join(','));
-	let singleArea = $derived.by(() => {
-		const g = selection.hover ?? (selection.selectedIds.length === 1 ? selection.selectedIds[0] : null);
-		if (!g) return null;
-		return areas?.byId.get(g) ?? { geoid: g, name: areaName(areas, g), level: explorer.geoLevel };
-	});
-
-	function rowFor(area) {
-		const years = valueFile?.years ?? [];
-		let values;
-		if (area.level === 'county') values = aggregates?.[indicator?.id]?.countyAvg?.[area.geoid] ?? years.map(() => null);
-		else values = valueFile?.values?.[area.geoid] ?? years.map(() => null);
-		return { geoid: area.geoid, name: area.name, level: area.level, values, current: values?.[currentYearIndex] ?? null };
-	}
-	let compareRows = $derived(
-		valueFile && indicator && valueFile.indicatorId === indicator.id ? pins.items.map(rowFor) : []
-	);
 
 	// ---- handlers ----
 	function pickIndicatorId(id) {
@@ -333,15 +314,6 @@
 					{/if}
 				</div>
 			{/if}
-
-			<div class="panel-section">
-				<ComparePanel
-					rows={compareRows}
-					{indicator}
-					domain={choropleth ? { min: choropleth.stats.min, max: choropleth.stats.max } : { min: 0, max: 100 }}
-					onUnpin={unpin}
-				/>
-			</div>
 		{:else if analysis.mode === 'bivariate'}
 			<div class="panel-section">
 				<BivariatePanel
@@ -390,7 +362,6 @@
 						<strong>{trendName}</strong>
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
-					{#if singleArea}<PinButton area={singleArea} compact />{/if}
 				</div>
 				<TrendChart
 					years={trend.years}
@@ -461,7 +432,7 @@
 		border-right: 1px solid var(--c-border);
 		background: var(--c-surface);
 		padding: var(--sp-4);
-		overflow: hidden;
+		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-4);
@@ -478,11 +449,7 @@
 		letter-spacing: 0.06em;
 		color: var(--c-text-3);
 	}
-	.browser-section {
-		flex: 1;
-		min-height: 8rem;
-		overflow-y: auto;
-	}
+	/* the whole sidebar (.panel) scrolls as one; the indicator list flows naturally */
 	.about-toggle {
 		display: flex;
 		justify-content: space-between;

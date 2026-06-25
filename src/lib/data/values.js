@@ -1,5 +1,5 @@
 import { base } from '$app/paths';
-import { schemeColors } from '../map/colorScale.js';
+import { themeRamp } from '../map/colorScale.js';
 
 const cache = new Map();
 
@@ -25,12 +25,13 @@ export function valuesForYear(file, year) {
 }
 
 /**
- * Resolve breaks + colors for a year from the value file's precomputed stats.
- * @returns {{breaks:number[], colors:string[], stats:object}}
+ * Resolve the indicator's CONSISTENT breaks (shared across years) + a theme-color
+ * ramp. @param {object} file value file @param {string} baseColor theme hex
+ * @returns {{breaks:number[], colors:string[], stats:{min:number,max:number,breaks:number[]}}}
  */
-export function breaksAndColors(file, year, indicator) {
-	const stats = file.stats?.[year] ?? { breaks: [], min: 0, max: 0 };
-	const breaks = stats.breaks ?? [];
-	const colors = schemeColors(indicator.colorScheme || 'YlGnBu', breaks.length + 1);
-	return { breaks, colors, stats };
+export function breaksAndColors(file, baseColor) {
+	const breaks = file.breaks ?? [];
+	const domain = file.domain ?? { min: 0, max: 0 };
+	const colors = themeRamp(baseColor, breaks.length + 1);
+	return { breaks, colors, stats: { min: domain.min, max: domain.max, breaks } };
 }

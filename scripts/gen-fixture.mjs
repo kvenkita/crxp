@@ -298,12 +298,16 @@ for (const ind of INDICATORS) {
 		YEARS.forEach((y, yi) => perYearArrays[y].push(arr[yi]));
 	}
 	for (const y of YEARS) stats[y] = summarize(perYearArrays[y], CLASSES);
+	// CONSISTENT breaks across years: pool all years' values so colors are comparable over time
+	const pooled = summarize(YEARS.flatMap((y) => perYearArrays[y]), CLASSES);
 
 	writeJSON(path.join(OUT, 'values', `${ind.id}.json`), {
 		indicatorId: ind.id,
 		geoLevel: 'tract',
 		years: YEARS,
 		values,
+		breaks: pooled.breaks,
+		domain: { min: pooled.min, max: pooled.max, p1: pooled.p1, p99: pooled.p99 },
 		stats
 	});
 
@@ -349,7 +353,18 @@ for (const ind of INDICATORS) {
 			return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100 : null;
 		});
 	}
-	aggregates[ind.id] = { years: YEARS, regionAvg, countyAvg };
+	// consistent county-level breaks across years (pooled county averages)
+	const countyPooled = summarize(
+		YEARS.flatMap((y, yi) => Object.values(countyAvg).map((arr) => arr[yi])),
+		CLASSES
+	);
+	aggregates[ind.id] = {
+		years: YEARS,
+		regionAvg,
+		countyAvg,
+		breaks: countyPooled.breaks,
+		domain: { min: countyPooled.min, max: countyPooled.max }
+	};
 }
 writeJSON(path.join(OUT, 'aggregates.json'), aggregates);
 
