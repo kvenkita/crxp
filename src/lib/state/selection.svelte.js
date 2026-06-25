@@ -1,18 +1,34 @@
-/** Transient selection state: hovered/selected geoid + legend class filter. */
+/**
+ * Selection state: hovered geoid, a SET of selected geoids (QoL-style
+ * multi-select), and the legend class filter.
+ */
 export const selection = $state({
 	/** @type {string|null} */ hover: null,
-	/** @type {string|null} */ selected: null,
+	/** @type {string[]} */ selectedIds: [],
 	/** @type {{min:number,max:number}|null} */ legendFilter: null,
-	/** whether the legend filter is sticky (clicked) vs transient (hover) */
 	legendSticky: false
 });
 
 export function setHover(geoid) {
 	selection.hover = geoid;
 }
-export function setSelected(geoid) {
-	selection.selected = geoid;
+
+/** Toggle a geoid in/out of the selection set. */
+export function toggleTract(geoid) {
+	if (!geoid) return;
+	selection.selectedIds = selection.selectedIds.includes(geoid)
+		? selection.selectedIds.filter((g) => g !== geoid)
+		: [...selection.selectedIds, geoid];
 }
+
+export function addTract(geoid) {
+	if (geoid && !selection.selectedIds.includes(geoid)) selection.selectedIds = [...selection.selectedIds, geoid];
+}
+
+export function clearTracts() {
+	selection.selectedIds = [];
+}
+
 export function setLegendFilter(range, sticky = false) {
 	selection.legendFilter = range;
 	selection.legendSticky = sticky;

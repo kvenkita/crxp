@@ -391,12 +391,14 @@ export class MapController {
 		}
 	}
 
-	setSelected(geoid) {
+	/** Highlight a set of selected geoids (clears any previously selected). */
+	setSelectedIds(ids = []) {
 		if (!this.ready) return;
 		const level = this.geoLevel;
-		if (this._selected) this._setState(level, this._selected, { selected: false });
-		this._selected = geoid;
-		if (geoid) this._setState(level, geoid, { selected: true });
+		const prev = this._selectedIds || [];
+		for (const id of prev) this._setState(level, id, { selected: false });
+		this._selectedIds = [...ids];
+		for (const id of ids) this._setState(level, id, { selected: true });
 	}
 
 	flyToBbox(bbox, opts = {}) {

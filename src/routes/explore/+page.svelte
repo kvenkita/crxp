@@ -23,7 +23,7 @@
 
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
-	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
+	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
 	import { pins, unpin } from '$lib/state/pins.svelte.js';
 
@@ -34,7 +34,7 @@
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
-	import { seriesFor } from '$lib/data/series.js';
+	import { seriesFor, seriesForSet } from '$lib/data/series.js';
 	import { legendClasses } from '$lib/map/colorScale.js';
 	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
@@ -191,7 +191,7 @@
 
 	// selection + fly
 	$effect(() => {
-		if (map) map.setSelected(selection.selected);
+		if (map) map.setSelectedIds(selection.selectedIds);
 	});
 	$effect(() => {
 		if (map && flyBbox) map.flyToBbox(flyBbox);
@@ -213,22 +213,37 @@
 	});
 
 	// ---- derivations for panels ----
-	let selectedValue = $derived(
-		choropleth && selection.selected ? choropleth.valuesByGeoid[selection.selected] ?? null : null
-	);
-	let selectedName = $derived(selection.selected ? areaName(areas, selection.selected) : '');
 	let regionAvg = $derived(aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null);
-
-	let activeGeoid = $derived(selection.hover ?? selection.selected);
-	let activeName = $derived(activeGeoid ? areaName(areas, activeGeoid) : '');
 	let currentYearIndex = $derived(valueFile ? valueFile.years.indexOf(explorer.year) : -1);
-	let trend = $derived.by(() => {
-		if (!valueFile || !aggregates || !activeGeoid || valueFile.indicatorId !== indicator?.id) return null;
-		return seriesFor({ valueFile, aggregates, geoid: activeGeoid, level: explorer.geoLevel });
+
+	// average of the selected set at the current year (for the strip card)
+	let selectionAvg = $derived.by(() => {
+		if (!choropleth || !selection.selectedIds.length) return null;
+		const vals = selection.selectedIds.map((g) => choropleth.valuesByGeoid[g]).filter((v) => v != null);
+		return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
 	});
-	let activeArea = $derived(
-		activeGeoid ? areas?.byId.get(activeGeoid) ?? { geoid: activeGeoid, name: activeName, level: explorer.geoLevel } : null
-	);
+
+	// trend: hovered single area takes priority (preview), else the selected set
+	let trend = $derived.by(() => {
+		if (!valueFile || !aggregates || valueFile.indicatorId !== indicator?.id) return null;
+		if (selection.hover) return seriesFor({ valueFile, aggregates, geoid: selection.hover, level: explorer.geoLevel });
+		if (selection.selectedIds.length)
+			return seriesForSet({ valueFile, aggregates, geoids: selection.selectedIds, level: explorer.geoLevel });
+		return null;
+	});
+	let trendName = $derived.by(() => {
+		if (selection.hover) return areaName(areas, selection.hover);
+		const n = selection.selectedIds.length;
+		if (n === 1) return areaName(areas, selection.selectedIds[0]);
+		if (n > 1) return `${n} ${explorer.geoLevel === 'county' ? 'counties' : 'tracts'} selected`;
+		return '';
+	});
+	let animKey = $derived(selection.hover ?? selection.selectedIds.join(','));
+	let singleArea = $derived.by(() => {
+		const g = selection.hover ?? (selection.selectedIds.length === 1 ? selection.selectedIds[0] : null);
+		if (!g) return null;
+		return areas?.byId.get(g) ?? { geoid: g, name: areaName(areas, g), level: explorer.geoLevel };
+	});
 
 	function rowFor(area) {
 		const years = valueFile?.years ?? [];
@@ -244,7 +259,11 @@
 	// ---- handlers ----
 	function pickIndicatorId(id) {
 		setIndicator(id);
-		setSelected(null);
+	}
+	function changeGeoLevel(l) {
+		setGeoLevel(l);
+		clearTracts(); // selection unit changes with the level
+		map?.clearBoundary?.();
 	}
 	function onClassHover(range) {
 		if (!selection.legendSticky) setLegendFilter(range, false);
@@ -254,12 +273,12 @@
 		else setLegendFilter(null, false);
 	}
 	function onSelect(id) {
-		setSelected(selection.selected === id ? null : id);
+		toggleTract(id); // QoL-style multi-select
 		map?.clearBoundary?.();
 	}
 	function pickArea(area) {
 		if (area.level === 'tract') {
-			setSelected(area.geoid);
+			addTract(area.geoid);
 			map?.clearBoundary?.();
 			if (area.bbox) flyBbox = area.bbox.slice();
 		} else {
@@ -267,6 +286,11 @@
 			setGeoLevel('tract');
 			map?.showBoundary(area.level, area.geoid);
 		}
+	}
+	function openReport() {
+		if (!selection.selectedIds.length) return;
+		const q = new URLSearchParams({ tracts: selection.selectedIds.join(','), geo: explorer.geoLevel }).toString();
+		window.open(`${base}/report/?${q}`, '_blank');
 	}
 	function changeMode(m) {
 		if (m === 'bivariate' && analysis.biB == null) {
@@ -288,7 +312,7 @@
 		</div>
 		<div class="panel-section">
 			<span class="field-label">Geographic level</span>
-			<GeoLevelToggle value={explorer.geoLevel} onChange={setGeoLevel} />
+			<GeoLevelToggle value={explorer.geoLevel} onChange={changeGeoLevel} />
 		</div>
 
 		{#if analysis.mode === 'explore'}
@@ -363,10 +387,10 @@
 			<div class="trend-float card no-print">
 				<div class="trend-head">
 					<div>
-						<strong>{activeName}</strong>
+						<strong>{trendName}</strong>
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
-					{#if activeArea}<PinButton area={activeArea} compact />{/if}
+					{#if singleArea}<PinButton area={singleArea} compact />{/if}
 				</div>
 				<TrendChart
 					years={trend.years}
@@ -374,8 +398,14 @@
 					{currentYearIndex}
 					format={indicator.format}
 					decimals={indicator.decimals ?? 1}
-					animKey={activeGeoid}
+					{animKey}
 				/>
+				{#if selection.selectedIds.length}
+					<div class="sel-actions">
+						<button class="link" onclick={clearTracts}>Clear selection</button>
+						<button class="btn-report" onclick={openReport}>Generate report →</button>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
@@ -392,14 +422,14 @@
 					{onClassSelect}
 					onInfo={infoClick}
 				/>
-				{#if selection.selected}
+				{#if selection.selectedIds.length}
 					<div class="card strip-card">
 						<div class="strip-head">
-							<span>{selectedName}</span>
-							<button class="link" onclick={() => setSelected(null)}>✕</button>
+							<span>{selection.selectedIds.length === 1 ? trendName : `Selected average (${selection.selectedIds.length})`}</span>
+							<button class="link" onclick={clearTracts}>✕</button>
 						</div>
 						<PercentileStrip
-							value={selectedValue}
+							value={selectionAvg}
 							{regionAvg}
 							min={choropleth.stats.min}
 							max={choropleth.stats.max}
@@ -525,6 +555,25 @@
 		top: calc(var(--sp-4) + 3rem);
 		left: var(--sp-4);
 		z-index: 19;
+	}
+	.sel-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-2);
+		margin-top: var(--sp-2);
+	}
+	.btn-report {
+		border: 0;
+		background: var(--c-teal);
+		color: var(--c-text-inv);
+		border-radius: var(--r-pill);
+		padding: 3px var(--sp-3);
+		font-size: var(--t-xs);
+		font-weight: 600;
+	}
+	.btn-report:hover {
+		background: var(--c-accent-strong);
 	}
 	.strip-card {
 		padding: var(--sp-3);
