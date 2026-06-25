@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { browser } from '$app/environment';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
@@ -54,6 +54,18 @@
 	let overlayOn = $state(true);
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
+	let accent = $derived(
+		(indicator && manifest.categories.find((c) => c.key === indicator.category)?.color) || 'var(--c-teal)'
+	);
+	let aboutEl = $state(null);
+
+	async function infoClick() {
+		showAbout = !showAbout;
+		if (showAbout) {
+			await tick();
+			aboutEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+	}
 
 	onMount(async () => {
 		await loadManifest();
@@ -286,7 +298,7 @@
 			</div>
 
 			{#if indicator}
-				<div class="panel-section about">
+				<div class="panel-section about" bind:this={aboutEl}>
 					<button class="about-toggle" aria-expanded={showAbout} onclick={() => (showAbout = !showAbout)}>
 						<span>About this indicator</span>
 						<span class="chev" class:open={showAbout}>▸</span>
@@ -352,7 +364,7 @@
 				<div class="trend-head">
 					<div>
 						<strong>{activeName}</strong>
-						<span class="trend-sub">{indicator.label}</span>
+						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
 					{#if activeArea}<PinButton area={activeArea} compact />{/if}
 				</div>
@@ -372,10 +384,13 @@
 				<Legend
 					{classes}
 					title={indicator?.label}
+					description={indicator?.description}
+					{accent}
 					activeRange={selection.legendFilter}
 					sticky={selection.legendSticky}
 					{onClassHover}
 					{onClassSelect}
+					onInfo={infoClick}
 				/>
 				{#if selection.selected}
 					<div class="card strip-card">

@@ -32,7 +32,7 @@
 	/>
 
 	{#each groups as cat (cat.key)}
-		<section class="cat">
+		<section class="cat" style="--theme:{cat.color ?? 'var(--c-teal)'}">
 			<h3 class="cat-title">{cat.label}</h3>
 			<ul class="cat-list">
 				{#each cat.items as ind (ind.id)}
@@ -68,11 +68,16 @@
 		font: inherit;
 		background: var(--c-surface);
 	}
+	.cat {
+		border-left: 3px solid color-mix(in srgb, var(--theme) 55%, transparent);
+		padding-left: var(--sp-3);
+	}
 	.cat-title {
 		font-size: var(--t-xs);
+		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--c-text-3);
+		color: var(--theme);
 		margin: 0 0 var(--sp-2);
 	}
 	.cat-list {
@@ -98,8 +103,8 @@
 		color: var(--c-text);
 	}
 	.ind.active {
-		background: var(--c-sand-faint);
-		color: var(--c-plum);
+		background: color-mix(in srgb, var(--theme) 14%, transparent);
+		color: color-mix(in srgb, var(--theme) 70%, var(--c-text));
 		font-weight: 600;
 	}
 	.grid .cat-list {

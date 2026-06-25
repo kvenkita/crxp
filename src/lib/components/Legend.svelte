@@ -6,10 +6,13 @@
 	let {
 		classes = [],
 		title = '',
+		description = '',
+		accent = 'var(--c-teal)',
 		activeRange = null,
 		sticky = false,
 		onClassHover = () => {},
-		onClassSelect = () => {}
+		onClassSelect = () => {},
+		onInfo = () => {}
 	} = $props();
 
 	const sameRange = (a, b) => a && b && a.min === b.min && a.max === b.max;
@@ -21,7 +24,13 @@
 </script>
 
 <div class="legend card">
-	{#if title}<div class="legend-title">{title}</div>{/if}
+	{#if title}
+		<div class="legend-head">
+			<span class="legend-title" style="border-color:{accent}">{title}</span>
+			<button class="info" title="About this indicator" aria-label="About this indicator" onclick={onInfo}>ⓘ</button>
+		</div>
+	{/if}
+	{#if description}<p class="legend-desc">{description}</p>{/if}
 	<ul class="legend-list">
 		{#each classes as c (c.min + '-' + c.max)}
 			{@const isActive = sameRange(activeRange, c)}
@@ -55,13 +64,35 @@
 		padding: var(--sp-3);
 		min-width: 11rem;
 	}
+	.legend-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-2);
+	}
 	.legend-title {
-		font-size: var(--t-xs);
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		font-size: var(--t-sm);
+		font-weight: 700;
+		color: var(--c-text);
+		border-bottom: 2px solid var(--c-teal);
+		padding-bottom: 1px;
+	}
+	.info {
+		border: 0;
+		background: transparent;
 		color: var(--c-text-3);
-		margin-bottom: var(--sp-2);
+		font-size: var(--t-base);
+		line-height: 1;
+		padding: 0 2px;
+	}
+	.info:hover {
+		color: var(--c-teal);
+	}
+	.legend-desc {
+		margin: 4px 0 var(--sp-2);
+		font-size: var(--t-xs);
+		color: var(--c-text-3);
+		line-height: 1.3;
 	}
 	.legend-list {
 		list-style: none;

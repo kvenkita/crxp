@@ -27,25 +27,25 @@ const DP_EPSILON = 0.00018; // ~20 m simplification tolerance (degrees)
 
 /** Indicator definitions: maps app indicators to ACS CSV columns. */
 const INDICATORS = [
-	{ id: 1, slug: 'older-adults', label: 'Older adults (65+)', category: 'character', field: 'PercentOver65', higherIsBetter: null, colorScheme: 'BuPu', metaTitle: 'Older Adults', metaWhy: 'The share of residents aged 65 and older shapes demand for healthcare, accessible housing, transportation, and senior services.' },
-	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, colorScheme: 'YlGn', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
-	{ id: 3, slug: 'black-residents', label: 'Black residents', category: 'character', field: 'PercentBlack', higherIsBetter: null, colorScheme: 'PuBu', metaTitle: 'Black Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
-	{ id: 4, slug: 'hispanic-residents', label: 'Hispanic or Latino residents', category: 'character', field: 'PercentHispanic', higherIsBetter: null, colorScheme: 'OrRd', metaTitle: 'Hispanic or Latino Residents', metaWhy: 'Tracking the Hispanic or Latino population supports language access, outreach, and equitable service delivery.' },
-	{ id: 5, slug: 'bachelors-or-higher', label: "Bachelor's degree or higher", category: 'education', field: 'PercentAdultsWithAtLeastBachelors', higherIsBetter: true, colorScheme: 'YlGnBu', metaTitle: "Adults with a Bachelor's Degree or Higher", metaWhy: 'Educational attainment is strongly associated with earnings, health, and economic mobility.' },
-	{ id: 6, slug: 'high-school-diploma', label: 'High school diploma or higher', category: 'education', field: 'PercentHighSchoolDiploma', higherIsBetter: true, colorScheme: 'GnBu', metaTitle: 'Adults with a High School Diploma or Higher', metaWhy: 'High school completion is a foundational measure of opportunity and workforce readiness.' },
-	{ id: 7, slug: 'employment', label: 'Employment rate', category: 'economy', field: 'PercentEmployed', higherIsBetter: true, colorScheme: 'Greens', metaTitle: 'Employment Rate', metaWhy: 'The share of the labor force that is employed reflects local economic health and household stability.' },
-	{ id: 8, slug: 'owner-occupied', label: 'Owner-occupied homes', category: 'housing', field: 'PercentOwnerOccupied', higherIsBetter: true, colorScheme: 'BuGn', metaTitle: 'Owner-Occupied Homes', metaWhy: 'Homeownership is associated with wealth-building and neighborhood stability, though high rates can also signal limited rental options.' },
-	{ id: 9, slug: 'no-vehicle', label: 'Households without a vehicle', category: 'transportation', field: 'PercentNoVehicle', higherIsBetter: false, colorScheme: 'YlOrRd', metaTitle: 'Households Without a Vehicle', metaWhy: 'Vehicle access affects how easily residents reach jobs, food, and care — especially where transit is limited.' },
-	{ id: 10, slug: 'internet-access', label: 'Households with internet access', category: 'connectivity', field: 'PercentInternetAccess', higherIsBetter: true, colorScheme: 'PuBuGn', metaTitle: 'Households with Internet Access', metaWhy: 'Home internet is essential for school, work, healthcare, and civic participation in a digital economy.' }
+	{ id: 1, slug: 'older-adults', label: 'Older adults (65+)', category: 'character', field: 'PercentOver65', higherIsBetter: null, colorScheme: 'BuPu', desc: 'Share of residents aged 65 and older', metaTitle: 'Older Adults', metaWhy: 'The share of residents aged 65 and older shapes demand for healthcare, accessible housing, transportation, and senior services.' },
+	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, colorScheme: 'YlGn', desc: 'Share of residents under age 18', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
+	{ id: 3, slug: 'black-residents', label: 'Black residents', category: 'character', field: 'PercentBlack', higherIsBetter: null, colorScheme: 'PuBu', desc: 'Share of residents who are Black or African American', metaTitle: 'Black Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
+	{ id: 4, slug: 'hispanic-residents', label: 'Hispanic or Latino residents', category: 'character', field: 'PercentHispanic', higherIsBetter: null, colorScheme: 'OrRd', desc: 'Share of residents who are Hispanic or Latino', metaTitle: 'Hispanic or Latino Residents', metaWhy: 'Tracking the Hispanic or Latino population supports language access, outreach, and equitable service delivery.' },
+	{ id: 5, slug: 'bachelors-or-higher', label: "Bachelor's degree or higher", category: 'education', field: 'PercentAdultsWithAtLeastBachelors', higherIsBetter: true, colorScheme: 'YlGnBu', desc: "Adults 25+ with a bachelor's degree or higher", metaTitle: "Adults with a Bachelor's Degree or Higher", metaWhy: 'Educational attainment is strongly associated with earnings, health, and economic mobility.' },
+	{ id: 6, slug: 'high-school-diploma', label: 'High school diploma or higher', category: 'education', field: 'PercentHighSchoolDiploma', higherIsBetter: true, colorScheme: 'GnBu', desc: 'Adults 25+ with at least a high school diploma', metaTitle: 'Adults with a High School Diploma or Higher', metaWhy: 'High school completion is a foundational measure of opportunity and workforce readiness.' },
+	{ id: 7, slug: 'employment', label: 'Employment rate', category: 'economy', field: 'PercentEmployed', higherIsBetter: true, colorScheme: 'Greens', desc: 'Share of the labor force that is employed', metaTitle: 'Employment Rate', metaWhy: 'The share of the labor force that is employed reflects local economic health and household stability.' },
+	{ id: 8, slug: 'owner-occupied', label: 'Owner-occupied homes', category: 'housing', field: 'PercentOwnerOccupied', higherIsBetter: true, colorScheme: 'BuGn', desc: 'Occupied homes that are owner-occupied', metaTitle: 'Owner-Occupied Homes', metaWhy: 'Homeownership is associated with wealth-building and neighborhood stability, though high rates can also signal limited rental options.' },
+	{ id: 9, slug: 'no-vehicle', label: 'Households without a vehicle', category: 'transportation', field: 'PercentNoVehicle', higherIsBetter: false, colorScheme: 'YlOrRd', desc: 'Households with no vehicle available', metaTitle: 'Households Without a Vehicle', metaWhy: 'Vehicle access affects how easily residents reach jobs, food, and care — especially where transit is limited.' },
+	{ id: 10, slug: 'internet-access', label: 'Households with internet access', category: 'connectivity', field: 'PercentInternetAccess', higherIsBetter: true, colorScheme: 'PuBuGn', desc: 'Households with a broadband internet subscription', metaTitle: 'Households with Internet Access', metaWhy: 'Home internet is essential for school, work, healthcare, and civic participation in a digital economy.' }
 ];
 
 const CATEGORIES = [
-	{ key: 'character', label: 'People & Character', order: 1 },
-	{ key: 'economy', label: 'Economy', order: 2 },
-	{ key: 'education', label: 'Education', order: 3 },
-	{ key: 'housing', label: 'Housing', order: 4 },
-	{ key: 'transportation', label: 'Transportation', order: 5 },
-	{ key: 'connectivity', label: 'Connectivity', order: 6 }
+	{ key: 'character', label: 'People & Character', order: 1, color: '#8c62aa' },
+	{ key: 'economy', label: 'Economy', order: 2, color: '#1f8a5b' },
+	{ key: 'education', label: 'Education', order: 3, color: '#2f6fb0' },
+	{ key: 'housing', label: 'Housing', order: 4, color: '#b07a2a' },
+	{ key: 'transportation', label: 'Transportation', order: 5, color: '#1f6f63' },
+	{ key: 'connectivity', label: 'Connectivity', order: 6, color: '#5b6cc4' }
 ];
 
 // ---------- helpers ----------
@@ -363,6 +363,7 @@ const manifest = {
 		id: ind.id,
 		slug: ind.slug,
 		label: ind.label,
+		description: ind.desc,
 		category: ind.category,
 		format: 'percent',
 		decimals: 1,

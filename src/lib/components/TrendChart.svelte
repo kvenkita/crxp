@@ -11,10 +11,11 @@
 	} = $props();
 
 	const W = 300;
-	const H = 130;
-	const PAD = { t: 12, r: 12, b: 22, l: 38 };
+	const H = 140;
+	const PAD = { t: 12, r: 12, b: 24, l: 40 };
 
 	let pathEls = $state([]);
+	let hoverIdx = $state(-1);
 
 	let domain = $derived.by(() => {
 		const all = series.flatMap((s) => s.values).filter((v) => v != null && Number.isFinite(v));
@@ -25,12 +26,12 @@
 			min -= 1;
 			max += 1;
 		}
-		const pad = (max - min) * 0.1;
+		const pad = (max - min) * 0.12;
 		return [min - pad, max + pad];
 	});
 
-	const xAt = (i) =>
-		PAD.l + (years.length <= 1 ? 0 : (i * (W - PAD.l - PAD.r)) / (years.length - 1));
+	const plotW = W - PAD.l - PAD.r;
+	const xAt = (i) => PAD.l + (years.length <= 1 ? 0 : (i * plotW) / (years.length - 1));
 	const yAt = (v) => {
 		const [lo, hi] = domain;
 		return PAD.t + (1 - (v - lo) / (hi - lo)) * (H - PAD.t - PAD.b);
@@ -50,27 +51,48 @@
 		return d.trim();
 	}
 
-	const dashArray = (style) => (style === 'dash' ? '5 4' : style === 'dot' ? '1.5 3' : '');
+	// thinned x-axis labels (~6 max), always include last
+	let labelIdx = $derived.by(() => {
+		const n = years.length;
+		if (n <= 1) return [0];
+		const step = Math.max(1, Math.ceil(n / 6));
+		const out = [];
+		for (let i = 0; i < n; i += step) out.push(i);
+		if (out[out.length - 1] !== n - 1) out.push(n - 1);
+		return out;
+	});
+
+	// active index for the guide/tooltip: hover wins, else current year
+	let activeIdx = $derived(hoverIdx >= 0 ? hoverIdx : currentYearIndex);
+
+	function onMove(e) {
+		const rect = e.currentTarget.getBoundingClientRect();
+		const frac = (e.clientX - rect.left) / rect.width;
+		const px = frac * W;
+		const i = Math.round(((px - PAD.l) / plotW) * (years.length - 1));
+		hoverIdx = Math.max(0, Math.min(years.length - 1, i));
+	}
+	function onLeave() {
+		hoverIdx = -1;
+	}
 
 	// staggered draw-in animation, replayed when animKey changes
 	$effect(() => {
 		animKey; // dependency
 		const reduce =
-			typeof window !== 'undefined' &&
-			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+			typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 		pathEls.forEach((el, i) => {
 			if (!el) return;
 			const len = el.getTotalLength?.() ?? 0;
 			if (reduce || !len) {
 				el.style.transition = 'none';
-				el.style.strokeDasharray = dashArray(series[i]?.dash) || 'none';
 				el.style.strokeDashoffset = '0';
+				el.style.strokeDasharray = 'none';
 				return;
 			}
 			el.style.transition = 'none';
 			el.style.strokeDasharray = `${len}`;
 			el.style.strokeDashoffset = `${len}`;
-			// force reflow then animate
 			void el.getBoundingClientRect();
 			requestAnimationFrame(() => {
 				el.style.transition = `stroke-dashoffset 700ms ${series[i]?.delay ?? 0}ms ease-out`;
@@ -81,43 +103,63 @@
 </script>
 
 <figure class="trend">
-	<svg viewBox="0 0 {W} {H}" role="img" aria-label="Trend over time">
-		<!-- y gridlines -->
-		{#each [domain[0], (domain[0] + domain[1]) / 2, domain[1]] as g (g)}
-			<line class="grid" x1={PAD.l} x2={W - PAD.r} y1={yAt(g)} y2={yAt(g)} />
-			<text class="axis" x={PAD.l - 5} y={yAt(g) + 3} text-anchor="end">{formatValue(g, format, 0)}</text>
-		{/each}
-		<!-- current-year guide -->
-		{#if currentYearIndex >= 0}
-			<line class="guide" x1={xAt(currentYearIndex)} x2={xAt(currentYearIndex)} y1={PAD.t} y2={H - PAD.b} />
-		{/if}
-		<!-- series -->
-		{#each series as s, i (s.label)}
-			<path
-				bind:this={pathEls[i]}
-				d={pathD(s.values)}
-				fill="none"
-				stroke={s.color}
-				stroke-width={s.dash === 'solid' ? 2.4 : 1.6}
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-			{#if currentYearIndex >= 0 && s.values[currentYearIndex] != null}
-				<circle cx={xAt(currentYearIndex)} cy={yAt(s.values[currentYearIndex])} r="3" fill={s.color} />
+	<div class="chart-box">
+		<svg viewBox="0 0 {W} {H}" role="img" aria-label="Trend over time" onpointermove={onMove} onpointerleave={onLeave}>
+			<!-- y gridlines -->
+			{#each [domain[0], (domain[0] + domain[1]) / 2, domain[1]] as g (g)}
+				<line class="grid" x1={PAD.l} x2={W - PAD.r} y1={yAt(g)} y2={yAt(g)} />
+				<text class="axis" x={PAD.l - 5} y={yAt(g) + 3} text-anchor="end">{formatValue(g, format, 0)}</text>
+			{/each}
+			<!-- active-year guide -->
+			{#if activeIdx >= 0}
+				<line class="guide" x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={PAD.t} y2={H - PAD.b} />
 			{/if}
-		{/each}
-		<!-- x labels (first/last) -->
-		<text class="axis" x={xAt(0)} y={H - 6} text-anchor="start">{years[0]}</text>
-		<text class="axis" x={xAt(years.length - 1)} y={H - 6} text-anchor="end">{years.at(-1)}</text>
-	</svg>
+			<!-- series lines -->
+			{#each series as s, i (s.label)}
+				<path
+					bind:this={pathEls[i]}
+					d={pathD(s.values)}
+					fill="none"
+					stroke={s.color}
+					stroke-width={s.dash === 'solid' ? 2.4 : 1.6}
+					stroke-dasharray={s.dash === 'dash' ? '5 4' : s.dash === 'dot' ? '1.5 3' : ''}
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+			{/each}
+			<!-- markers (drawn after lines so they sit on top) -->
+			{#each series as s (s.label)}
+				{#each s.values as v, i (i)}
+					{#if v != null && Number.isFinite(v)}
+						<circle cx={xAt(i)} cy={yAt(v)} r={i === activeIdx ? 3.6 : 2} fill={s.color} stroke="#fff" stroke-width={i === activeIdx ? 1 : 0.5} />
+					{/if}
+				{/each}
+			{/each}
+			<!-- x labels (thinned) -->
+			{#each labelIdx as i (i)}
+				<text class="axis" x={xAt(i)} y={H - 8} text-anchor={i === 0 ? 'start' : i === years.length - 1 ? 'end' : 'middle'}>{years[i]}</text>
+			{/each}
+		</svg>
+
+		{#if activeIdx >= 0}
+			<div class="tip" style="left:{(xAt(activeIdx) / W) * 100}%">
+				<div class="tip-year">{years[activeIdx]}</div>
+				{#each series as s (s.label)}
+					<div class="tip-row">
+						<span class="tip-dot" style="background:{s.color}"></span>
+						<span class="tip-lbl">{s.label}</span>
+						<span class="tip-val">{formatValue(s.values[activeIdx], format, decimals)}</span>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</div>
+
 	<ul class="legend">
 		{#each series as s (s.label)}
 			<li>
 				<span class="dot" style="background:{s.color}; {s.dash !== 'solid' ? 'opacity:.7' : ''}"></span>
 				{s.label}
-				{#if currentYearIndex >= 0 && s.values[currentYearIndex] != null}
-					<strong>{formatValue(s.values[currentYearIndex], format, decimals)}</strong>
-				{/if}
 			</li>
 		{/each}
 	</ul>
@@ -127,10 +169,14 @@
 	.trend {
 		margin: 0;
 	}
+	.chart-box {
+		position: relative;
+	}
 	svg {
 		width: 100%;
 		height: auto;
 		display: block;
+		touch-action: none;
 	}
 	.grid {
 		stroke: var(--c-border);
@@ -146,24 +192,54 @@
 		fill: var(--c-text-3);
 		font-family: var(--font-body);
 	}
+	.tip {
+		position: absolute;
+		top: 0;
+		transform: translateX(-50%);
+		background: var(--c-surface);
+		border: 1px solid var(--c-border);
+		border-radius: var(--r-sm);
+		box-shadow: var(--shadow-md);
+		padding: 4px 6px;
+		font-size: 0.68rem;
+		pointer-events: none;
+		white-space: nowrap;
+		z-index: 2;
+	}
+	.tip-year {
+		font-weight: 700;
+		margin-bottom: 2px;
+	}
+	.tip-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.tip-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.tip-val {
+		margin-left: auto;
+		font-weight: 600;
+		padding-left: var(--sp-2);
+	}
 	.legend {
 		list-style: none;
 		margin: var(--sp-2) 0 0;
 		padding: 0;
 		display: flex;
-		flex-direction: column;
-		gap: 2px;
+		flex-wrap: wrap;
+		gap: var(--sp-1) var(--sp-3);
 		font-size: var(--t-xs);
 		color: var(--c-text-2);
 	}
 	.legend li {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-2);
-	}
-	.legend strong {
-		margin-left: auto;
-		color: var(--c-text);
+		gap: var(--sp-1);
 	}
 	.dot {
 		width: 0.6rem;
