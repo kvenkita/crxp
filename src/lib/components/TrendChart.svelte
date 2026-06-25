@@ -140,26 +140,18 @@
 				<text class="axis" x={xAt(i)} y={H - 8} text-anchor={i === 0 ? 'start' : i === years.length - 1 ? 'end' : 'middle'}>{years[i]}</text>
 			{/each}
 		</svg>
-
-		{#if activeIdx >= 0}
-			<div class="tip" style="left:{(xAt(activeIdx) / W) * 100}%">
-				<div class="tip-year">{years[activeIdx]}</div>
-				{#each series as s (s.label)}
-					<div class="tip-row">
-						<span class="tip-dot" style="background:{s.color}"></span>
-						<span class="tip-lbl">{s.label}</span>
-						<span class="tip-val">{formatValue(s.values[activeIdx], format, decimals)}</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
 	</div>
 
+	<!-- stable readout: legend + the value for the active year (hover, else current year) -->
 	<ul class="legend">
+		{#if activeIdx >= 0}
+			<li class="legend-year">{years[activeIdx]}</li>
+		{/if}
 		{#each series as s (s.label)}
 			<li>
 				<span class="dot" style="background:{s.color}; {s.dash !== 'solid' ? 'opacity:.7' : ''}"></span>
-				{s.label}
+				<span class="leg-lbl">{s.label}</span>
+				<span class="leg-val">{formatValue(s.values[activeIdx], format, decimals)}</span>
 			</li>
 		{/each}
 	</ul>
@@ -192,54 +184,33 @@
 		fill: var(--c-text-3);
 		font-family: var(--font-body);
 	}
-	.tip {
-		position: absolute;
-		top: 0;
-		transform: translateX(-50%);
-		background: var(--c-surface);
-		border: 1px solid var(--c-border);
-		border-radius: var(--r-sm);
-		box-shadow: var(--shadow-md);
-		padding: 4px 6px;
-		font-size: 0.68rem;
-		pointer-events: none;
-		white-space: nowrap;
-		z-index: 2;
-	}
-	.tip-year {
-		font-weight: 700;
-		margin-bottom: 2px;
-	}
-	.tip-row {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-	.tip-dot {
-		width: 0.5rem;
-		height: 0.5rem;
-		border-radius: 50%;
-		flex-shrink: 0;
-	}
-	.tip-val {
-		margin-left: auto;
-		font-weight: 600;
-		padding-left: var(--sp-2);
-	}
 	.legend {
 		list-style: none;
 		margin: var(--sp-2) 0 0;
 		padding: 0;
 		display: flex;
-		flex-wrap: wrap;
-		gap: var(--sp-1) var(--sp-3);
+		flex-direction: column;
+		gap: 2px;
 		font-size: var(--t-xs);
 		color: var(--c-text-2);
 	}
 	.legend li {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-1);
+		gap: var(--sp-2);
+	}
+	.legend-year {
+		font-weight: 700;
+		color: var(--c-text-3);
+		border-bottom: 1px solid var(--c-border);
+		padding-bottom: 2px;
+		margin-bottom: 1px;
+	}
+	.leg-val {
+		margin-left: auto;
+		font-weight: 600;
+		color: var(--c-text);
+		font-variant-numeric: tabular-nums;
 	}
 	.dot {
 		width: 0.6rem;
