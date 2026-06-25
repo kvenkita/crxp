@@ -24,15 +24,36 @@ const CARTO = (variant) =>
 	['a', 'b', 'c'].map((s) => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{r}.png`);
 
 const ATTRIB = '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>';
+const OSM_ATTRIB = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+const ESRI_ATTRIB = 'Imagery © <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics';
+
+/** base raster layers per basemap; `labels` (carto labels) is shown over light/satellite. */
+const BASEMAPS = {
+	light: ['basemap-light'],
+	streets: ['basemap-osm'],
+	satellite: ['basemap-sat']
+};
 
 function baseStyle() {
 	return {
 		version: 8,
 		sources: {
 			'carto-base': { type: 'raster', tiles: CARTO('light_nolabels'), tileSize: 256, attribution: ATTRIB },
-			'carto-labels': { type: 'raster', tiles: CARTO('light_only_labels'), tileSize: 256 }
+			'carto-labels': { type: 'raster', tiles: CARTO('light_only_labels'), tileSize: 256 },
+			osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, attribution: OSM_ATTRIB, maxzoom: 19 },
+			'esri-sat': {
+				type: 'raster',
+				tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+				tileSize: 256,
+				attribution: ESRI_ATTRIB,
+				maxzoom: 19
+			}
 		},
-		layers: [{ id: 'basemap', type: 'raster', source: 'carto-base' }]
+		layers: [
+			{ id: 'basemap-light', type: 'raster', source: 'carto-base' },
+			{ id: 'basemap-osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
+			{ id: 'basemap-sat', type: 'raster', source: 'esri-sat', layout: { visibility: 'none' } }
+		]
 	};
 }
 
@@ -79,6 +100,7 @@ export class MapController {
 		this.geoLevel = 'tract';
 		this.fillOpacity = FILL_OPACITY;
 		this.overlayVisible = true;
+		this.basemap = 'light';
 		/** @type {[[number,number],[number,number]]|null} */ this.regionBounds = null;
 		/** @type {Record<string,string[]>} ids per source */
 		this.ids = { tract: [], county: [] };
@@ -151,15 +173,19 @@ export class MapController {
 		this.map.fitBounds(this.regionBounds, { padding: { top: 16, bottom: 16, left: 24, right: 24 }, duration });
 	}
 
-	_addLayers() {
-		const opacityExpr = [
+	_opacityExpr() {
+		return [
 			'case',
 			['boolean', ['feature-state', 'dim'], false],
-			0.1,
+			Math.min(0.1, this.fillOpacity),
 			['boolean', ['feature-state', 'present'], false],
-			FILL_OPACITY,
+			this.fillOpacity,
 			0
 		];
+	}
+
+	_addLayers() {
+		const opacityExpr = this._opacityExpr();
 		for (const level of ['tract', 'county']) {
 			const visible = level === this.geoLevel ? 'visible' : 'none';
 			this.map.addLayer({
@@ -262,12 +288,42 @@ export class MapController {
 	setGeoLevel(level) {
 		if (!this.ready || level === this.geoLevel) return;
 		this.geoLevel = level;
+		this._applyVisibility();
+	}
+
+	_applyVisibility() {
 		for (const l of ['tract', 'county']) {
-			const vis = l === level ? 'visible' : 'none';
-			for (const suffix of ['fill', 'outline', 'highlight']) {
-				this.map.setLayoutProperty(`${l}-${suffix}`, 'visibility', vis);
-			}
+			const active = l === this.geoLevel;
+			const overlay = active && this.overlayVisible ? 'visible' : 'none';
+			this.map.setLayoutProperty(`${l}-fill`, 'visibility', overlay);
+			this.map.setLayoutProperty(`${l}-outline`, 'visibility', overlay);
+			this.map.setLayoutProperty(`${l}-highlight`, 'visibility', active ? 'visible' : 'none');
 		}
+	}
+
+	/** Switch basemap: 'light' | 'streets' | 'satellite'. */
+	setBasemap(name) {
+		if (!this.ready || !BASEMAPS[name]) return;
+		this.basemap = name;
+		for (const [key, layers] of Object.entries(BASEMAPS)) {
+			const vis = key === name ? 'visible' : 'none';
+			for (const id of layers) this.map.setLayoutProperty(id, 'visibility', vis);
+		}
+		// carto labels read well over light & satellite, but OSM has its own labels
+		this.map.setLayoutProperty('labels', 'visibility', name === 'streets' ? 'none' : 'visible');
+	}
+
+	/** Overlay (choropleth) fill opacity, 0..1. */
+	setOverlayOpacity(o) {
+		if (!this.ready) return;
+		this.fillOpacity = Math.max(0, Math.min(1, o));
+		for (const l of ['tract', 'county']) this.map.setPaintProperty(`${l}-fill`, 'fill-opacity', this._opacityExpr());
+	}
+
+	/** Show/hide the data overlay (reveals the basemap underneath). */
+	setOverlayVisible(v) {
+		this.overlayVisible = !!v;
+		this._applyVisibility();
 	}
 
 	/**

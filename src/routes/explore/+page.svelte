@@ -17,6 +17,7 @@
 	import ComparePanel from '$lib/components/ComparePanel.svelte';
 	import PinButton from '$lib/components/PinButton.svelte';
 	import AnalysisModeBar from '$lib/components/AnalysisModeBar.svelte';
+	import MapSettings from '$lib/components/MapSettings.svelte';
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
 	import LisaPanel from '$lib/components/LisaPanel.svelte';
 
@@ -46,6 +47,11 @@
 	let showAbout = $state(false);
 	let flyBbox = $state(null);
 	let booted = $state(false);
+
+	// map display settings
+	let basemap = $state('light');
+	let overlayOpacity = $state(0.82);
+	let overlayOn = $state(true);
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
 
@@ -158,6 +164,17 @@
 			map.setLisaMode(quadForYear(file, yr), quads);
 		});
 		return () => (cancelled = true);
+	});
+
+	// map display settings → controller
+	$effect(() => {
+		if (map) map.setBasemap(basemap);
+	});
+	$effect(() => {
+		if (map) map.setOverlayOpacity(overlayOpacity);
+	});
+	$effect(() => {
+		if (map) map.setOverlayVisible(overlayOn);
 	});
 
 	// selection + fly
@@ -319,6 +336,17 @@
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
 		</div>
 
+		<div class="settings-float no-print">
+			<MapSettings
+				{basemap}
+				opacity={overlayOpacity}
+				overlayVisible={overlayOn}
+				onBasemap={(b) => (basemap = b)}
+				onOpacity={(o) => (overlayOpacity = o)}
+				onToggleOverlay={(v) => (overlayOn = v)}
+			/>
+		</div>
+
 		{#if trend && indicator}
 			<div class="trend-float card no-print">
 				<div class="trend-head">
@@ -476,6 +504,12 @@
 		left: var(--sp-4);
 		width: min(22rem, calc(100% - 2rem));
 		z-index: 20;
+	}
+	.settings-float {
+		position: absolute;
+		top: calc(var(--sp-4) + 3rem);
+		left: var(--sp-4);
+		z-index: 19;
 	}
 	.strip-card {
 		padding: var(--sp-3);
