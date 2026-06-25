@@ -142,18 +142,19 @@
 		border-top: 1px solid var(--c-border);
 		background: var(--c-surface);
 		color: var(--c-text-3);
-		font-size: var(--t-sm);
-		padding: var(--sp-5) 0;
+		font-size: var(--t-xs);
+		padding: var(--sp-2) 0;
 	}
 	.footer-inner {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		gap: var(--sp-4);
 		flex-wrap: wrap;
 	}
 	.footer-inner p {
 		margin: 0;
-		max-width: 48ch;
+		max-width: 70ch;
 	}
 	@media (max-width: 640px) {
 		.brand-text small {

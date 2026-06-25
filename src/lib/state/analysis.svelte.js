@@ -1,9 +1,12 @@
-/** Analysis-mode state: explore (default) | bivariate | lisa. */
+/**
+ * Analysis-mode state: explore (default) | bivariate | lisa.
+ * The PRIMARY indicator is shared with the explorer slice (explorer.indicatorId):
+ * it is variable A in bivariate and the indicator in the cluster map. Only the
+ * second bivariate variable (biB) is held here.
+ */
 export const analysis = $state({
 	/** @type {'explore'|'bivariate'|'lisa'} */ mode: 'explore',
-	/** @type {number|null} */ biA: null,
-	/** @type {number|null} */ biB: null,
-	/** @type {number|null} */ lisaId: null,
+	/** second bivariate variable @type {number|null} */ biB: null,
 	/** active LISA quadrant codes (1=HH,2=LH,3=LL,4=HL) @type {number[]} */
 	lisaQuadrants: [1, 2, 3, 4]
 });
@@ -11,12 +14,8 @@ export const analysis = $state({
 export function setMode(mode) {
 	analysis.mode = mode;
 }
-export function setBivariate(a, b) {
-	analysis.biA = a;
+export function setBivariateB(b) {
 	analysis.biB = b;
-}
-export function setLisaIndicator(id) {
-	analysis.lisaId = id;
 }
 export function toggleQuadrant(code) {
 	analysis.lisaQuadrants = analysis.lisaQuadrants.includes(code)

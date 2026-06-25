@@ -38,6 +38,29 @@ function baseStyle() {
 
 const FILL_OPACITY = 0.82;
 
+/** Bounding box [[minLng,minLat],[maxLng,maxLat]] of a GeoJSON FeatureCollection. */
+function fcBounds(fc) {
+	let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+	const scan = (ring) => {
+		for (const [x, y] of ring) {
+			if (x < minX) minX = x;
+			if (y < minY) minY = y;
+			if (x > maxX) maxX = x;
+			if (y > maxY) maxY = y;
+		}
+	};
+	for (const f of fc.features) {
+		const g = f.geometry;
+		if (!g) continue;
+		if (g.type === 'Polygon') g.coordinates.forEach(scan);
+		else if (g.type === 'MultiPolygon') g.coordinates.forEach((p) => p.forEach(scan));
+	}
+	return [
+		[minX, minY],
+		[maxX, maxY]
+	];
+}
+
 export class MapController {
 	/**
 	 * @param {HTMLElement} container
@@ -54,6 +77,9 @@ export class MapController {
 		this.ready = false;
 		this.mode = 'explore';
 		this.geoLevel = 'tract';
+		this.fillOpacity = FILL_OPACITY;
+		this.overlayVisible = true;
+		/** @type {[[number,number],[number,number]]|null} */ this.regionBounds = null;
 		/** @type {Record<string,string[]>} ids per source */
 		this.ids = { tract: [], county: [] };
 		this._maplibre = null;
@@ -76,7 +102,9 @@ export class MapController {
 		await new Promise((resolve) => this.map.on('load', resolve));
 		await this._loadData();
 		this._addLayers();
+		this._addRecenterControl(maplibre);
 		this._wireEvents();
+		this.recenter(0); // default view: region fits the viewport
 		this.ready = true;
 		return this;
 	}
@@ -88,8 +116,35 @@ export class MapController {
 		]);
 		this.ids.tract = tracts.features.map((f) => String(f.id ?? f.properties.geoid));
 		this.ids.county = counties.features.map((f) => String(f.id ?? f.properties.geoid));
+		this.regionBounds = fcBounds(tracts);
 		this.map.addSource('tract', { type: 'geojson', data: tracts, promoteId: 'geoid' });
 		this.map.addSource('county', { type: 'geojson', data: counties, promoteId: 'geoid' });
+	}
+
+	_addRecenterControl(maplibre) {
+		const ctrl = {
+			onAdd: () => {
+				const div = document.createElement('div');
+				div.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.title = 'Reset to region view';
+				btn.setAttribute('aria-label', 'Reset to region view');
+				btn.innerHTML = '⤢';
+				btn.style.fontSize = '16px';
+				btn.onclick = () => this.recenter();
+				div.appendChild(btn);
+				return div;
+			},
+			onRemove: () => {}
+		};
+		this.map.addControl(ctrl, 'bottom-right');
+	}
+
+	/** Fit the map to the region's bounds (the default view). */
+	recenter(duration = 600) {
+		if (!this.map || !this.regionBounds) return;
+		this.map.fitBounds(this.regionBounds, { padding: { top: 16, bottom: 16, left: 24, right: 24 }, duration });
 	}
 
 	_addLayers() {

@@ -23,7 +23,7 @@
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setSelected, setLegendFilter } from '$lib/state/selection.svelte.js';
-	import { analysis, setMode, setBivariate, setLisaIndicator, toggleQuadrant } from '$lib/state/analysis.svelte.js';
+	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
 	import { pins, unpin } from '$lib/state/pins.svelte.js';
 
 	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
@@ -57,8 +57,7 @@
 		setGeoLevel(u.geo === 'county' ? 'county' : 'tract');
 		setYear(u.y && ind?.years.includes(u.y) ? u.y : ind?.years.at(-1) ?? null);
 		if (u.mode) setMode(u.mode);
-		if (u.biA) setBivariate(indicatorBySlug(u.biA)?.id ?? ind?.id, indicatorBySlug(u.biB)?.id ?? null);
-		if (u.lisa) setLisaIndicator(indicatorBySlug(u.lisa)?.id ?? ind?.id);
+		if (u.biB) setBivariateB(indicatorBySlug(u.biB)?.id ?? null);
 		booted = true;
 	});
 
@@ -113,11 +112,11 @@
 		map.setLegendFilter(selection.legendFilter, choropleth.valuesByGeoid);
 	});
 
-	// BIVARIATE
+	// BIVARIATE (variable A = primary indicator, variable B = analysis.biB)
 	$effect(() => {
-		if (!map || analysis.mode !== 'bivariate' || analysis.biA == null || analysis.biB == null || explorer.year == null)
+		if (!map || analysis.mode !== 'bivariate' || explorer.indicatorId == null || analysis.biB == null || explorer.year == null)
 			return;
-		const a = analysis.biA;
+		const a = explorer.indicatorId;
 		const b = analysis.biB;
 		const yr = explorer.year;
 		const lvl = explorer.geoLevel;
@@ -132,10 +131,10 @@
 		return () => (cancelled = true);
 	});
 
-	// LISA
+	// LISA (indicator = primary indicator)
 	$effect(() => {
-		if (!map || analysis.mode !== 'lisa' || analysis.lisaId == null || explorer.year == null) return;
-		const id = analysis.lisaId;
+		if (!map || analysis.mode !== 'lisa' || explorer.indicatorId == null || explorer.year == null) return;
+		const id = explorer.indicatorId;
 		const yr = explorer.year;
 		const lvl = explorer.geoLevel;
 		const quads = analysis.lisaQuadrants.slice();
@@ -164,9 +163,7 @@
 			y: explorer.year,
 			geo: explorer.geoLevel,
 			mode: analysis.mode,
-			biA: indicatorById(analysis.biA)?.slug,
 			biB: indicatorById(analysis.biB)?.slug,
-			lisa: indicatorById(analysis.lisaId)?.slug,
 			q: analysis.lisaQuadrants.map(String)
 		});
 		const qs = new URLSearchParams(params).toString();
@@ -223,11 +220,10 @@
 		if (area.bbox) flyBbox = area.bbox.slice();
 	}
 	function changeMode(m) {
-		if (m === 'bivariate' && analysis.biA == null) {
+		if (m === 'bivariate' && analysis.biB == null) {
 			const other = manifest.indicators.find((i) => i.id !== explorer.indicatorId);
-			setBivariate(explorer.indicatorId, other?.id ?? explorer.indicatorId);
+			setBivariateB(other?.id ?? explorer.indicatorId);
 		}
-		if (m === 'lisa' && analysis.lisaId == null) setLisaIndicator(explorer.indicatorId);
 		setMode(m);
 	}
 </script>
@@ -277,18 +273,19 @@
 			<div class="panel-section">
 				<BivariatePanel
 					indicators={manifest.indicators}
-					biA={analysis.biA}
+					biA={explorer.indicatorId}
 					biB={analysis.biB}
-					onChange={setBivariate}
+					onChangeA={pickIndicatorId}
+					onChangeB={setBivariateB}
 				/>
 			</div>
 		{:else if analysis.mode === 'lisa'}
 			<div class="panel-section">
 				<LisaPanel
 					indicators={manifest.indicators}
-					lisaId={analysis.lisaId}
+					lisaId={explorer.indicatorId}
 					quadrants={analysis.lisaQuadrants}
-					onIndicator={setLisaIndicator}
+					onIndicator={pickIndicatorId}
 					onToggle={toggleQuadrant}
 				/>
 			</div>

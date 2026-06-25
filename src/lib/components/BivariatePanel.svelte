@@ -1,15 +1,15 @@
 <script>
 	import BivariateLegend from './BivariateLegend.svelte';
-	let { indicators = [], biA = null, biB = null, onChange = () => {} } = $props();
+	let { indicators = [], biA = null, biB = null, onChangeA = () => {}, onChangeB = () => {} } = $props();
 
 	let labelA = $derived(indicators.find((i) => i.id === biA)?.label ?? 'Variable A');
 	let labelB = $derived(indicators.find((i) => i.id === biB)?.label ?? 'Variable B');
 
 	function setA(e) {
-		onChange(Number(e.target.value), biB);
+		onChangeA(Number(e.target.value));
 	}
 	function setB(e) {
-		onChange(biA, Number(e.target.value));
+		onChangeB(Number(e.target.value));
 	}
 </script>
 
