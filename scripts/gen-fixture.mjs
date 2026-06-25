@@ -20,6 +20,9 @@ const OUT = path.join(ROOT, 'static', 'data');
 const DROPBOX = 'C:/Users/kyle/UNC Charlotte Dropbox/Kailas Venkitasubramanian/Charlotte Regional Explorer';
 const GEOJSON = path.join(DROPBOX, 'Charlotte Regional Explorer', 'UICharlotteReg_FeaturesToJSO.geojson');
 const ACS_CSV = path.join(DROPBOX, 'Data', 'RegionalExplorerACS_all_years.csv');
+// Extended ACS file (median income, etc.); has duplicated rows per (geoid,year) — dedupe on read.
+const NEWVAR_CSV = path.join(DROPBOX, 'Data', 'Data With New ACS Variables', 'RegionalExplorerACS_new_var_all_years.csv');
+const NEWVAR_FIELDS = ['MedianHouseholdIncomeE'];
 
 const CLASSES = 5;
 const COORD_PRECISION = 5; // ~1.1 m
@@ -41,6 +44,7 @@ const INDICATORS = [
 	// Economy
 	{ id: 9, slug: 'employment', label: 'Employment rate', category: 'economy', field: 'PercentEmployed', higherIsBetter: true, desc: 'Share of the labor force that is employed', metaTitle: 'Employment Rate', metaWhy: 'The share of the labor force that is employed reflects local economic health and household stability.' },
 	{ id: 10, slug: 'internet-access', label: 'Households with internet access', category: 'economy', field: 'PercentInternetAccess', higherIsBetter: true, desc: 'Households with a broadband internet subscription', metaTitle: 'Households with Internet Access', metaWhy: 'Home internet is essential for school, work, healthcare, and civic participation in a digital economy.' },
+	{ id: 20, slug: 'household-income', label: 'Median household income', category: 'economy', field: 'MedianHouseholdIncomeE', format: 'dollar', decimals: 0, higherIsBetter: true, desc: 'Median annual household income', metaTitle: 'Median Household Income', metaWhy: 'Median household income is a core measure of economic well-being and a strong correlate of health, education, and opportunity.' },
 	// Education
 	{ id: 11, slug: 'bachelors-or-higher', label: "Bachelor's degree or higher", category: 'education', field: 'PercentAdultsWithAtLeastBachelors', higherIsBetter: true, desc: "Adults 25+ with a bachelor's degree or higher", metaTitle: "Adults with a Bachelor's Degree or Higher", metaWhy: 'Educational attainment is strongly associated with earnings, health, and economic mobility.' },
 	{ id: 12, slug: 'high-school-diploma', label: 'High school diploma or higher', category: 'education', field: 'PercentHighSchoolDiploma', higherIsBetter: true, desc: 'Adults 25+ with at least a high school diploma', metaTitle: 'Adults with a High School Diploma or Higher', metaWhy: 'High school completion is a foundational measure of opportunity and workforce readiness.' },
@@ -254,6 +258,30 @@ for (let r = 1; r < rows.length; r++) {
 		rec[ind.field][year] = Number.isFinite(v) ? v : null;
 	}
 }
+// Merge extended fields (e.g. median household income) from the new-variables file.
+if (fs.existsSync(NEWVAR_CSV)) {
+	console.log('Merging extended ACS values (income)…');
+	const nrows = parseCsv(fs.readFileSync(NEWVAR_CSV, 'utf8'));
+	const nh = Object.fromEntries(nrows[0].map((h, i) => [h, i]));
+	for (let r = 1; r < nrows.length; r++) {
+		const row = nrows[r];
+		if (!row || row[nh['GEOID']] == null) continue;
+		const geoid = String(row[nh['GEOID']]);
+		const year = Number(row[nh['Year']]);
+		if (!tracts.has(geoid) || !Number.isFinite(year)) continue;
+		yearsSet.add(year);
+		if (!records.has(geoid)) records.set(geoid, {});
+		const rec = records.get(geoid);
+		for (const fld of NEWVAR_FIELDS) {
+			const raw = row[nh[fld]];
+			const v = raw === '' || raw == null ? null : Number(raw);
+			if (!rec[fld]) rec[fld] = {};
+			// dedupe: keep first valid value for a (geoid,year)
+			if (rec[fld][year] == null && Number.isFinite(v)) rec[fld][year] = v;
+		}
+	}
+}
+
 const YEARS = [...yearsSet].sort((a, b) => a - b);
 console.log(`  years: ${YEARS.join(', ')}`);
 
@@ -401,8 +429,8 @@ const manifest = {
 		label: ind.label,
 		description: ind.desc,
 		category: ind.category,
-		format: 'percent',
-		decimals: 1,
+		format: ind.format ?? 'percent',
+		decimals: ind.decimals ?? 1,
 		higherIsBetter: ind.higherIsBetter,
 		classMethod: 'quantile',
 		years: ind.years ?? YEARS,
@@ -460,14 +488,18 @@ for (const ind of INDICATORS) {
 	const dir = ('higherIsBetter' in ind && ind.higherIsBetter === true) ? 'A higher value is generally more favorable.'
 		: ind.higherIsBetter === false ? 'A higher value generally signals greater need.'
 		: 'This indicator describes neighborhood composition; higher and lower values are not inherently better or worse.';
+	const isDollar = ind.format === 'dollar';
+	const intro = isDollar ? `${ind.metaTitle} by Census tract.` : `Share of ${ind.label.toLowerCase()} by Census tract.`;
+	const units = isDollar ? 'Values are in U.S. dollars (inflation-adjusted to the survey year).' : 'Values are expressed as percentages.';
+	const ivYears = ind.years ?? YEARS;
 	const md = `## ${ind.metaTitle}
-Share of ${ind.label.toLowerCase()} by Census tract.
+${intro}
 
 ### Why is this important?
 ${ind.metaWhy} ${dir}
 
 ### About the Data
-This indicator is calculated from the U.S. Census Bureau's American Community Survey (ACS) 5-Year Estimates for ${YEARS[0]}–${YEARS[YEARS.length - 1]}, aggregated to 2020 Census tract boundaries. Values are expressed as percentages. Because ACS figures are survey estimates, small tracts carry larger margins of error; interpret year-to-year changes with care.
+This indicator is calculated from the U.S. Census Bureau's American Community Survey (ACS) 5-Year Estimates for ${ivYears[0]}–${ivYears[ivYears.length - 1]}, aggregated to 2020 Census tract boundaries. ${units} Because ACS figures are survey estimates, small tracts carry larger margins of error; interpret year-to-year changes with care.
 
 _**Source**: U.S. Census Bureau, American Community Survey 5-Year Estimates._
 
