@@ -28,6 +28,8 @@
 
 	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
+	import { summarize } from '$lib/analytics/spatial.js';
+	import { schemeColors } from '$lib/map/colorScale.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
@@ -85,8 +87,19 @@
 	});
 
 	let choropleth = $derived.by(() => {
-		if (!valueFile || !indicator || explorer.year == null) return null;
-		if (valueFile.indicatorId !== indicator.id) return null;
+		if (!indicator || explorer.year == null) return null;
+		if (explorer.geoLevel === 'county') {
+			const agg = aggregates?.[indicator.id];
+			if (!agg) return null;
+			const yi = agg.years.indexOf(explorer.year);
+			if (yi < 0) return null;
+			const valuesByGeoid = {};
+			for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
+			const stats = summarize(Object.values(valuesByGeoid), 5);
+			const colors = schemeColors(indicator.colorScheme || 'YlGnBu', stats.breaks.length + 1);
+			return { valuesByGeoid, breaks: stats.breaks, colors, stats };
+		}
+		if (!valueFile || valueFile.indicatorId !== indicator.id) return null;
 		const { breaks, colors, stats } = breaksAndColors(valueFile, explorer.year, indicator);
 		return { valuesByGeoid: valuesForYear(valueFile, explorer.year), breaks, colors, stats };
 	});
@@ -213,11 +226,18 @@
 	}
 	function onSelect(id) {
 		setSelected(selection.selected === id ? null : id);
+		map?.clearBoundary?.();
 	}
 	function pickArea(area) {
-		setGeoLevel(area.level === 'county' ? 'county' : 'tract');
-		setSelected(area.geoid);
-		if (area.bbox) flyBbox = area.bbox.slice();
+		if (area.level === 'tract') {
+			setSelected(area.geoid);
+			map?.clearBoundary?.();
+			if (area.bbox) flyBbox = area.bbox.slice();
+		} else {
+			// county or city: outline the boundary and zoom in, keeping tracts visible beneath
+			setGeoLevel('tract');
+			map?.showBoundary(area.level, area.geoid);
+		}
 	}
 	function changeMode(m) {
 		if (m === 'bivariate' && analysis.biB == null) {

@@ -110,15 +110,19 @@ export class MapController {
 	}
 
 	async _loadData() {
-		const [tracts, counties] = await Promise.all([
+		const [tracts, counties, places] = await Promise.all([
 			fetch(`${this.basePath}/data/geo/tracts.geojson`).then((r) => r.json()),
-			fetch(`${this.basePath}/data/geo/counties.geojson`).then((r) => r.json())
+			fetch(`${this.basePath}/data/geo/counties.geojson`).then((r) => r.json()),
+			fetch(`${this.basePath}/data/geo/places.geojson`).then((r) => (r.ok ? r.json() : { type: 'FeatureCollection', features: [] }))
 		]);
 		this.ids.tract = tracts.features.map((f) => String(f.id ?? f.properties.geoid));
 		this.ids.county = counties.features.map((f) => String(f.id ?? f.properties.geoid));
 		this.regionBounds = fcBounds(tracts);
+		/** geometry lookups for boundary outlines */
+		this.geo = { county: counties, place: places };
 		this.map.addSource('tract', { type: 'geojson', data: tracts, promoteId: 'geoid' });
 		this.map.addSource('county', { type: 'geojson', data: counties, promoteId: 'geoid' });
+		this.map.addSource('sel-boundary', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 	}
 
 	_addRecenterControl(maplibre) {
@@ -199,6 +203,28 @@ export class MapController {
 		}
 		// labels above everything
 		this.map.addLayer({ id: 'labels', type: 'raster', source: 'carto-labels' });
+		// selected county/city boundary outline (top-most)
+		this.map.addLayer({
+			id: 'sel-boundary-line',
+			type: 'line',
+			source: 'sel-boundary',
+			paint: { 'line-color': '#5b2a4e', 'line-width': 3, 'line-opacity': 0.95 }
+		});
+	}
+
+	/** Outline a county/city by geoid and zoom to it (keeps the tract overlay beneath). */
+	showBoundary(level, geoid) {
+		if (!this.ready) return;
+		const fc = this.geo?.[level];
+		const feature = fc?.features.find((f) => String(f.id ?? f.properties.geoid) === String(geoid));
+		if (!feature) return;
+		this.map.getSource('sel-boundary').setData({ type: 'FeatureCollection', features: [feature] });
+		this.flyToBbox(fcBounds({ features: [feature] }).flat());
+	}
+
+	clearBoundary() {
+		if (!this.ready) return;
+		this.map.getSource('sel-boundary')?.setData({ type: 'FeatureCollection', features: [] });
 	}
 
 	_wireEvents() {
