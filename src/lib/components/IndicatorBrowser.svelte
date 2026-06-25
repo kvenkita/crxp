@@ -20,6 +20,15 @@
 			.filter((c) => c.items.length);
 	}
 	let groups = $derived(grouped(results));
+
+	let collapsed = $state(new Set());
+	let searching = $derived(query.trim().length > 0);
+	function toggleCat(key) {
+		const next = new Set(collapsed);
+		next.has(key) ? next.delete(key) : next.add(key);
+		collapsed = next;
+	}
+	const isOpen = (key) => searching || !collapsed.has(key);
 </script>
 
 <div class="browser" class:grid={variant === 'grid'}>
@@ -33,21 +42,27 @@
 
 	{#each groups as cat (cat.key)}
 		<section class="cat" style="--theme:{cat.color ?? 'var(--c-teal)'}">
-			<h3 class="cat-title">{cat.label}</h3>
-			<ul class="cat-list">
-				{#each cat.items as ind (ind.id)}
-					<li>
-						<button
-							class="ind"
-							class:active={ind.id === selectedId}
-							aria-pressed={ind.id === selectedId}
-							onclick={() => onSelect(ind.id)}
-						>
-							{ind.label}
-						</button>
-					</li>
-				{/each}
-			</ul>
+			<button class="cat-title" aria-expanded={isOpen(cat.key)} onclick={() => toggleCat(cat.key)}>
+				<span class="chev" class:open={isOpen(cat.key)}>▸</span>
+				{cat.label}
+				<span class="count">{cat.items.length}</span>
+			</button>
+			{#if isOpen(cat.key)}
+				<ul class="cat-list">
+					{#each cat.items as ind (ind.id)}
+						<li>
+							<button
+								class="ind"
+								class:active={ind.id === selectedId}
+								aria-pressed={ind.id === selectedId}
+								onclick={() => onSelect(ind.id)}
+							>
+								{ind.label}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		</section>
 	{:else}
 		<p class="empty">No indicators match “{query}”.</p>
@@ -73,12 +88,35 @@
 		padding-left: var(--sp-3);
 	}
 	.cat-title {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		width: 100%;
+		border: 0;
+		background: transparent;
 		font-size: var(--t-xs);
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--theme);
 		margin: 0 0 var(--sp-2);
+		padding: 2px 0;
+		text-align: left;
+	}
+	.chev {
+		font-size: 0.7em;
+		transition: transform 0.15s ease;
+	}
+	.chev.open {
+		transform: rotate(90deg);
+	}
+	.count {
+		margin-left: auto;
+		font-weight: 600;
+		color: var(--c-text-3);
+		background: var(--c-surface-2);
+		border-radius: var(--r-pill);
+		padding: 0 var(--sp-2);
 	}
 	.cat-list {
 		list-style: none;
