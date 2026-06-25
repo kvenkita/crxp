@@ -24,6 +24,15 @@ export function valuesForYear(file, year) {
 	return out;
 }
 
+/** Extract a {geoid: reliability} map ('ok'|'caution'|'unreliable'|null) for a year. */
+export function reliabilityForYear(file, year) {
+	const yi = file.years.indexOf(year);
+	const out = {};
+	if (yi < 0 || !file.reliability) return out;
+	for (const [geoid, arr] of Object.entries(file.reliability)) out[geoid] = arr[yi];
+	return out;
+}
+
 /**
  * Resolve the indicator's CONSISTENT breaks (shared across years) + a theme-color
  * ramp. @param {object} file value file @param {string} baseColor theme hex

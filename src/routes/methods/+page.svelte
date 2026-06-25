@@ -73,12 +73,16 @@
 		<strong>± MOE band</strong> and a reliability flag derived from the coefficient of variation
 		(CV = standard error ÷ estimate): <em>caution</em> when CV exceeds 15%, <em>unreliable</em>
 		above 30%. Treat unreliable single-tract values, and small year-to-year differences, with care.
+		On the map, tracts whose estimate is <strong>unreliable</strong> are drawn with a diagonal
+		<strong>hatch</strong> (toggle under <em>Map settings → Flag unreliable areas</em>).
 	</p>
 	<p>
 		ACS 5-year estimates <strong>overlap</strong> from one year to the next (adjacent vintages share
 		four years of sample), so the annual series is best read as a <strong>rolling</strong> estimate.
 		Valid change and statistical-significance comparisons use only <strong>non-overlapping</strong>
-		periods (e.g. 2014 vs. 2019 vs. 2024).
+		periods (e.g. 2014 vs. 2019 vs. 2024). When you select a tract, the explorer shows the change
+		between the most recent non-overlapping endpoints (e.g. 2019→2024) and whether it is
+		<strong>statistically significant</strong> at 90% confidence.
 	</p>
 
 	<h2>Data sources</h2>

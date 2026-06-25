@@ -149,6 +149,9 @@ views are deep-linkable.
 - applies a **step color expression** built from the indicator's shared breaks and the theme color
   ramp (`map/colorScale.js → themeRamp`, `buildStepExpression`, `legendClasses`);
 - supports legend-class **filtering/dimming**, hover, multi-select, and boundary highlight;
+- renders an **uncertainty hatch** layer (`<level>-hatch`, a canvas-generated diagonal pattern with
+  `fill-pattern`) over tracts whose `reliability` feature-state is `unreliable` (CV > 30%), shown only
+  in explore mode and toggleable via `setReliabilityVisible` (Map settings → "Flag unreliable areas");
 - swaps into bivariate (3×3, `map/bivariate.js`) and LISA (`map/lisaColors.js`) styling for the
   analysis modes.
 
@@ -181,6 +184,7 @@ flowchart LR
 | `GeoLevelToggle` | Tract vs county view |
 | `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
 | `TrendChart` | Area vs county vs region SVG trend; **MOE error band, ±MOE readout, reliability badge** for the selected tract |
+| Trend float (in `/explore`) | Shows a **comparable-period change marker** for a single selected tract — Δ between the most recent non-overlapping ACS endpoints (e.g. 2019→2024) with a 90% significance flag (computed by `data/series.js → comparableChange`) |
 | `AreaSearch` | Fuse-based search across tracts/counties/places |
 | `ComparePanel` / `PinButton` | Pin/compare areas |
 | `MapSettings` | Basemap choice, transparency, overlay toggle |

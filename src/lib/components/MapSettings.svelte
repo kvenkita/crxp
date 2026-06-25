@@ -3,9 +3,11 @@
 		basemap = 'light',
 		opacity = 0.82,
 		overlayVisible = true,
+		reliabilityVisible = true,
 		onBasemap = () => {},
 		onOpacity = () => {},
-		onToggleOverlay = () => {}
+		onToggleOverlay = () => {},
+		onToggleReliability = () => {}
 	} = $props();
 
 	let open = $state(false);
@@ -39,6 +41,13 @@
 				<button class="toggle" class:on={overlayVisible} onclick={() => onToggleOverlay(!overlayVisible)}>
 					{overlayVisible ? 'On' : 'Off'}
 				</button>
+			</div>
+			<div class="row">
+				<span class="lbl">Flag unreliable areas</span>
+				<button class="toggle" class:on={reliabilityVisible} onclick={() => onToggleReliability(!reliabilityVisible)}>
+					{reliabilityVisible ? 'On' : 'Off'}
+				</button>
+				<span class="hint">▨ Hatched tracts have high uncertainty (CV &gt; 30%)</span>
 			</div>
 		</div>
 	{/if}
@@ -119,5 +128,10 @@
 		background: var(--c-teal);
 		border-color: var(--c-teal);
 		color: var(--c-text-inv);
+	}
+	.hint {
+		font-size: var(--t-2xs, 0.65rem);
+		color: var(--c-text-3);
+		line-height: 1.3;
 	}
 </style>

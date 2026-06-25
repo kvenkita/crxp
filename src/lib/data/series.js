@@ -5,6 +5,37 @@
  */
 const COLORS = { area: '#5b2a4e', county: '#1f6f63', region: '#9a9085' };
 
+/**
+ * Comparable-period change for one tract: the most recent pair of NON-overlapping
+ * ACS 5-year endpoints present in the value file (5 years apart), with the Census
+ * 90% significance test. Returns null if no valid pair / data.
+ * @param {object} valueFile
+ * @param {string} geoid
+ */
+export function comparableChange(valueFile, geoid) {
+	const years = valueFile?.years ?? [];
+	if (years.length < 2) return null;
+	const y2 = years[years.length - 1];
+	const y1 = y2 - 5; // non-overlapping 5-year windows
+	const i1 = years.indexOf(y1);
+	const i2 = years.indexOf(y2);
+	if (i1 < 0 || i2 < 0) return null;
+	const v1 = valueFile.values?.[geoid]?.[i1];
+	const v2 = valueFile.values?.[geoid]?.[i2];
+	if (v1 == null || v2 == null || !Number.isFinite(v1) || !Number.isFinite(v2)) return null;
+	const m1 = valueFile.moe?.[geoid]?.[i1];
+	const m2 = valueFile.moe?.[geoid]?.[i2];
+	const delta = v2 - v1;
+	let significant = null;
+	if (m1 != null && m2 != null && Number.isFinite(m1) && Number.isFinite(m2)) {
+		const se1 = m1 / 1.645;
+		const se2 = m2 / 1.645;
+		const denom = Math.sqrt(se1 * se1 + se2 * se2);
+		significant = denom > 0 ? Math.abs(delta) / denom > 1.645 : null;
+	}
+	return { y1, y2, v1, v2, delta, significant };
+}
+
 /** Mean of finite values, or null. */
 function mean(vals) {
 	const f = vals.filter((v) => v != null && Number.isFinite(v));

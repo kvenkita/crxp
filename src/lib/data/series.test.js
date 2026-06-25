@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seriesFor, seriesForSet } from './series.js';
+import { seriesFor, seriesForSet, comparableChange } from './series.js';
 
 const valueFile = {
 	indicatorId: 1,
@@ -55,6 +55,33 @@ describe('seriesForSet (multi-tract average)', () => {
 		const { series } = seriesForSet({ valueFile: vf, aggregates: agg, geoids: ['37119000100'], level: 'tract' });
 		expect(series[0].values).toEqual([10, 12, 14]);
 		expect(series[1].label).toBe('County avg');
+	});
+});
+
+describe('comparableChange (non-overlapping endpoints + significance)', () => {
+	// 2019 and 2024 are 5 years apart (non-overlapping ACS windows)
+	const vf = {
+		years: [2019, 2020, 2021, 2022, 2023, 2024],
+		values: { A: [10, 11, 12, 13, 14, 20], B: [10, 10, 10, 10, 10, 11] },
+		moe: { A: [1, 1, 1, 1, 1, 1], B: [3, 3, 3, 3, 3, 3] }
+	};
+
+	it('uses the latest 5-year-apart pair and flags a significant change', () => {
+		const c = comparableChange(vf, 'A');
+		expect(c.y1).toBe(2019);
+		expect(c.y2).toBe(2024);
+		expect(c.delta).toBe(10); // 20 - 10
+		expect(c.significant).toBe(true); // 10 / sqrt((1/1.645)^2*2) >> 1.645
+	});
+
+	it('flags a small change within error as not significant', () => {
+		const c = comparableChange(vf, 'B');
+		expect(c.delta).toBe(1);
+		expect(c.significant).toBe(false);
+	});
+
+	it('returns null when no non-overlapping pair exists', () => {
+		expect(comparableChange({ years: [2022, 2023, 2024], values: { A: [1, 2, 3] } }, 'A')).toBeNull();
 	});
 });
 

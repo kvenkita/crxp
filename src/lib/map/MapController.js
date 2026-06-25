@@ -100,6 +100,7 @@ export class MapController {
 		this.geoLevel = 'tract';
 		this.fillOpacity = FILL_OPACITY;
 		this.overlayVisible = true;
+		this.showReliability = true; // hatch tracts flagged 'unreliable' (high CV)
 		this.basemap = 'light';
 		/** @type {[[number,number],[number,number]]|null} */ this.regionBounds = null;
 		/** @type {Record<string,string[]>} ids per source */
@@ -184,8 +185,29 @@ export class MapController {
 		];
 	}
 
+	/** Generate a small diagonal-hatch pattern image for flagging unreliable tracts. */
+	_addHatchImage() {
+		if (this.map.hasImage?.('hatch')) return;
+		const s = 8;
+		const c = document.createElement('canvas');
+		c.width = c.height = s;
+		const ctx = c.getContext('2d');
+		ctx.clearRect(0, 0, s, s);
+		ctx.strokeStyle = 'rgba(35,25,25,0.6)';
+		ctx.lineWidth = 1.1;
+		for (let off = -s; off <= s; off += 4) {
+			ctx.beginPath();
+			ctx.moveTo(off, s);
+			ctx.lineTo(off + s, 0);
+			ctx.stroke();
+		}
+		const img = ctx.getImageData(0, 0, s, s);
+		this.map.addImage('hatch', { width: s, height: s, data: img.data }, { pixelRatio: 2 });
+	}
+
 	_addLayers() {
 		const opacityExpr = this._opacityExpr();
+		this._addHatchImage();
 		for (const level of ['tract', 'county']) {
 			const visible = level === this.geoLevel ? 'visible' : 'none';
 			this.map.addLayer({
@@ -197,6 +219,18 @@ export class MapController {
 					'fill-color': NO_DATA_COLOR,
 					'fill-opacity': opacityExpr,
 					'fill-opacity-transition': { duration: 280 }
+				}
+			});
+			// uncertainty hatch: shown only on tracts flagged 'unreliable' (driven by feature-state)
+			this.map.addLayer({
+				id: `${level}-hatch`,
+				type: 'fill',
+				source: level,
+				layout: { visibility: 'none' },
+				paint: {
+					'fill-pattern': 'hatch',
+					'fill-opacity': ['case', ['boolean', ['feature-state', 'unreliable'], false], 0.85, 0],
+					'fill-opacity-transition': { duration: 200 }
 				}
 			});
 			this.map.addLayer({
@@ -299,6 +333,25 @@ export class MapController {
 			this.map.setLayoutProperty(`${l}-outline`, 'visibility', overlay);
 			this.map.setLayoutProperty(`${l}-highlight`, 'visibility', active ? 'visible' : 'none');
 		}
+		this._updateHatch();
+	}
+
+	/** Hatch is shown only in explore mode, on the active level, when the overlay + flag are on. */
+	_updateHatch() {
+		for (const l of ['tract', 'county']) {
+			if (!this.map.getLayer?.(`${l}-hatch`)) continue;
+			const vis =
+				l === this.geoLevel && this.overlayVisible && this.showReliability && this.mode === 'explore'
+					? 'visible'
+					: 'none';
+			this.map.setLayoutProperty(`${l}-hatch`, 'visibility', vis);
+		}
+	}
+
+	/** Toggle the unreliable-tract hatch overlay. */
+	setReliabilityVisible(v) {
+		this.showReliability = !!v;
+		this._updateHatch();
 	}
 
 	/** Switch basemap: 'light' | 'streets' | 'satellite'. */
@@ -332,16 +385,18 @@ export class MapController {
 	 * @param {number[]} breaks
 	 * @param {string[]} colors
 	 */
-	applyChoropleth(valuesByGeoid, breaks, colors) {
+	applyChoropleth(valuesByGeoid, breaks, colors, reliabilityByGeoid = null) {
 		if (!this.ready) return;
 		const level = this.geoLevel;
 		for (const id of this.ids[level]) {
 			const v = valuesByGeoid[id];
-			if (v == null || Number.isNaN(v)) this._setState(level, id, { v: 0, present: false, dim: false });
-			else this._setState(level, id, { v, present: true, dim: false });
+			const unreliable = reliabilityByGeoid?.[id] === 'unreliable';
+			if (v == null || Number.isNaN(v)) this._setState(level, id, { v: 0, present: false, dim: false, unreliable });
+			else this._setState(level, id, { v, present: true, dim: false, unreliable });
 		}
 		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildStepExpression(breaks, colors));
 		this.mode = 'explore';
+		this._updateHatch();
 	}
 
 	/**
@@ -362,6 +417,7 @@ export class MapController {
 		}
 		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildBivariatePaint(matrix));
 		this.mode = 'bivariate';
+		this._updateHatch();
 	}
 
 	/**
@@ -393,6 +449,7 @@ export class MapController {
 		}
 		this.map.setPaintProperty(`${level}-fill`, 'fill-color', buildLisaPaint());
 		this.mode = 'lisa';
+		this._updateHatch();
 	}
 
 	/** Dim features whose value falls outside [min,max]; null clears. */

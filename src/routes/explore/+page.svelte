@@ -24,14 +24,14 @@
 	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
 
-	import { loadValueFile, valuesForYear, breaksAndColors } from '$lib/data/values.js';
+	import { loadValueFile, valuesForYear, reliabilityForYear, breaksAndColors } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
 	import { themeRamp } from '$lib/map/colorScale.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
-	import { seriesFor, seriesForSet } from '$lib/data/series.js';
-	import { legendClasses } from '$lib/map/colorScale.js';
+	import { seriesFor, seriesForSet, comparableChange } from '$lib/data/series.js';
+	import { legendClasses, formatValue } from '$lib/map/colorScale.js';
 	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
@@ -48,6 +48,7 @@
 	let basemap = $state('light');
 	let overlayOpacity = $state(0.82);
 	let overlayOn = $state(true);
+	let reliabilityOn = $state(true); // hatch high-uncertainty (unreliable) tracts
 
 	// hovered bivariate matrix cell {a,b} (filters the map)
 	let bivarCell = $state(null);
@@ -121,7 +122,13 @@
 		}
 		if (!valueFile || valueFile.indicatorId !== indicator.id) return null;
 		const { breaks, colors, stats } = breaksAndColors(valueFile, accent);
-		return { valuesByGeoid: valuesForYear(valueFile, explorer.year), breaks, colors, stats };
+		return {
+			valuesByGeoid: valuesForYear(valueFile, explorer.year),
+			reliabilityByGeoid: reliabilityForYear(valueFile, explorer.year),
+			breaks,
+			colors,
+			stats
+		};
 	});
 
 	let classes = $derived(
@@ -141,7 +148,7 @@
 	$effect(() => {
 		if (!map || analysis.mode !== 'explore' || !choropleth) return;
 		map.setGeoLevel(explorer.geoLevel);
-		map.applyChoropleth(choropleth.valuesByGeoid, choropleth.breaks, choropleth.colors);
+		map.applyChoropleth(choropleth.valuesByGeoid, choropleth.breaks, choropleth.colors, choropleth.reliabilityByGeoid);
 		map.setLegendFilter(selection.legendFilter, choropleth.valuesByGeoid);
 	});
 
@@ -196,6 +203,9 @@
 	$effect(() => {
 		if (map) map.setOverlayVisible(overlayOn);
 	});
+	$effect(() => {
+		if (map) map.setReliabilityVisible(reliabilityOn);
+	});
 
 	// selection + fly
 	$effect(() => {
@@ -247,6 +257,14 @@
 		return '';
 	});
 	let animKey = $derived(selection.hover ?? selection.selectedIds.join(','));
+
+	// comparable-period change (single tract): non-overlapping ACS endpoints + significance
+	let trendChange = $derived.by(() => {
+		if (!valueFile || explorer.geoLevel !== 'tract' || valueFile.indicatorId !== indicator?.id) return null;
+		const gid = selection.hover ?? (selection.selectedIds.length === 1 ? selection.selectedIds[0] : null);
+		if (!gid) return null;
+		return comparableChange(valueFile, gid);
+	});
 
 	// ---- handlers ----
 	function pickIndicatorId(id) {
@@ -373,9 +391,11 @@
 				{basemap}
 				opacity={overlayOpacity}
 				overlayVisible={overlayOn}
+				reliabilityVisible={reliabilityOn}
 				onBasemap={(b) => (basemap = b)}
 				onOpacity={(o) => (overlayOpacity = o)}
 				onToggleOverlay={(v) => (overlayOn = v)}
+				onToggleReliability={(v) => (reliabilityOn = v)}
 			/>
 		</div>
 
@@ -387,6 +407,15 @@
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
 				</div>
+				{#if trendChange}
+					{@const up = trendChange.delta > 0}
+					{@const flat = trendChange.delta === 0}
+					<div class="change-marker" class:sig={trendChange.significant === true}>
+						<span class="chg-label">{trendChange.y1}→{trendChange.y2}</span>
+						<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(trendChange.delta, indicator.format, indicator.decimals ?? 1)}</span>
+						<span class="chg-sig">{trendChange.significant === true ? 'significant' : trendChange.significant === false ? 'not significant' : '—'}{trendChange.significant != null ? ' (90%)' : ''}</span>
+					</div>
+				{/if}
 				<TrendChart
 					years={trend.years}
 					series={trend.series}
@@ -533,6 +562,39 @@
 	.trend-sub {
 		font-size: var(--t-xs);
 		color: var(--c-text-3);
+	}
+	.change-marker {
+		display: flex;
+		align-items: baseline;
+		gap: var(--sp-2);
+		margin: 2px 0 var(--sp-1);
+		padding: 2px 6px;
+		border-left: 3px solid var(--c-border-strong);
+		background: var(--c-surface-2, #f5f3f0);
+		border-radius: 3px;
+		font-size: var(--t-xs);
+	}
+	.change-marker.sig {
+		border-left-color: #5b2a4e;
+	}
+	.change-marker .chg-label {
+		color: var(--c-text-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.change-marker .chg-val {
+		font-weight: 700;
+		color: var(--c-text);
+		font-variant-numeric: tabular-nums;
+	}
+	.change-marker .chg-sig {
+		margin-left: auto;
+		color: var(--c-text-3);
+		font-style: italic;
+	}
+	.change-marker.sig .chg-sig {
+		color: #5b2a4e;
+		font-style: normal;
+		font-weight: 600;
 	}
 	.search-float {
 		position: absolute;
