@@ -26,26 +26,47 @@ const COORD_PRECISION = 5; // ~1.1 m
 const DP_EPSILON = 0.00018; // ~20 m simplification tolerance (degrees)
 
 /** Indicator definitions: maps app indicators to ACS CSV columns. */
+// All indicators in the original Regional Explorer that have ACS data.
+// `years` defaults to all YEARS; override where data is genuinely missing.
 const INDICATORS = [
-	{ id: 1, slug: 'older-adults', label: 'Older adults (65+)', category: 'character', field: 'PercentOver65', higherIsBetter: null, colorScheme: 'BuPu', desc: 'Share of residents aged 65 and older', metaTitle: 'Older Adults', metaWhy: 'The share of residents aged 65 and older shapes demand for healthcare, accessible housing, transportation, and senior services.' },
-	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, colorScheme: 'YlGn', desc: 'Share of residents under age 18', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
-	{ id: 3, slug: 'black-residents', label: 'Black residents', category: 'character', field: 'PercentBlack', higherIsBetter: null, colorScheme: 'PuBu', desc: 'Share of residents who are Black or African American', metaTitle: 'Black Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
-	{ id: 4, slug: 'hispanic-residents', label: 'Hispanic or Latino residents', category: 'character', field: 'PercentHispanic', higherIsBetter: null, colorScheme: 'OrRd', desc: 'Share of residents who are Hispanic or Latino', metaTitle: 'Hispanic or Latino Residents', metaWhy: 'Tracking the Hispanic or Latino population supports language access, outreach, and equitable service delivery.' },
-	{ id: 5, slug: 'bachelors-or-higher', label: "Bachelor's degree or higher", category: 'education', field: 'PercentAdultsWithAtLeastBachelors', higherIsBetter: true, colorScheme: 'YlGnBu', desc: "Adults 25+ with a bachelor's degree or higher", metaTitle: "Adults with a Bachelor's Degree or Higher", metaWhy: 'Educational attainment is strongly associated with earnings, health, and economic mobility.' },
-	{ id: 6, slug: 'high-school-diploma', label: 'High school diploma or higher', category: 'education', field: 'PercentHighSchoolDiploma', higherIsBetter: true, colorScheme: 'GnBu', desc: 'Adults 25+ with at least a high school diploma', metaTitle: 'Adults with a High School Diploma or Higher', metaWhy: 'High school completion is a foundational measure of opportunity and workforce readiness.' },
-	{ id: 7, slug: 'employment', label: 'Employment rate', category: 'economy', field: 'PercentEmployed', higherIsBetter: true, colorScheme: 'Greens', desc: 'Share of the labor force that is employed', metaTitle: 'Employment Rate', metaWhy: 'The share of the labor force that is employed reflects local economic health and household stability.' },
-	{ id: 8, slug: 'owner-occupied', label: 'Owner-occupied homes', category: 'housing', field: 'PercentOwnerOccupied', higherIsBetter: true, colorScheme: 'BuGn', desc: 'Occupied homes that are owner-occupied', metaTitle: 'Owner-Occupied Homes', metaWhy: 'Homeownership is associated with wealth-building and neighborhood stability, though high rates can also signal limited rental options.' },
-	{ id: 9, slug: 'no-vehicle', label: 'Households without a vehicle', category: 'transportation', field: 'PercentNoVehicle', higherIsBetter: false, colorScheme: 'YlOrRd', desc: 'Households with no vehicle available', metaTitle: 'Households Without a Vehicle', metaWhy: 'Vehicle access affects how easily residents reach jobs, food, and care — especially where transit is limited.' },
-	{ id: 10, slug: 'internet-access', label: 'Households with internet access', category: 'connectivity', field: 'PercentInternetAccess', higherIsBetter: true, colorScheme: 'PuBuGn', desc: 'Households with a broadband internet subscription', metaTitle: 'Households with Internet Access', metaWhy: 'Home internet is essential for school, work, healthcare, and civic participation in a digital economy.' }
+	// Character
+	{ id: 1, slug: 'older-adults', label: 'Older adults (65+)', category: 'character', field: 'PercentOver65', higherIsBetter: null, desc: 'Share of residents aged 65 and older', metaTitle: 'Older Adults', metaWhy: 'The share of residents aged 65 and older shapes demand for healthcare, accessible housing, transportation, and senior services.' },
+	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, years: [2022, 2023], desc: 'Share of residents under age 18', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
+	{ id: 3, slug: 'veterans', label: 'Veterans', category: 'character', field: 'PercentVeteran', higherIsBetter: null, desc: 'Share of civilian residents who are military veterans', metaTitle: 'Veterans', metaWhy: 'The veteran population helps target benefits, healthcare, and services for those who have served.' },
+	{ id: 4, slug: 'asian-residents', label: 'Asian residents', category: 'character', field: 'PercentAsian', higherIsBetter: null, desc: 'Share of residents who are Asian', metaTitle: 'Asian Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
+	{ id: 5, slug: 'black-residents', label: 'Black residents', category: 'character', field: 'PercentBlack', higherIsBetter: null, desc: 'Share of residents who are Black or African American', metaTitle: 'Black Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
+	{ id: 6, slug: 'hispanic-residents', label: 'Hispanic or Latino residents', category: 'character', field: 'PercentHispanic', higherIsBetter: null, desc: 'Share of residents who are Hispanic or Latino', metaTitle: 'Hispanic or Latino Residents', metaWhy: 'Tracking the Hispanic or Latino population supports language access, outreach, and equitable service delivery.' },
+	{ id: 7, slug: 'white-residents', label: 'White residents', category: 'character', field: 'PercentWhite', higherIsBetter: null, desc: 'Share of residents who are White', metaTitle: 'White Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
+	{ id: 8, slug: 'other-race-residents', label: 'Other races', category: 'character', field: 'PercentOther', higherIsBetter: null, desc: 'Share of residents of other or multiple races', metaTitle: 'Residents of Other Races', metaWhy: 'Capturing residents of other and multiple races gives a fuller picture of community diversity.' },
+	// Economy
+	{ id: 9, slug: 'employment', label: 'Employment rate', category: 'economy', field: 'PercentEmployed', higherIsBetter: true, desc: 'Share of the labor force that is employed', metaTitle: 'Employment Rate', metaWhy: 'The share of the labor force that is employed reflects local economic health and household stability.' },
+	{ id: 10, slug: 'internet-access', label: 'Households with internet access', category: 'economy', field: 'PercentInternetAccess', higherIsBetter: true, desc: 'Households with a broadband internet subscription', metaTitle: 'Households with Internet Access', metaWhy: 'Home internet is essential for school, work, healthcare, and civic participation in a digital economy.' },
+	// Education
+	{ id: 11, slug: 'bachelors-or-higher', label: "Bachelor's degree or higher", category: 'education', field: 'PercentAdultsWithAtLeastBachelors', higherIsBetter: true, desc: "Adults 25+ with a bachelor's degree or higher", metaTitle: "Adults with a Bachelor's Degree or Higher", metaWhy: 'Educational attainment is strongly associated with earnings, health, and economic mobility.' },
+	{ id: 12, slug: 'high-school-diploma', label: 'High school diploma or higher', category: 'education', field: 'PercentHighSchoolDiploma', higherIsBetter: true, desc: 'Adults 25+ with at least a high school diploma', metaTitle: 'Adults with a High School Diploma or Higher', metaWhy: 'High school completion is a foundational measure of opportunity and workforce readiness.' },
+	{ id: 13, slug: 'private-school', label: 'Private school enrollment', category: 'education', field: 'PercentPrivateSchool', higherIsBetter: null, desc: 'Enrolled students attending private school', metaTitle: 'Private School Enrollment', metaWhy: 'The share of students in private school reflects schooling choices and can signal perceptions of local public schools.' },
+	// Housing
+	{ id: 14, slug: 'owner-occupied', label: 'Owner-occupied homes', category: 'housing', field: 'PercentOwnerOccupied', higherIsBetter: true, desc: 'Occupied homes that are owner-occupied', metaTitle: 'Owner-Occupied Homes', metaWhy: 'Homeownership is associated with wealth-building and neighborhood stability, though high rates can also signal limited rental options.' },
+	{ id: 15, slug: 'occupied-homes', label: 'Occupied homes', category: 'housing', field: 'PercentOccupied', higherIsBetter: null, desc: 'Housing units that are occupied', metaTitle: 'Occupied Homes', metaWhy: 'Occupancy rates indicate housing demand and the prevalence of vacant or seasonal units.' },
+	{ id: 16, slug: 'vacant-homes', label: 'Vacant homes', category: 'housing', field: 'PercentVacant', higherIsBetter: false, desc: 'Housing units that are vacant', metaTitle: 'Vacant Homes', metaWhy: 'High vacancy can signal disinvestment or, in some areas, seasonal and rental turnover.' },
+	// Transportation
+	{ id: 17, slug: 'no-vehicle', label: 'Households without a vehicle', category: 'transportation', field: 'PercentNoVehicle', higherIsBetter: false, desc: 'Households with no vehicle available', metaTitle: 'Households Without a Vehicle', metaWhy: 'Vehicle access affects how easily residents reach jobs, food, and care — especially where transit is limited.' },
+	{ id: 18, slug: 'long-commute', label: 'Commute over 20 minutes', category: 'transportation', field: 'PercentDroveMoreThan20Minutes', higherIsBetter: false, desc: 'Workers who drive more than 20 minutes to work', metaTitle: 'Long Commutes', metaWhy: 'Longer commutes cut into time, raise costs, and are linked to lower well-being.' },
+	{ id: 19, slug: 'drove-alone', label: 'Drove alone to work', category: 'transportation', field: 'PercentDroveAlone', higherIsBetter: null, desc: 'Workers who commute by driving alone', metaTitle: 'Drove Alone to Work', metaWhy: 'Driving alone reflects car dependence and has implications for congestion and emissions.' }
 ];
 
+// All ten themes from the original Regional Explorer (some have no indicators yet).
 const CATEGORIES = [
-	{ key: 'character', label: 'People & Character', order: 1, color: '#8c62aa' },
-	{ key: 'economy', label: 'Economy', order: 2, color: '#1f8a5b' },
+	{ key: 'character', label: 'Character', order: 1, color: '#8c62aa' },
+	{ key: 'economy', label: 'Economy', order: 2, color: '#b07a2a' },
 	{ key: 'education', label: 'Education', order: 3, color: '#2f6fb0' },
-	{ key: 'housing', label: 'Housing', order: 4, color: '#b07a2a' },
-	{ key: 'transportation', label: 'Transportation', order: 5, color: '#1f6f63' },
-	{ key: 'connectivity', label: 'Connectivity', order: 6, color: '#5b6cc4' }
+	{ key: 'engagement', label: 'Engagement', order: 4, color: '#c0563b' },
+	{ key: 'environment', label: 'Environment', order: 5, color: '#2e8b57' },
+	{ key: 'health', label: 'Health', order: 6, color: '#c2334d' },
+	{ key: 'housing', label: 'Housing', order: 7, color: '#1f6f63' },
+	{ key: 'safety', label: 'Safety', order: 8, color: '#6a6f7a' },
+	{ key: 'transportation', label: 'Transportation', order: 9, color: '#5b6cc4' },
+	{ key: 'arts-culture', label: 'Arts & Culture', order: 10, color: '#b8569e' }
 ];
 
 // ---------- helpers ----------
@@ -383,12 +404,13 @@ const manifest = {
 		format: 'percent',
 		decimals: 1,
 		higherIsBetter: ind.higherIsBetter,
-		colorScheme: ind.colorScheme,
 		classMethod: 'quantile',
-		years: YEARS,
+		years: ind.years ?? YEARS,
 		geoLevels: ['tract', 'county'],
 		source: 'U.S. Census Bureau, American Community Survey 5-Year Estimates',
-		vintage: `${YEARS[0]}–${YEARS[YEARS.length - 1]}`,
+		vintage: (ind.years ?? YEARS).length
+			? `${(ind.years ?? YEARS)[0]}–${(ind.years ?? YEARS).at(-1)}`
+			: '',
 		metaPath: `/data/meta/m${ind.id}.md`,
 		related: INDICATORS.filter((o) => o.category === ind.category && o.id !== ind.id).map((o) => o.id).slice(0, 3),
 		hasZ: true,

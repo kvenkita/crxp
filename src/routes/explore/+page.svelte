@@ -84,11 +84,13 @@
 	$effect(() => {
 		const id = explorer.indicatorId;
 		if (id == null) return;
+		const avail = indicator?.years ?? [];
 		let cancelled = false;
 		loadValueFile(id).then((file) => {
 			if (cancelled) return;
 			valueFile = file;
-			if (!file.years.includes(explorer.year)) setYear(file.years.at(-1));
+			// snap the year into the indicator's available range (some indicators lack early years)
+			if (avail.length && !avail.includes(explorer.year)) setYear(avail.at(-1));
 		});
 		return () => (cancelled = true);
 	});

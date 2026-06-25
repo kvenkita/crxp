@@ -14,16 +14,16 @@
 		query.trim() ? fuse.search(query.trim()).map((r) => r.item) : manifest.indicators
 	);
 
-	function grouped(list) {
-		return manifest.categories
-			.map((c) => ({ ...c, items: list.filter((i) => i.category === c.key) }))
-			.filter((c) => c.items.length);
-	}
-	let groups = $derived(grouped(results));
-
 	// accordion: at most one theme open at a time; all collapsed by default
 	let expandedKey = $state(null);
 	let searching = $derived(query.trim().length > 0);
+
+	// show every theme (incl. empty ones); when searching, hide empties
+	let groups = $derived(
+		manifest.categories
+			.map((c) => ({ ...c, items: results.filter((i) => i.category === c.key) }))
+			.filter((c) => (searching ? c.items.length : true))
+	);
 	function toggleCat(key) {
 		expandedKey = expandedKey === key ? null : key;
 	}
@@ -40,13 +40,21 @@
 	/>
 
 	{#each groups as cat (cat.key)}
-		<section class="cat" style="--theme:{cat.color ?? 'var(--c-teal)'}">
-			<button class="cat-title" aria-expanded={isOpen(cat.key)} onclick={() => toggleCat(cat.key)}>
-				<span class="chev" class:open={isOpen(cat.key)}>▸</span>
-				{cat.label}
-				<span class="count">{cat.items.length}</span>
-			</button>
-			{#if isOpen(cat.key)}
+		<section class="cat" class:empty={!cat.items.length} style="--theme:{cat.color ?? 'var(--c-teal)'}">
+			{#if cat.items.length === 0}
+				<div class="cat-title empty-title">
+					<span class="chev-spacer"></span>
+					{cat.label}
+					<span class="soon">soon</span>
+				</div>
+			{:else}
+				<button class="cat-title" aria-expanded={isOpen(cat.key)} onclick={() => toggleCat(cat.key)}>
+					<span class="chev" class:open={isOpen(cat.key)}>▸</span>
+					{cat.label}
+					<span class="count">{cat.items.length}</span>
+				</button>
+			{/if}
+			{#if cat.items.length && isOpen(cat.key)}
 				<ul class="cat-list">
 					{#each cat.items as ind (ind.id)}
 						<li>
@@ -112,6 +120,30 @@
 	.count {
 		margin-left: auto;
 		font-weight: 600;
+		color: var(--c-text-3);
+		background: var(--c-surface-2);
+		border-radius: var(--r-pill);
+		padding: 0 var(--sp-2);
+	}
+	.cat.empty {
+		opacity: 0.55;
+	}
+	.empty-title {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		cursor: default;
+	}
+	.chev-spacer {
+		width: 0.7em;
+		display: inline-block;
+	}
+	.soon {
+		margin-left: auto;
+		font-weight: 500;
+		font-size: 0.6rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
 		color: var(--c-text-3);
 		background: var(--c-surface-2);
 		border-radius: var(--r-pill);
