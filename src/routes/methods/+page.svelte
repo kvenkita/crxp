@@ -46,20 +46,12 @@
 
 	<h2>Data availability &amp; gaps</h2>
 	<p>
-		Indicators carry their own available years; the year slider only offers years with data. Two
-		gaps are worth noting in this release:
+		Each indicator carries its own available years; the year slider only offers years with data. One
+		gap applies across all indicators in this release: <strong>2018 and 2019</strong> cover roughly
+		480 tracts rather than ~750, because those ACS vintages predate the 2020 Census tract boundaries
+		used here. The newer tracts have no value in those two years and appear as “no data.” This will be
+		reconciled in the Phase 2 data pipeline.
 	</p>
-	<ul>
-		<li>
-			<strong>Youth (under 18)</strong> is only available for 2022–2023; the underlying estimate was
-			not produced for earlier years.
-		</li>
-		<li>
-			<strong>2018 and 2019</strong> cover about 611 tracts rather than 752, because those ACS
-			vintages predate the 2020 Census tract boundaries used here — roughly 140 newer tracts have no
-			value in those two years and appear as “no data.”
-		</li>
-	</ul>
 
 	<h2>Margins of error</h2>
 	<p>

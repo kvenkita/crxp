@@ -22,7 +22,7 @@ const GEOJSON = path.join(DROPBOX, 'Charlotte Regional Explorer', 'UICharlotteRe
 const ACS_CSV = path.join(DROPBOX, 'Data', 'RegionalExplorerACS_all_years.csv');
 // Extended ACS file (median income, etc.); has duplicated rows per (geoid,year) — dedupe on read.
 const NEWVAR_CSV = path.join(DROPBOX, 'Data', 'Data With New ACS Variables', 'RegionalExplorerACS_new_var_all_years.csv');
-const NEWVAR_FIELDS = ['MedianHouseholdIncomeE'];
+const NEWVAR_FIELDS = ['MedianHouseholdIncomeE', 'Median_AgeE'];
 
 const CLASSES = 5;
 const COORD_PRECISION = 5; // ~1.1 m
@@ -34,7 +34,8 @@ const DP_EPSILON = 0.00018; // ~20 m simplification tolerance (degrees)
 const INDICATORS = [
 	// Character
 	{ id: 1, slug: 'older-adults', label: 'Older adults (65+)', category: 'character', field: 'PercentOver65', higherIsBetter: null, desc: 'Share of residents aged 65 and older', metaTitle: 'Older Adults', metaWhy: 'The share of residents aged 65 and older shapes demand for healthcare, accessible housing, transportation, and senior services.' },
-	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, years: [2022, 2023], desc: 'Share of residents under age 18', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
+	{ id: 2, slug: 'youth', label: 'Youth (under 18)', category: 'character', field: 'PercentUnder18', higherIsBetter: null, desc: 'Share of residents under age 18', metaTitle: 'Youth', metaWhy: 'The share of residents under 18 signals demand for schools, childcare, parks, and family services.' },
+	{ id: 21, slug: 'median-age', label: 'Median age', category: 'character', field: 'Median_AgeE', format: 'years', decimals: 1, higherIsBetter: null, desc: 'Median age of residents, in years', metaTitle: 'Median Age of Residents', metaWhy: 'Median age summarizes a neighborhood’s age profile and shapes demand for schools, jobs, and senior services.' },
 	{ id: 3, slug: 'veterans', label: 'Veterans', category: 'character', field: 'PercentVeteran', higherIsBetter: null, desc: 'Share of civilian residents who are military veterans', metaTitle: 'Veterans', metaWhy: 'The veteran population helps target benefits, healthcare, and services for those who have served.' },
 	{ id: 4, slug: 'asian-residents', label: 'Asian residents', category: 'character', field: 'PercentAsian', higherIsBetter: null, desc: 'Share of residents who are Asian', metaTitle: 'Asian Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
 	{ id: 5, slug: 'black-residents', label: 'Black residents', category: 'character', field: 'PercentBlack', higherIsBetter: null, desc: 'Share of residents who are Black or African American', metaTitle: 'Black Residents', metaWhy: 'Understanding the racial and ethnic composition of neighborhoods helps assess equity and target services.' },
