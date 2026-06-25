@@ -66,17 +66,28 @@
 		<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).
 	</p>
 
-	<h2>Margins of error</h2>
+	<h2>Margins of error &amp; reliability</h2>
 	<p>
-		ACS figures are survey estimates and carry margins of error that are larger for small
-		populations. Interpret single-tract values and year-to-year changes with appropriate caution.
+		ACS figures are survey estimates, each with a 90% margin of error (MOE) that is larger for
+		small populations. When you select a tract, the trend chart shows the estimate with a shaded
+		<strong>± MOE band</strong> and a reliability flag derived from the coefficient of variation
+		(CV = standard error ÷ estimate): <em>caution</em> when CV exceeds 15%, <em>unreliable</em>
+		above 30%. Treat unreliable single-tract values, and small year-to-year differences, with care.
+	</p>
+	<p>
+		ACS 5-year estimates <strong>overlap</strong> from one year to the next (adjacent vintages share
+		four years of sample), so the annual series is best read as a <strong>rolling</strong> estimate.
+		Valid change and statistical-significance comparisons use only <strong>non-overlapping</strong>
+		periods (e.g. 2014 vs. 2019 vs. 2024).
 	</p>
 
-	<h2>Current limitations</h2>
+	<h2>Data sources</h2>
 	<p>
-		This is a Phase 1 release built on a sample data fixture. County boundaries are shown as
-		simplified extents pending the Phase 2 data pipeline, which will publish dissolved county and
-		municipal boundaries and a broader indicator set.
+		Indicators are produced by an open, reproducible pipeline. Demographic, social, economic, housing,
+		and transportation measures come directly from the U.S. Census Bureau's American Community Survey
+		5-Year Estimates (latest: 2024), with margins of error. Health measures are model-based small-area
+		estimates from the CDC PLACES project. Each indicator lists its source and vintage; a few legacy
+		indicators are labeled with their last available year where a source has been discontinued.
 	</p>
 </div>
 

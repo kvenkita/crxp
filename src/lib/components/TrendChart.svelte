@@ -18,7 +18,15 @@
 	let hoverIdx = $state(-1);
 
 	let domain = $derived.by(() => {
-		const all = series.flatMap((s) => s.values).filter((v) => v != null && Number.isFinite(v));
+		const all = [];
+		for (const s of series) {
+			s.values.forEach((v, i) => {
+				if (v == null || !Number.isFinite(v)) return;
+				all.push(v);
+				const m = s.band?.[i];
+				if (m != null && Number.isFinite(m)) all.push(v + m, v - m);
+			});
+		}
 		if (!all.length) return [0, 1];
 		let min = Math.min(...all);
 		let max = Math.max(...all);
@@ -50,6 +58,29 @@
 		});
 		return d.trim();
 	}
+
+	// contiguous runs where both value and its margin of error are finite
+	function bandSegments(values, band) {
+		const segs = [];
+		let cur = [];
+		values.forEach((v, i) => {
+			const m = band?.[i];
+			if (v != null && Number.isFinite(v) && m != null && Number.isFinite(m)) cur.push({ i, hi: v + m, lo: v - m });
+			else if (cur.length) {
+				segs.push(cur);
+				cur = [];
+			}
+		});
+		if (cur.length) segs.push(cur);
+		return segs;
+	}
+	function bandD(seg) {
+		let d = '';
+		seg.forEach((p, k) => (d += `${k ? 'L' : 'M'}${xAt(p.i).toFixed(1)},${yAt(p.hi).toFixed(1)} `));
+		for (let k = seg.length - 1; k >= 0; k--) d += `L${xAt(seg[k].i).toFixed(1)},${yAt(seg[k].lo).toFixed(1)} `;
+		return d.trim() + ' Z';
+	}
+	const hasBand = $derived(series.some((s) => s.band));
 
 	// thinned x-axis labels (~6 max), always include last
 	let labelIdx = $derived.by(() => {
@@ -110,6 +141,14 @@
 				<line class="grid" x1={PAD.l} x2={W - PAD.r} y1={yAt(g)} y2={yAt(g)} />
 				<text class="axis" x={PAD.l - 5} y={yAt(g) + 3} text-anchor="end">{formatValue(g, format, 0)}</text>
 			{/each}
+			<!-- margin-of-error bands (drawn under lines) -->
+			{#each series as s (s.label)}
+				{#if s.band}
+					{#each bandSegments(s.values, s.band) as seg, k (k)}
+						<path class="band" d={bandD(seg)} fill={s.color} />
+					{/each}
+				{/if}
+			{/each}
 			<!-- active-year guide -->
 			{#if activeIdx >= 0}
 				<line class="guide" x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={PAD.t} y2={H - PAD.b} />
@@ -151,10 +190,18 @@
 			<li>
 				<span class="dot" style="background:{s.color}; {s.dash !== 'solid' ? 'opacity:.7' : ''}"></span>
 				<span class="leg-lbl">{s.label}</span>
-				<span class="leg-val">{formatValue(s.values[activeIdx], format, decimals)}</span>
+				{#if s.reliability?.[activeIdx] && s.reliability[activeIdx] !== 'ok'}
+					<span class="rel rel-{s.reliability[activeIdx]}" title="Estimate reliability based on its margin of error">{s.reliability[activeIdx]}</span>
+				{/if}
+				<span class="leg-val">
+					{formatValue(s.values[activeIdx], format, decimals)}{#if s.band?.[activeIdx] != null && Number.isFinite(s.band[activeIdx])}<span class="moe"> ± {formatValue(s.band[activeIdx], format, decimals)}</span>{/if}
+				</span>
 			</li>
 		{/each}
 	</ul>
+	{#if hasBand}
+		<p class="moe-note">Shaded band = 90% margin of error. ACS 5-year estimates are rolling; compare only non-overlapping periods.</p>
+	{/if}
 </figure>
 
 <style>
@@ -173,6 +220,10 @@
 	.grid {
 		stroke: var(--c-border);
 		stroke-width: 1;
+	}
+	.band {
+		opacity: 0.14;
+		stroke: none;
 	}
 	.guide {
 		stroke: var(--c-border-strong);
@@ -211,6 +262,33 @@
 		font-weight: 600;
 		color: var(--c-text);
 		font-variant-numeric: tabular-nums;
+	}
+	.moe {
+		font-weight: 400;
+		color: var(--c-text-3);
+	}
+	.rel {
+		font-size: 0.85em;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		padding: 0 4px;
+		border-radius: 3px;
+		line-height: 1.4;
+	}
+	.rel-caution {
+		background: #fdecc8;
+		color: #8a5a00;
+	}
+	.rel-unreliable {
+		background: #f7d4d4;
+		color: #9a1f1f;
+	}
+	.moe-note {
+		margin: var(--sp-2) 0 0;
+		font-size: var(--t-2xs, 0.65rem);
+		color: var(--c-text-3);
+		line-height: 1.35;
 	}
 	.dot {
 		width: 0.6rem;
