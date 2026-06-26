@@ -50,22 +50,22 @@ assets. There is no runtime backend or database.
 ```{mermaid}
 flowchart TB
   subgraph Pipeline["crxp-data pipeline (separate repo)"]
-    PL[Ingest → calc → spatial → warehouse] --> EXP[Export / handoff]
+    PL["Ingest, calc, spatial, warehouse"] --> EXP["Export / handoff"]
   end
-  EXP -->|writes| DC[("static/data/ — data contract\nmanifest, values, analytics,\naggregates, areas, meta, geo")]
+  EXP -->|writes| DC[("static/data — data contract<br/>manifest, values, analytics,<br/>aggregates, areas, meta, geo")]
 
   subgraph App["crxp SvelteKit app"]
-    DC -->|fetch at runtime| DL[lib/data/* loaders]
-    DL --> ST[lib/state/* rune stores]
-    ST -->|$effect| MC[lib/map/MapController.js]
-    MC --> ML[(MapLibre GL map)]
-    ST --> UI[lib/components/* + routes/*]
+    DC -->|fetch at runtime| DL["lib/data/* loaders"]
+    DL --> ST["lib/state/* rune stores"]
+    ST -->|effect| MC["lib/map/MapController.js"]
+    MC --> ML[("MapLibre GL map")]
+    ST --> UI["lib/components/* + routes/*"]
     UI --> ML
   end
 
-  BD[scripts/build-data.mjs] -.validates.-> DC
-  App -->|adapter-static prerender| OUT[/build/ static site/]
-  OUT --> NF[Netlify]
+  BD["scripts/build-data.mjs"] -.validates.-> DC
+  App -->|adapter-static prerender| OUT["build/ static site"]
+  OUT --> NF["Netlify"]
 ```
 
 **Key principle — separation of geometry and values.** GeoJSON layers carry only `geoid`; indicator
@@ -163,17 +163,17 @@ views are deep-linkable.
 
 ```{mermaid}
 flowchart LR
-  EX[/explore page/] --> MV[MapView]
+  EX["explore page"] --> MV[MapView]
   EX --> AMB[AnalysisModeBar]
   EX --> IB[IndicatorBrowser]
   EX --> YS[YearSlider]
   EX --> GLT[GeoLevelToggle]
-  EX --> LG[Legend / LisaLegend / BivariateLegend]
+  EX --> LG["Legend / LisaLegend / BivariateLegend"]
   EX --> TC[TrendChart]
   EX --> AS[AreaSearch]
   EX --> CP[ComparePanel]
   EX --> MS[MapSettings]
-  EX --> BP[BivariatePanel / LisaPanel]
+  EX --> BP["BivariatePanel / LisaPanel"]
 ```
 
 | Component | Role |
