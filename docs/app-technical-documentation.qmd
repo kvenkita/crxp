@@ -151,7 +151,8 @@ views are deep-linkable.
 - supports legend-class **filtering/dimming**, hover, multi-select, and boundary highlight;
 - renders an **uncertainty hatch** layer (`<level>-hatch`, a canvas-generated diagonal pattern with
   `fill-pattern`) over tracts whose `reliability` feature-state is `unreliable` (CV > 30%), shown only
-  in explore mode and toggleable via `setReliabilityVisible` (Map settings → "Flag unreliable areas");
+  in explore mode and toggleable via `setReliabilityVisible` (Map settings → "Flag unreliable areas",
+  **off by default**);
 - swaps into bivariate (3×3, `map/bivariate.js`) and LISA (`map/lisaColors.js`) styling for the
   analysis modes.
 
@@ -201,7 +202,8 @@ flowchart LR
   cell filters matching tracts. The side panel shows a **correlation scatter** (`BivariateScatter`):
   standardized (z-score) values of the two indicators, dots colored by their 3×3 class, marginal
   histograms, a regression line, and the Pearson **r**. Hovering a dot highlights the tract on the map
-  (`MapController.setHoverId`) and vice-versa.
+  (`MapController.setHoverId`) and vice-versa, and shows that tract's **neighborhood name** above the
+  scatter.
 - **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
   not significant) from `analytics/lisa/<id>.json`.
 

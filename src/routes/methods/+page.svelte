@@ -55,8 +55,8 @@
 		tract, the trend chart shows the estimate with a shaded <strong>± MOE band</strong> and a
 		reliability flag derived from the coefficient of variation (CV = standard error ÷ estimate):
 		<em>caution</em> when CV exceeds 15%, <em>unreliable</em> above 30%. On the map, tracts whose
-		estimate is <strong>unreliable</strong> are drawn with a diagonal <strong>hatch</strong> (toggle
-		under <em>Map settings → Flag unreliable areas</em>). Satellite-derived measures (land cover,
+		estimate is <strong>unreliable</strong> are drawn with a diagonal <strong>hatch</strong> (off by
+		default; toggle under <em>Map settings → Flag unreliable areas</em>). Satellite-derived measures (land cover,
 		tree canopy, night lights) are measurements rather than surveys, so they carry no sampling MOE.
 	</p>
 
@@ -101,7 +101,11 @@
 	<p>
 		The bivariate map crosses two indicators on a 3×3 grid. Each indicator is split into thirds
 		(low / middle / high) and the two classes combine into nine colors — darker cells mark tracts that
-		are high on both measures. Hovering a legend cell highlights the matching tracts.
+		are high on both measures. Hovering a legend cell highlights the matching tracts. A companion
+		<strong>correlation scatter</strong> plots the two indicators' standardized (z-score) values — one
+		dot per tract, colored by its grid class — with the distribution of each variable along the axes, a
+		trend line, and the correlation coefficient. Hovering a dot or a tract links the two and names the
+		neighborhood.
 	</p>
 
 	<h2>Spatial clusters (LISA)</h2>
