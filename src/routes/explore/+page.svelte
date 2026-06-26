@@ -297,6 +297,17 @@
 		map?.setHoverId(g ?? null);
 	}
 
+	// in-context provenance flags for the active indicator (model-based vs direct; harmonized pre-2020)
+	let provenanceFlags = $derived.by(() => {
+		if (!indicator) return null;
+		const src = indicator.source ?? '';
+		return {
+			vintage: indicator.vintage ?? '',
+			modelBased: /model-based|places/i.test(src),
+			harmonized: /american community survey/i.test(src) && (indicator.years ?? []).some((y) => y < 2020)
+		};
+	});
+
 	// comparable-period changes (single tract): non-overlapping endpoints (5- & 10-yr) + significance
 	let trendChanges = $derived.by(() => {
 		if (!valueFile || explorer.geoLevel !== 'tract' || valueFile.indicatorId !== indicator?.id) return [];
@@ -465,6 +476,13 @@
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
 				</div>
+				{#if provenanceFlags}
+					<div class="prov-flags">
+						{#if provenanceFlags.vintage}<span class="prov">{provenanceFlags.vintage}</span>{/if}
+						{#if provenanceFlags.modelBased}<span class="prov prov-model" title="Model-based small-area estimates (CDC PLACES, multilevel regression & poststratification) — not a direct count">model-based</span>{/if}
+						{#if provenanceFlags.harmonized}<span class="prov prov-harm" title="Pre-2020 years are reallocated from 2010 to 2020 census tracts (population-weighted); read pre/post-2020 change with extra caution">pre-2020 harmonized</span>{/if}
+					</div>
+				{/if}
 				{#each trendChanges as c (c.span)}
 					{@const up = c.delta > 0}
 					{@const flat = c.delta === 0}
@@ -620,6 +638,29 @@
 	.trend-sub {
 		font-size: var(--t-xs);
 		color: var(--c-text-3);
+	}
+	.prov-flags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		margin: 4px 0 2px;
+	}
+	.prov {
+		font-size: var(--t-2xs, 0.65rem);
+		padding: 0 5px;
+		border-radius: 3px;
+		background: var(--c-surface-2, #eee);
+		color: var(--c-text-3);
+		cursor: help;
+		line-height: 1.5;
+	}
+	.prov-model {
+		background: #e7ddf0;
+		color: #5a3d77;
+	}
+	.prov-harm {
+		background: #e6eef0;
+		color: #3a5b66;
 	}
 	.change-marker {
 		display: flex;

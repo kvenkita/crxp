@@ -18,7 +18,12 @@
 		Indicators are reported for <strong>2020 U.S. Census tracts</strong> across the 14-county Charlotte
 		region (11 North Carolina counties: Anson, Cabarrus, Catawba, Cleveland, Gaston, Iredell, Lincoln,
 		Mecklenburg, Rowan, Stanly, Union; and 3 South Carolina counties: York, Chester, Lancaster).
-		County and city views aggregate the tract-level estimates.
+		County and region trend lines are the <strong>unweighted average of the tracts</strong> involved
+		(labeled "avg of tracts") — a simple, transparent summary, not a population-weighted rate, so
+		small and large tracts count equally; their margins of error are propagated and shown as a band.
+		Indicators drawn from a statistical model rather than a direct count (e.g. CDC PLACES health
+		measures) are flagged <em>model-based</em>, and pre-2020 years reallocated to 2020 tract boundaries
+		are flagged <em>harmonized</em>.
 	</p>
 
 	<h2>Data sources</h2>
@@ -111,9 +116,12 @@
 	<h2>Spatial clusters (LISA)</h2>
 	<p>
 		The spatial-cluster map uses Local Indicators of Spatial Association (Local Moran's I) with an
-		8-nearest-neighbor spatial weights matrix and a conditional-permutation pseudo significance test
-		(p ≤ 0.05). Significant tracts are labeled High–High (hot spots), Low–Low (cold spots), or
-		High–Low / Low–High spatial outliers.
+		8-nearest-neighbor spatial weights matrix and a conditional-permutation pseudo significance test.
+		The permutation holds each tract fixed and draws its hypothetical neighbors <em>without
+		replacement</em> from the other tracts (999 permutations), and significance is then
+		<strong>FDR-controlled</strong> (Benjamini–Hochberg) so that testing every tract at once does not
+		inflate the number of false clusters. Significant tracts are labeled High–High (hot spots),
+		Low–Low (cold spots), or High–Low / Low–High spatial outliers.
 	</p>
 
 	<h2>Neighborhood names</h2>
