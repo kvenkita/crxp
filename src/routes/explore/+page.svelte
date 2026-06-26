@@ -17,6 +17,7 @@
 	import AnalysisModeBar from '$lib/components/AnalysisModeBar.svelte';
 	import MapSettings from '$lib/components/MapSettings.svelte';
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
+	import BivariateScatter from '$lib/components/BivariateScatter.svelte';
 	import LisaPanel from '$lib/components/LisaPanel.svelte';
 
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
@@ -30,9 +31,10 @@
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
-	import { seriesFor, seriesForSet, comparableChange } from '$lib/data/series.js';
+	import { seriesFor, seriesForSet, comparableChanges } from '$lib/data/series.js';
 	import { legendClasses, formatValue } from '$lib/map/colorScale.js';
 	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
+	import { zScores } from '$lib/analytics/spatial.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
 	let map = $state(null); // MapController, set on ready
@@ -52,6 +54,7 @@
 
 	// hovered bivariate matrix cell {a,b} (filters the map)
 	let bivarCell = $state(null);
+	let bivarBFile = $state(null); // value file for the 2nd bivariate variable (for the scatter)
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
 	let accent = $derived(
@@ -163,6 +166,7 @@
 		let cancelled = false;
 		Promise.all([loadValueFile(a), loadValueFile(b)]).then(([fa, fb]) => {
 			if (cancelled || !map) return;
+			bivarBFile = fb;
 			map.setGeoLevel(lvl);
 			const ca = terciles(valuesForYear(fa, yr));
 			const cb = terciles(valuesForYear(fb, yr));
@@ -258,12 +262,53 @@
 	});
 	let animKey = $derived(selection.hover ?? selection.selectedIds.join(','));
 
-	// comparable-period change (single tract): non-overlapping ACS endpoints + significance
-	let trendChange = $derived.by(() => {
-		if (!valueFile || explorer.geoLevel !== 'tract' || valueFile.indicatorId !== indicator?.id) return null;
+	// bivariate scatter: standardized (z) values of A vs B, colored by the 3×3 class, with correlation
+	let bivariateScatter = $derived.by(() => {
+		if (analysis.mode !== 'bivariate' || explorer.geoLevel !== 'tract') return null;
+		if (!valueFile || !bivarBFile) return null;
+		if (valueFile.indicatorId !== explorer.indicatorId || bivarBFile.indicatorId !== analysis.biB) return null;
+		const aMap = valuesForYear(valueFile, explorer.year);
+		const bMap = valuesForYear(bivarBFile, explorer.year);
+		const geoids = Object.keys(aMap).filter(
+			(g) => aMap[g] != null && bMap[g] != null && Number.isFinite(aMap[g]) && Number.isFinite(bMap[g])
+		);
+		if (geoids.length < 3) return null;
+		const av = geoids.map((g) => aMap[g]);
+		const bv = geoids.map((g) => bMap[g]);
+		const zx = zScores(av);
+		const zy = zScores(bv);
+		const ca = terciles(aMap);
+		const cb = terciles(bMap);
+		const points = geoids.map((g, i) => ({
+			geoid: g,
+			zx: zx[i],
+			zy: zy[i],
+			color: BIVARIATE_MATRIX[ca[g] ?? 0][cb[g] ?? 0]
+		}));
+		// Pearson r
+		const n = av.length;
+		const ma = av.reduce((s, v) => s + v, 0) / n;
+		const mb = bv.reduce((s, v) => s + v, 0) / n;
+		let sab = 0, saa = 0, sbb = 0;
+		for (let i = 0; i < n; i++) {
+			const da = av[i] - ma, db = bv[i] - mb;
+			sab += da * db; saa += da * da; sbb += db * db;
+		}
+		const r = saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : null;
+		return { points, r, labelA: indicator?.label ?? 'A', labelB: indicatorById(analysis.biB)?.label ?? 'B' };
+	});
+
+	function onScatterHover(g) {
+		selection.hover = g ?? null;
+		map?.setHoverId(g ?? null);
+	}
+
+	// comparable-period changes (single tract): non-overlapping endpoints (5- & 10-yr) + significance
+	let trendChanges = $derived.by(() => {
+		if (!valueFile || explorer.geoLevel !== 'tract' || valueFile.indicatorId !== indicator?.id) return [];
 		const gid = selection.hover ?? (selection.selectedIds.length === 1 ? selection.selectedIds[0] : null);
-		if (!gid) return null;
-		return comparableChange(valueFile, gid);
+		if (!gid) return [];
+		return comparableChanges(valueFile, gid);
 	});
 
 	// ---- handlers ----
@@ -399,7 +444,24 @@
 			/>
 		</div>
 
-		{#if trend && indicator}
+		{#if analysis.mode === 'bivariate' && bivariateScatter}
+			<div class="trend-float card no-print">
+				<div class="trend-head">
+					<div>
+						<strong>Correlation</strong>
+						<span class="trend-sub">{bivariateScatter.labelA} × {bivariateScatter.labelB}</span>
+					</div>
+				</div>
+				<BivariateScatter
+					points={bivariateScatter.points}
+					r={bivariateScatter.r}
+					labelA={bivariateScatter.labelA}
+					labelB={bivariateScatter.labelB}
+					hoverGeoid={selection.hover}
+					onHover={onScatterHover}
+				/>
+			</div>
+		{:else if trend && indicator}
 			<div class="trend-float card no-print">
 				<div class="trend-head">
 					<div>
@@ -407,15 +469,15 @@
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
 				</div>
-				{#if trendChange}
-					{@const up = trendChange.delta > 0}
-					{@const flat = trendChange.delta === 0}
-					<div class="change-marker" class:sig={trendChange.significant === true}>
-						<span class="chg-label">{trendChange.y1}→{trendChange.y2}</span>
-						<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(trendChange.delta, indicator.format, indicator.decimals ?? 1)}</span>
-						<span class="chg-sig">{trendChange.significant === true ? 'significant' : trendChange.significant === false ? 'not significant' : '—'}{trendChange.significant != null ? ' (90%)' : ''}</span>
+				{#each trendChanges as c (c.span)}
+					{@const up = c.delta > 0}
+					{@const flat = c.delta === 0}
+					<div class="change-marker" class:sig={c.significant === true}>
+						<span class="chg-label">{c.y1}→{c.y2}</span>
+						<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(c.delta, indicator.format, indicator.decimals ?? 1)}</span>
+						<span class="chg-sig">{c.significant === true ? 'significant' : c.significant === false ? 'not significant' : '—'}{c.significant != null ? ' (90%)' : ''}</span>
 					</div>
-				{/if}
+				{/each}
 				<TrendChart
 					years={trend.years}
 					series={trend.series}

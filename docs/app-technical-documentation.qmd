@@ -184,7 +184,7 @@ flowchart LR
 | `GeoLevelToggle` | Tract vs county view |
 | `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
 | `TrendChart` | Area vs county vs region SVG trend; **MOE error band, ±MOE readout, reliability badge** for the selected tract |
-| Trend float (in `/explore`) | Shows a **comparable-period change marker** for a single selected tract — Δ between the most recent non-overlapping ACS endpoints (e.g. 2019→2024) with a 90% significance flag (computed by `data/series.js → comparableChange`) |
+| Trend float (in `/explore`) | Shows **comparable-period change markers** for a single selected tract — Δ for the **5-yr and 10-yr** non-overlapping periods (e.g. 2019→2024 and 2014→2024) each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year). The `TrendChart` x-axis is **year-proportional**, so uneven cadence (NLCD epochs, VIIRS) and gaps render truthfully |
 | `AreaSearch` | Fuse-based search across tracts/counties/places |
 | `ComparePanel` / `PinButton` | Pin/compare areas |
 | `MapSettings` | Basemap choice, transparency, overlay toggle |
@@ -197,7 +197,11 @@ flowchart LR
 
 - **Explore** — single-indicator choropleth with shared cross-year breaks (so color = value is stable
   across years), legend filtering, hover/selection, trend chart.
-- **Bivariate** — two indicators on a 3×3 tercile grid; hovering a grid cell filters matching tracts.
+- **Bivariate** — two indicators on a 3×3 tercile grid (rank terciles of raw values); hovering a grid
+  cell filters matching tracts. The side panel shows a **correlation scatter** (`BivariateScatter`):
+  standardized (z-score) values of the two indicators, dots colored by their 3×3 class, marginal
+  histograms, a regression line, and the Pearson **r**. Hovering a dot highlights the tract on the map
+  (`MapController.setHoverId`) and vice-versa.
 - **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
   not significant) from `analytics/lisa/<id>.json`.
 

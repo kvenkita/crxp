@@ -463,6 +463,15 @@ export class MapController {
 		}
 	}
 
+	/** Externally highlight one geoid (e.g. hovering a scatter dot). Pass null to clear. */
+	setHoverId(geoid) {
+		if (!this.ready) return;
+		const lvl = this.geoLevel;
+		if (this._extHover && this._extHover !== geoid) this._setState(lvl, this._extHover, { hover: false });
+		this._extHover = geoid || null;
+		if (geoid) this._setState(lvl, geoid, { hover: true });
+	}
+
 	/** Highlight a set of selected geoids (clears any previously selected). */
 	setSelectedIds(ids = []) {
 		if (!this.ready) return;

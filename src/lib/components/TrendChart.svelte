@@ -39,7 +39,11 @@
 	});
 
 	const plotW = W - PAD.l - PAD.r;
-	const xAt = (i) => PAD.l + (years.length <= 1 ? 0 : (i * plotW) / (years.length - 1));
+	// x is proportional to the actual YEAR (not the index) so uneven cadence / gaps render truthfully
+	let yearMin = $derived(years.length ? Math.min(...years) : 0);
+	let yearMax = $derived(years.length ? Math.max(...years) : 1);
+	const xAt = (i) =>
+		years.length <= 1 ? PAD.l : PAD.l + ((years[i] - yearMin) / ((yearMax - yearMin) || 1)) * plotW;
 	const yAt = (v) => {
 		const [lo, hi] = domain;
 		return PAD.t + (1 - (v - lo) / (hi - lo)) * (H - PAD.t - PAD.b);
@@ -98,10 +102,18 @@
 
 	function onMove(e) {
 		const rect = e.currentTarget.getBoundingClientRect();
-		const frac = (e.clientX - rect.left) / rect.width;
-		const px = frac * W;
-		const i = Math.round(((px - PAD.l) / plotW) * (years.length - 1));
-		hoverIdx = Math.max(0, Math.min(years.length - 1, i));
+		const px = ((e.clientX - rect.left) / rect.width) * W;
+		// nearest point by x position (works for uneven year spacing)
+		let best = 0;
+		let bestD = Infinity;
+		for (let i = 0; i < years.length; i++) {
+			const d = Math.abs(xAt(i) - px);
+			if (d < bestD) {
+				bestD = d;
+				best = i;
+			}
+		}
+		hoverIdx = best;
 	}
 	function onLeave() {
 		hoverIdx = -1;

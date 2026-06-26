@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seriesFor, seriesForSet, comparableChange } from './series.js';
+import { seriesFor, seriesForSet, comparableChanges } from './series.js';
 
 const valueFile = {
 	indicatorId: 1,
@@ -58,30 +58,30 @@ describe('seriesForSet (multi-tract average)', () => {
 	});
 });
 
-describe('comparableChange (non-overlapping endpoints + significance)', () => {
-	// 2019 and 2024 are 5 years apart (non-overlapping ACS windows)
+describe('comparableChanges (non-overlapping endpoints + significance)', () => {
+	// full 2014–2024 series → both 5-yr (2019→2024) and 10-yr (2014→2024) pairs exist
+	const yrs = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
 	const vf = {
-		years: [2019, 2020, 2021, 2022, 2023, 2024],
-		values: { A: [10, 11, 12, 13, 14, 20], B: [10, 10, 10, 10, 10, 11] },
-		moe: { A: [1, 1, 1, 1, 1, 1], B: [3, 3, 3, 3, 3, 3] }
+		years: yrs,
+		values: { A: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 20], B: yrs.map(() => 10) },
+		moe: { A: yrs.map(() => 1), B: yrs.map(() => 3) }
 	};
 
-	it('uses the latest 5-year-apart pair and flags a significant change', () => {
-		const c = comparableChange(vf, 'A');
-		expect(c.y1).toBe(2019);
-		expect(c.y2).toBe(2024);
-		expect(c.delta).toBe(10); // 20 - 10
-		expect(c.significant).toBe(true); // 10 / sqrt((1/1.645)^2*2) >> 1.645
+	it('returns both 5-yr and 10-yr changes from the latest year', () => {
+		const cs = comparableChanges(vf, 'A');
+		expect(cs.map((c) => c.span)).toEqual([5, 10]);
+		expect(cs[0]).toMatchObject({ y1: 2019, y2: 2024, delta: 10, significant: true });
+		expect(cs[1]).toMatchObject({ y1: 2014, y2: 2024, delta: 15, significant: true });
 	});
 
-	it('flags a small change within error as not significant', () => {
-		const c = comparableChange(vf, 'B');
-		expect(c.delta).toBe(1);
-		expect(c.significant).toBe(false);
+	it('flags a flat series as not significant', () => {
+		const cs = comparableChanges(vf, 'B');
+		expect(cs.every((c) => c.delta === 0 && c.significant === false)).toBe(true);
 	});
 
-	it('returns null when no non-overlapping pair exists', () => {
-		expect(comparableChange({ years: [2022, 2023, 2024], values: { A: [1, 2, 3] } }, 'A')).toBeNull();
+	it('omits pairs whose anchor year is missing', () => {
+		const cs = comparableChanges({ years: [2019, 2024], values: { A: [10, 12] }, moe: { A: [1, 1] } }, 'A');
+		expect(cs.map((c) => c.span)).toEqual([5]); // only 2019→2024; no 2014
 	});
 });
 
