@@ -2,7 +2,7 @@
 title: "Carolinas Regional Explorer — Application Technical Documentation"
 subtitle: "Architecture, components, and maintenance guide"
 date: last-modified
-author: "CRXP team"
+author: "Kailas Venkitasubramanian"
 toc: true
 toc-depth: 3
 toc-location: left
