@@ -1,0 +1,21 @@
+{
+  "python": "3.14.3",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "packages": {
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "duckdb": "1.5.4",
+    "requests": "2.34.2",
+    "PyYAML": "6.0.3",
+    "geopandas": "1.1.3",
+    "shapely": "2.1.2",
+    "pyproj": "3.7.2",
+    "rasterio": "1.5.0",
+    "exactextract": "0.3.0"
+  },
+  "geospatial": {
+    "GDAL": "3.12.1",
+    "PROJ": "9.5.1"
+  },
+  "build_date": "2026-06-26"
+}
