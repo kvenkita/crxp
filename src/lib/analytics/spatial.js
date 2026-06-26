@@ -86,6 +86,55 @@ export function summarize(values, classes = 5) {
 	};
 }
 
+/**
+ * Pearson product-moment correlation of two equal-length numeric arrays. Null if undefined.
+ * @param {number[]} xs @param {number[]} ys
+ */
+export function pearson(xs, ys) {
+	const n = xs.length;
+	if (n < 2 || ys.length !== n) return null;
+	let ma = 0, mb = 0;
+	for (let i = 0; i < n; i++) {
+		ma += xs[i];
+		mb += ys[i];
+	}
+	ma /= n;
+	mb /= n;
+	let sab = 0, saa = 0, sbb = 0;
+	for (let i = 0; i < n; i++) {
+		const da = xs[i] - ma;
+		const db = ys[i] - mb;
+		sab += da * db;
+		saa += da * da;
+		sbb += db * db;
+	}
+	return saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : null;
+}
+
+/** Fractional ranks (1-based), averaging ties. @param {number[]} xs */
+function rankAverage(xs) {
+	const order = xs.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+	const ranks = new Array(xs.length);
+	let i = 0;
+	while (i < order.length) {
+		let j = i;
+		while (j + 1 < order.length && order[j + 1][0] === order[i][0]) j++;
+		const avg = (i + j) / 2 + 1;
+		for (let k = i; k <= j; k++) ranks[order[k][1]] = avg;
+		i = j + 1;
+	}
+	return ranks;
+}
+
+/**
+ * Spearman rank correlation — more robust to skew/outliers and consistent with rank-tercile coloring.
+ * @param {number[]} xs @param {number[]} ys
+ */
+export function spearman(xs, ys) {
+	if (xs.length < 2 || ys.length !== xs.length) return null;
+	return pearson(rankAverage(xs), rankAverage(ys));
+}
+
 // NOTE: LISA (Local Moran's I) is computed once in the data pipeline (crxp-data `spatial.py`,
 // with a without-replacement conditional-permutation null + Benjamini-Hochberg FDR) and shipped as
 // precomputed `analytics/lisa/<id>.json`. The app consumes those quadrants directly (see

@@ -6,7 +6,8 @@
 	 */
 	let {
 		points = [], // [{ geoid, zx, zy, color }]
-		r = null, // Pearson correlation
+		r = null, // Pearson correlation (linear)
+		rho = null, // Spearman correlation (rank)
 		labelA = 'Variable A',
 		labelB = 'Variable B',
 		hoverGeoid = null,
@@ -117,9 +118,13 @@
 	<div class="legend">
 		<div class="rrow">
 			<span>Correlation</span>
-			<strong>{r == null || !Number.isFinite(r) ? '—' : (r >= 0 ? '+' : '') + r.toFixed(2)}</strong>
+			<strong>
+				Pearson {r == null || !Number.isFinite(r) ? '—' : (r >= 0 ? '+' : '') + r.toFixed(2)}
+				· Spearman {rho == null || !Number.isFinite(rho) ? '—' : (rho >= 0 ? '+' : '') + rho.toFixed(2)}
+			</strong>
 		</div>
 		<p class="axes">x: {labelA} · y: {labelB} <span class="z">(standardized, z-scores)</span></p>
+		<p class="caveat">Descriptive only — tracts are spatially autocorrelated, so this is not a significance test.</p>
 	</div>
 </figure>
 
@@ -181,11 +186,13 @@
 	}
 	.rrow {
 		display: flex;
+		flex-wrap: wrap;
 		justify-content: space-between;
 		align-items: baseline;
+		gap: 0 var(--sp-2);
 	}
 	.rrow strong {
-		font-size: var(--t-md);
+		font-size: var(--t-sm);
 		color: var(--c-text);
 		font-variant-numeric: tabular-nums;
 	}
@@ -196,5 +203,12 @@
 	}
 	.z {
 		opacity: 0.8;
+	}
+	.caveat {
+		margin: 3px 0 0;
+		font-size: var(--t-2xs, 0.65rem);
+		color: var(--c-text-3);
+		font-style: italic;
+		line-height: 1.3;
 	}
 </style>

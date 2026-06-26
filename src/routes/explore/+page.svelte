@@ -34,7 +34,7 @@
 	import { seriesFor, seriesForSet, comparableChanges } from '$lib/data/series.js';
 	import { legendClasses, formatValue } from '$lib/map/colorScale.js';
 	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
-	import { zScores } from '$lib/analytics/spatial.js';
+	import { zScores, pearson, spearman } from '$lib/analytics/spatial.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
 	let map = $state(null); // MapController, set on ready
@@ -285,17 +285,11 @@
 			zy: zy[i],
 			color: BIVARIATE_MATRIX[ca[g] ?? 0][cb[g] ?? 0]
 		}));
-		// Pearson r
-		const n = av.length;
-		const ma = av.reduce((s, v) => s + v, 0) / n;
-		const mb = bv.reduce((s, v) => s + v, 0) / n;
-		let sab = 0, saa = 0, sbb = 0;
-		for (let i = 0; i < n; i++) {
-			const da = av[i] - ma, db = bv[i] - mb;
-			sab += da * db; saa += da * da; sbb += db * db;
-		}
-		const r = saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : null;
-		return { points, r, labelA: indicator?.label ?? 'A', labelB: indicatorById(analysis.biB)?.label ?? 'B' };
+		// descriptive correlation: Pearson (linear) + Spearman (rank, robust + consistent with terciles).
+		// Both are DESCRIPTIVE only — spatial autocorrelation inflates any inferential reading.
+		const r = pearson(av, bv);
+		const rho = spearman(av, bv);
+		return { points, r, rho, labelA: indicator?.label ?? 'A', labelB: indicatorById(analysis.biB)?.label ?? 'B' };
 	});
 
 	function onScatterHover(g) {
@@ -455,6 +449,7 @@
 				<BivariateScatter
 					points={bivariateScatter.points}
 					r={bivariateScatter.r}
+					rho={bivariateScatter.rho}
 					labelA={bivariateScatter.labelA}
 					labelB={bivariateScatter.labelB}
 					hoverGeoid={selection.hover}

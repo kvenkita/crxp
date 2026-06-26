@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { zScores, quantileBreaks, summarize } from './spatial.js';
+import { zScores, quantileBreaks, summarize, pearson, spearman } from './spatial.js';
 // LISA/kNN live in the data pipeline (crxp-data spatial.py) and ship precomputed; not tested here.
 
 describe('zScores', () => {
@@ -28,5 +28,22 @@ describe('quantileBreaks / summarize', () => {
 		expect(s.min).toBe(0);
 		expect(s.max).toBe(100);
 		expect(s.p99).toBeGreaterThan(90);
+	});
+});
+
+describe('pearson / spearman', () => {
+	it('pearson is +1 for a perfect linear relationship', () => {
+		expect(pearson([1, 2, 3, 4], [2, 4, 6, 8])).toBeCloseTo(1, 9);
+		expect(pearson([1, 2, 3, 4], [8, 6, 4, 2])).toBeCloseTo(-1, 9);
+	});
+	it('spearman is +1 for a monotonic (non-linear) relationship where pearson is < 1', () => {
+		const x = [1, 2, 3, 4, 5];
+		const y = [1, 4, 9, 16, 25]; // monotonic but convex
+		expect(spearman(x, y)).toBeCloseTo(1, 9);
+		expect(pearson(x, y)).toBeLessThan(1);
+	});
+	it('returns null for degenerate input', () => {
+		expect(pearson([1], [1])).toBeNull();
+		expect(spearman([2, 2, 2], [1, 2, 3])).toBeNull(); // zero-variance x
 	});
 });
