@@ -97,6 +97,14 @@ export function validateValueFile(file, indicator, validGeoids) {
 
 	const years = Array.isArray(file.years) ? file.years : [];
 
+	// value file years must match the manifest entry's years exactly (a mismatch silently
+	// misaligns the year slider with the data)
+	if (indicator && Array.isArray(indicator.years)) {
+		const a = JSON.stringify(years);
+		const b = JSON.stringify(indicator.years);
+		if (a !== b) errors.push(`years ${a} != manifest years ${b}`);
+	}
+
 	// every year needs stats with breaks + p1/p99
 	for (const y of years) {
 		const s = file.stats?.[y];
@@ -111,13 +119,24 @@ export function validateValueFile(file, indicator, validGeoids) {
 		}
 	}
 
-	// value rows: array length must match years; geoids must be known
+	// value rows: array length must match years; geoids must be known; entries must be number|null
+	let badEntryReported = false;
 	for (const [geoid, arr] of Object.entries(file.values || {})) {
 		if (validGeoids && validGeoids.size && !validGeoids.has(geoid)) {
 			errors.push(`value geoid not in area manifest: ${geoid}`);
 		}
 		if (!Array.isArray(arr) || arr.length !== years.length) {
 			errors.push(`values[${geoid}] length ${Array.isArray(arr) ? arr.length : 'n/a'} != years length ${years.length}`);
+			continue;
+		}
+		if (!badEntryReported) {
+			for (const v of arr) {
+				if (v !== null && (typeof v !== 'number' || !Number.isFinite(v))) {
+					errors.push(`values[${geoid}] contains a non-number/non-null entry (${v}); JSON must use null, not NaN`);
+					badEntryReported = true; // report once, not per-tract
+					break;
+				}
+			}
 		}
 	}
 
