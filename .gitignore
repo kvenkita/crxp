@@ -14,8 +14,12 @@ node_modules
 
 # Test/inspection artifacts
 /.playwright-mcp
+*.log
 
-# Quarto rendered docs (source .qmd is committed; render with `quarto render`)
+# Planning/design docs are kept out of the app repo
+docs/superpowers/
+
+# Quarto rendered docs (source .qmd committed; rendered + deployed to GitHub Pages via CI)
 docs/*.html
 docs/.quarto/
 docs/*_files/

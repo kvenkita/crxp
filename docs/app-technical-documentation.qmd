@@ -1,6 +1,6 @@
 ---
 title: "Carolinas Regional Explorer — Application Technical Documentation"
-subtitle: "Architecture, components, and maintenance guide (internal)"
+subtitle: "Architecture, components, and maintenance guide"
 date: last-modified
 author: "CRXP team"
 toc: true
