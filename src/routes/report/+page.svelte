@@ -7,6 +7,8 @@
 	import { loadAggregates, regionAvgAt, countyAvgAt } from '$lib/data/aggregates.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { formatValue } from '$lib/map/colorScale.js';
+	import ShareButtons from '$lib/components/ShareButtons.svelte';
+	import AttributionFooter from '$lib/components/AttributionFooter.svelte';
 
 	let ready = $state(false);
 	let geoids = $state([]);
@@ -86,7 +88,12 @@
 <div class="report">
 	<div class="controls no-print">
 		<a href="{base}/explore/">← Back to explorer</a>
-		<button class="btn btn-primary" onclick={() => window.print()}>Print / Save as PDF</button>
+		<div class="controls-right">
+			{#if ready && geoids.length}
+				<ShareButtons title="Carolinas Regional Explorer — custom area report" />
+			{/if}
+			<button class="btn btn-primary" onclick={() => window.print()}>Print / Save as PDF</button>
+		</div>
 	</div>
 
 	{#if !ready}
@@ -139,11 +146,13 @@
 
 		<footer class="rpt-foot">
 			<p>
-				Source: U.S. Census Bureau, American Community Survey 5-Year Estimates. Values are averages
-				across the selected areas. See the methodology at {base ? base : ''}/methods. A project of the
-				UNC Charlotte Urban Institute and partners.
+				Source: U.S. Census Bureau, American Community Survey 5-Year Estimates (and CDC PLACES, USGS
+				NLCD, EOG VIIRS for non-ACS indicators). Values are unweighted averages across the selected
+				areas. See the methodology at {base ? base : ''}/methods.
 			</p>
 		</footer>
+
+		<AttributionFooter />
 	{/if}
 </div>
 
@@ -157,7 +166,15 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: var(--sp-4);
+		flex-wrap: wrap;
 		margin-bottom: var(--sp-5);
+	}
+	.controls-right {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-4);
+		flex-wrap: wrap;
 	}
 	.loading {
 		color: var(--c-text-3);
