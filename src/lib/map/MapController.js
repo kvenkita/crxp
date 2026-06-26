@@ -100,7 +100,7 @@ export class MapController {
 		this.geoLevel = 'tract';
 		this.fillOpacity = FILL_OPACITY;
 		this.overlayVisible = true;
-		this.showReliability = true; // hatch tracts flagged 'unreliable' (high CV)
+		this.showReliability = false; // hatch tracts flagged 'unreliable' (high CV) — off by default
 		this.basemap = 'light';
 		/** @type {[[number,number],[number,number]]|null} */ this.regionBounds = null;
 		/** @type {Record<string,string[]>} ids per source */

@@ -50,7 +50,7 @@
 	let basemap = $state('light');
 	let overlayOpacity = $state(0.82);
 	let overlayOn = $state(true);
-	let reliabilityOn = $state(true); // hatch high-uncertainty (unreliable) tracts
+	let reliabilityOn = $state(false); // hatch high-uncertainty (unreliable) tracts — off by default
 
 	// hovered bivariate matrix cell {a,b} (filters the map)
 	let bivarCell = $state(null);
