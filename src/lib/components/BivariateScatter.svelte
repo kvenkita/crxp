@@ -10,6 +10,7 @@
 		labelA = 'Variable A',
 		labelB = 'Variable B',
 		hoverGeoid = null,
+		hoverName = '',
 		onHover = () => {}
 	} = $props();
 
@@ -76,6 +77,7 @@
 </script>
 
 <figure class="scatter">
+	<div class="hovered-name" class:on={hoverName}>{hoverName || 'Hover a tract or dot'}</div>
 	<svg viewBox="0 0 {W} {H}" role="img" aria-label="Scatter of standardized values" onpointermove={onMove} onpointerleave={onLeave}>
 		<!-- plot frame + mean gridlines -->
 		<rect class="frame" x={x0} y={y0} width={plotW} height={plotH} />
@@ -124,6 +126,21 @@
 <style>
 	.scatter {
 		margin: 0;
+	}
+	.hovered-name {
+		font-size: var(--t-xs);
+		font-weight: 700;
+		color: var(--c-text);
+		min-height: 1.2em;
+		margin-bottom: 2px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.hovered-name:not(.on) {
+		font-weight: 400;
+		color: var(--c-text-3);
+		font-style: italic;
 	}
 	svg {
 		width: 100%;

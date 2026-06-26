@@ -458,6 +458,7 @@
 					labelA={bivariateScatter.labelA}
 					labelB={bivariateScatter.labelB}
 					hoverGeoid={selection.hover}
+					hoverName={selection.hover ? areaName(areas, selection.hover) : ''}
 					onHover={onScatterHover}
 				/>
 			</div>
