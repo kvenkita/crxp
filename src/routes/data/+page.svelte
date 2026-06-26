@@ -1,6 +1,16 @@
 <script>
 	import { base } from '$app/paths';
 	let { data } = $props();
+
+	// data dictionary ordered by theme (manifest order) then alphabetically within theme
+	let catOrder = $derived(new Map((data.categories ?? []).map((c, i) => [c.key, c.order ?? i])));
+	let sortedIndicators = $derived(
+		[...(data.indicators ?? [])].sort(
+			(a, b) =>
+				(catOrder.get(a.category) ?? 99) - (catOrder.get(b.category) ?? 99) ||
+				a.label.localeCompare(b.label)
+		)
+	);
 </script>
 
 <svelte:head>
@@ -39,7 +49,7 @@
 					<tr><th>Indicator</th><th>Category</th><th>Format</th><th>Source</th><th>Vintage</th><th>Value file</th></tr>
 				</thead>
 				<tbody>
-					{#each data.indicators as i (i.id)}
+					{#each sortedIndicators as i (i.id)}
 						<tr>
 							<td><a href="{base}/indicators/{i.slug}/">{i.label}</a></td>
 							<td>{i.category}</td>

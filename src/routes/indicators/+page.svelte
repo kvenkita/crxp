@@ -3,7 +3,12 @@
 	let { data } = $props();
 	let groups = $derived(
 		data.categories
-			.map((c) => ({ ...c, items: data.indicators.filter((i) => i.category === c.key) }))
+			.map((c) => ({
+				...c,
+				items: data.indicators
+					.filter((i) => i.category === c.key)
+					.sort((a, b) => a.label.localeCompare(b.label))
+			}))
 			.filter((c) => c.items.length)
 	);
 </script>

@@ -1,5 +1,6 @@
 <script>
 	import BivariateLegend from './BivariateLegend.svelte';
+	import IndicatorSelect from './IndicatorSelect.svelte';
 	let {
 		indicators = [],
 		biA = null,
@@ -12,27 +13,16 @@
 
 	let labelA = $derived(indicators.find((i) => i.id === biA)?.label ?? 'Variable A');
 	let labelB = $derived(indicators.find((i) => i.id === biB)?.label ?? 'Variable B');
-
-	function setA(e) {
-		onChangeA(Number(e.target.value));
-	}
-	function setB(e) {
-		onChangeB(Number(e.target.value));
-	}
 </script>
 
 <div class="bivariate">
 	<label class="f">
 		<span>First indicator (vertical)</span>
-		<select value={biA} onchange={setA}>
-			{#each indicators as i (i.id)}<option value={i.id}>{i.label}</option>{/each}
-		</select>
+		<IndicatorSelect {indicators} value={biA} onChange={onChangeA} ariaLabel="First indicator" />
 	</label>
 	<label class="f">
 		<span>Second indicator (horizontal)</span>
-		<select value={biB} onchange={setB}>
-			{#each indicators as i (i.id)}<option value={i.id}>{i.label}</option>{/each}
-		</select>
+		<IndicatorSelect {indicators} value={biB} onChange={onChangeB} ariaLabel="Second indicator" />
 	</label>
 
 	<div class="legend-row">
@@ -53,14 +43,6 @@
 		gap: 3px;
 		font-size: var(--t-xs);
 		color: var(--c-text-3);
-	}
-	select {
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid var(--c-border-strong);
-		border-radius: var(--r-md);
-		font: inherit;
-		background: var(--c-surface);
-		color: var(--c-text);
 	}
 	.legend-row {
 		display: flex;

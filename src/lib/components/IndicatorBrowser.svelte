@@ -18,10 +18,16 @@
 	let expandedKey = $state(null);
 	let searching = $derived(query.trim().length > 0);
 
-	// show every theme (incl. empty ones); when searching, hide empties
+	// show every theme (incl. empty ones); when searching, hide empties.
+	// indicators are listed alphabetically within each theme (consistent with the dropdowns).
 	let groups = $derived(
 		manifest.categories
-			.map((c) => ({ ...c, items: results.filter((i) => i.category === c.key) }))
+			.map((c) => ({
+				...c,
+				items: results
+					.filter((i) => i.category === c.key)
+					.sort((a, b) => a.label.localeCompare(b.label))
+			}))
 			.filter((c) => (searching ? c.items.length : true))
 	);
 	function toggleCat(key) {

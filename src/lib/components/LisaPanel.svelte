@@ -1,14 +1,13 @@
 <script>
 	import LisaLegend from './LisaLegend.svelte';
+	import IndicatorSelect from './IndicatorSelect.svelte';
 	let { indicators = [], lisaId = null, quadrants = [1, 2, 3, 4], onIndicator = () => {}, onToggle = () => {} } = $props();
 </script>
 
 <div class="lisa">
 	<label class="f">
 		<span>Indicator</span>
-		<select value={lisaId} onchange={(e) => onIndicator(Number(e.target.value))}>
-			{#each indicators as i (i.id)}<option value={i.id}>{i.label}</option>{/each}
-		</select>
+		<IndicatorSelect {indicators} value={lisaId} onChange={onIndicator} ariaLabel="LISA indicator" />
 	</label>
 
 	<div class="legend">
@@ -33,14 +32,6 @@
 		gap: 3px;
 		font-size: var(--t-xs);
 		color: var(--c-text-3);
-	}
-	select {
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid var(--c-border-strong);
-		border-radius: var(--r-md);
-		font: inherit;
-		background: var(--c-surface);
-		color: var(--c-text);
 	}
 	.cap {
 		font-size: var(--t-xs);

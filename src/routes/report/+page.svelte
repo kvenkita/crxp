@@ -60,7 +60,10 @@
 			byCat.get(ind.category).push(item);
 		}
 		rows = manifest.categories
-			.map((c) => ({ key: c.key, label: c.label, color: c.color, items: byCat.get(c.key) || [] }))
+			.map((c) => ({
+				key: c.key, label: c.label, color: c.color,
+				items: (byCat.get(c.key) || []).sort((a, b) => a.label.localeCompare(b.label))
+			}))
 			.filter((c) => c.items.length);
 		ready = true;
 	});
