@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { zScores, quantileBreaks, summarize, knnWeights, localMoran, LISA } from './spatial.js';
+import { zScores, quantileBreaks, summarize } from './spatial.js';
+// LISA/kNN live in the data pipeline (crxp-data spatial.py) and ship precomputed; not tested here.
 
 describe('zScores', () => {
 	it('produces mean 0 sd 1 and passes through nulls', () => {
@@ -29,35 +30,3 @@ describe('quantileBreaks / summarize', () => {
 		expect(s.p99).toBeGreaterThan(90);
 	});
 });
-
-describe('localMoran', () => {
-	it('labels a clear high-high cluster as HH', () => {
-		// 5x5 grid; high values clustered in the top-left corner.
-		const pts = [];
-		const obs = [];
-		for (let r = 0; r < 5; r++) {
-			for (let c = 0; c < 5; c++) {
-				const id = `${r}_${c}`;
-				pts.push({ id, x: c, y: r });
-				const high = r < 2 && c < 2;
-				obs.push({ id, value: high ? 100 + r + c : 1 + r + c });
-			}
-		}
-		const w = knnWeights(pts, 4);
-		const res = localMoran(obs, w, { perms: 99, rng: mulberry32(42) });
-		// the inner corner cell should be a significant HH cluster
-		expect(res.get('0_0').quadrant).toBe(LISA.HH);
-	});
-});
-
-// deterministic RNG for stable tests
-function mulberry32(seed) {
-	let a = seed >>> 0;
-	return function () {
-		a |= 0;
-		a = (a + 0x6d2b79f5) | 0;
-		let t = Math.imul(a ^ (a >>> 15), 1 | a);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
