@@ -68,6 +68,9 @@
 		ready = true;
 	});
 
+	// Character = general demographics; the rest are Quality-of-Life dimensions.
+	let qolStartKey = $derived(rows.find((r) => r.key !== 'character')?.key ?? null);
+
 	const fmt = (v, it) => formatValue(v, it.format, it.decimals);
 	const vsRegion = (it) => {
 		if (it.selected == null || it.region == null) return '—';
@@ -104,6 +107,9 @@
 		</header>
 
 		{#each rows as cat (cat.key)}
+			{#if cat.key === qolStartKey}
+				<h2 class="group-heading">Quality of Life Dimensions</h2>
+			{/if}
 			<section class="cat">
 				<h2 style="border-color:{cat.color}">{cat.label}</h2>
 				<table>
@@ -170,6 +176,13 @@
 	.areas {
 		font-size: var(--t-sm);
 		color: var(--c-text-3);
+	}
+	.group-heading {
+		font-size: var(--t-lg);
+		margin: var(--sp-6) 0 var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--c-border);
+		color: var(--c-text);
 	}
 	.cat {
 		margin-bottom: var(--sp-5);

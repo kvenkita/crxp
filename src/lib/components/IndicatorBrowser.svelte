@@ -34,6 +34,10 @@
 		expandedKey = expandedKey === key ? null : key;
 	}
 	const isOpen = (key) => searching || expandedKey === key;
+
+	// Character = general demographics; everything after it is a Quality-of-Life dimension.
+	// Mark the first non-Character group so we can render a divider heading before it.
+	let qolStartKey = $derived(groups.find((g) => g.key !== 'character')?.key ?? null);
 </script>
 
 <div class="browser" class:grid={variant === 'grid'}>
@@ -46,6 +50,9 @@
 	/>
 
 	{#each groups as cat (cat.key)}
+		{#if cat.key === qolStartKey}
+			<h2 class="group-heading">Quality of Life Dimensions</h2>
+		{/if}
 		<section class="cat" class:empty={!cat.items.length} style="--theme:{cat.color ?? 'var(--c-teal)'}">
 			{#if cat.items.length === 0}
 				<div class="cat-title empty-title">
@@ -95,6 +102,16 @@
 		border-radius: var(--r-md);
 		font: inherit;
 		background: var(--c-surface);
+	}
+	.group-heading {
+		font-size: var(--t-xs);
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--c-text-3);
+		margin: 0;
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--c-border);
 	}
 	.cat {
 		border-left: 3px solid color-mix(in srgb, var(--theme) 55%, transparent);

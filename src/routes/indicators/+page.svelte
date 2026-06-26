@@ -11,6 +11,8 @@
 			}))
 			.filter((c) => c.items.length)
 	);
+	// Character = general demographics; the rest are Quality-of-Life dimensions.
+	let qolStartKey = $derived(groups.find((g) => g.key !== 'character')?.key ?? null);
 </script>
 
 <svelte:head>
@@ -26,6 +28,9 @@
 	</header>
 
 	{#each groups as cat (cat.key)}
+		{#if cat.key === qolStartKey}
+			<h2 class="group-heading">Quality of Life Dimensions</h2>
+		{/if}
 		<section class="cat">
 			<h2>{cat.label}</h2>
 			<div class="cards">
@@ -47,6 +52,13 @@
 	.lede {
 		color: var(--c-text-2);
 		max-width: 48ch;
+	}
+	.group-heading {
+		margin: var(--sp-8) 0 0;
+		padding-top: var(--sp-4);
+		border-top: 1px solid var(--c-border);
+		font-size: var(--t-lg);
+		color: var(--c-text);
 	}
 	.cat {
 		margin-top: var(--sp-6);
