@@ -1,8 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { error } from '@sveltejs/kit';
+import { indicatorBriefs } from '$lib/content/indicatorBriefs.js';
 
 const DATA = path.resolve('static', 'data');
+
+/** Pull just the "About the Data" provenance section out of the generated meta markdown. */
+function extractAbout(meta) {
+	if (!meta) return '';
+	const after = meta.split('### About the Data')[1];
+	if (!after) return '';
+	return after.split('### Additional Resources')[0].trim();
+}
 
 function readManifest() {
 	return JSON.parse(fs.readFileSync(path.join(DATA, 'manifest.json'), 'utf8'));
@@ -30,5 +39,8 @@ export function load({ params }) {
 		.filter(Boolean)
 		.map((i) => ({ slug: i.slug, label: i.label }));
 
-	return { indicator, meta, related };
+	const brief = indicatorBriefs[indicator.slug] ?? null;
+	const aboutMd = extractAbout(meta);
+
+	return { indicator, meta, brief, aboutMd, related };
 }
