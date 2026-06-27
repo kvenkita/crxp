@@ -26,8 +26,9 @@ architecture, components, routes, build, or data contract change. Companion docu
 
 The **Carolinas Regional Explorer (CRXP)** is a community-data web application for the 14-county
 Charlotte region (11 NC + 3 SC counties, ~752 Census tracts, 2020 vintage). It presents tract- and
-county-level indicators as interactive choropleth maps with trend charts, bivariate analysis, and
-spatial-cluster (LISA) analysis, plus indicator metadata, county/city profiles, and printable reports.
+county-level indicators as interactive choropleth maps with uncertainty-aware trend charts, bivariate
+analysis, and spatial-cluster (LISA) analysis, plus researched per-indicator briefs, county profiles,
+shareable printable reports, and open-data downloads (CSV/JSON per indicator + a complete zip).
 
 The app is a **static site**: all data is precomputed by the data pipeline (`crxp-data/`) into a
 documented JSON **data contract** under `static/data/`, and the app is prerendered to static HTML +
@@ -86,7 +87,8 @@ crxp/
 │  │  ├─ data/          # data-contract loaders + pure transforms
 │  │  ├─ state/         # Svelte 5 rune stores (*.svelte.js)
 │  │  ├─ map/           # MapController + color/bivariate/lisa helpers
-│  │  ├─ analytics/     # spatial.js (z, breaks, LISA) — mirror of the pipeline's Python
+│  │  ├─ analytics/     # spatial.js (z, breaks, Pearson/Spearman) — pure stats helpers
+│  │  ├─ content/       # editorial content (indicatorBriefs.js — researched "why it matters")
 │  │  ├─ geo/           # point-in-polygon + geo helpers
 │  │  ├─ search/        # Fuse-based area index
 │  │  └─ util/          # url state, markdown, formatting, pins
@@ -94,10 +96,14 @@ crxp/
 │  └─ app.css           # global tokens + styles
 ├─ static/
 │  └─ data/             # THE DATA CONTRACT (produced by crxp-data)
-├─ scripts/             # build-data.mjs (validator) + legacy generators
-├─ docs/                # this documentation + specs/plans
-├─ svelte.config.js · vite.config.js · netlify.toml
+├─ scripts/             # build-data.mjs (validator), build-data-zip.mjs (downloads), og/sitemap
+├─ docs/                # this documentation (rendered to GitHub Pages via .github/workflows)
+├─ .github/workflows/   # deploy-docs.yml (Quarto → GitHub Pages)
+├─ vite.config.js (SvelteKit configured here) · netlify.toml
 ```
+
+> SvelteKit is configured inside `vite.config.js` (the `sveltekit()` plugin sets the static adapter with
+> `fallback: '404.html'` and runes mode); there is no separate `svelte.config.js`.
 
 # The data contract (`static/data/`)
 
@@ -106,23 +112,36 @@ The app consumes a fixed set of JSON files. The pipeline is the **producer**; th
 
 | File | Purpose | Loaded by |
 |---|---|---|
-| `manifest.json` | Single source of truth: `categories[]` (themes) + `indicators[]` (id, slug, label, description, category, format, decimals, higherIsBetter, years, geoLevels, source, vintage, metaPath, hasZ, hasLisa) | `state/manifest.svelte.js` |
-| `geo/tracts.geojson`, `geo/counties.geojson` | Geometry keyed by `geoid` only | `MapController` |
-| `values/<id>.json` | Per-indicator `years`, `values{geoid:[…]}`, **`moe`/`cv`/`reliability`{geoid:[…]}**, shared `breaks`, `domain`, per-year `stats` | `data/values.js` |
+| `manifest.json` | Single source of truth: `schemaVersion`, `categories[]` (themes, with `color`/`order`) + `indicators[]` (id, slug, label, description, category, format, decimals, higherIsBetter, years, geoLevels, source, vintage, metaPath, hasZ, hasLisa) | `state/manifest.svelte.js` |
+| `geo/tracts.geojson`, `geo/counties.geojson` | Geometry keyed by `geoid` only (counties are real dissolved polygons) | `MapController`, county profiles |
+| `values/<id>.json` | `schemaVersion`, per-indicator `years`, `values{geoid:[…]}`, **`moe`/`cv`/`reliability`{geoid:[…]}**, shared `breaks`, `domain`, per-year `stats` | `data/values.js` |
 | `analytics/z/<id>.json` | Per-year z-scores | `data/analytics.js` |
-| `analytics/lisa/<id>.json` | Per-year LISA quadrants | `data/analytics.js` |
-| `aggregates.json` | County + region averages per indicator/year (+ breaks/domain) | `data/aggregates.js` |
-| `areas/{tracts,counties,places}.json` | Names/labels for search + profiles | `data/areas.js`, `search/areaIndex.js` |
-| `meta/m<id>.md` | Per-indicator markdown methodology shown in the info panel | `data/meta.js` |
+| `analytics/lisa/<id>.json` | Per-year LISA quadrants (FDR-corrected; computed by the pipeline) | `data/analytics.js` |
+| `aggregates.json` | County + region **averages** per indicator/year, **plus `regionMoe`/`countyMoe`** (MOE of the mean) and breaks/domain | `data/aggregates.js` |
+| `areas/{tracts,counties,places}.json` | Names/labels (+ county `bbox`) for search + profiles | `data/areas.js`, `search/areaIndex.js` |
+| `meta/m<id>.md` | Per-indicator data-provenance markdown ("About the data") | `data/meta.js` |
+| `provenance.json` | Library + GDAL/PROJ versions that produced the data (build provenance) | — (reference) |
 
-The contract is validated by **`scripts/build-data.mjs`** (`npm run build:data`) — it checks each value
-file's internal consistency (years vs value array lengths, per-year stats with breaks/min/max/p1/p99)
-and that all geoids exist in the area manifest. The full app build runs this first.
+The contract is validated by **`scripts/build-data.mjs`** (`npm run build:data`, also a Vitest fixture
+test). It checks: a supported `schemaVersion`; each value file's internal consistency (years deep-equal
+the manifest entry, value arrays match `years` length and contain only `number|null`, per-year stats with
+breaks/min/max/p1/p99); analytics presence + content (z/LISA years aligned, LISA quadrants in 0–4);
+aggregates present + year-aligned; and geoid reconciliation against the area manifest. Malformed JSON
+fails cleanly. The full app build runs this first.
 
 ::: callout-tip
-**MOE in the contract.** `values/<id>.json` carries per-tract `moe`/`cv`/`reliability` arrays. The app
-surfaces these in the trend chart (error band + reliability badge). Indicators without MOE (e.g. the
-legacy *private school* indicator) simply omit them, and the UI degrades gracefully.
+**Uncertainty in the contract.** `values/<id>.json` carries per-tract `moe`/`cv`/`reliability`, and
+`aggregates.json` carries `regionMoe`/`countyMoe`. The app surfaces these as error bands on the **tract,
+county, and region** trend lines plus reliability badges, and an optional on-map hatch for unreliable
+tracts. Indicators without sampling MOE (raster/VIIRS, and the legacy *private school* indicator) omit
+them and the UI degrades gracefully.
+:::
+
+::: callout-note
+**Editorial content (not in the contract).** Plain-language, cited "why this matters" briefs for every
+indicator live in `src/lib/content/indicatorBriefs.js` (keyed by slug: `why` markdown + verified
+`resources`). They are maintained in the app repo, independent of the pipeline, and power the indicator
+pages and the explore "About this indicator" panel.
 :::
 
 # State management (rune stores)
@@ -180,19 +199,23 @@ flowchart LR
 |---|---|
 | `MapView` | Hosts the map element; delegates to `MapController` |
 | `AnalysisModeBar` | Always-visible switch between Explore / Bivariate / Spatial clusters |
-| `IndicatorBrowser` | Theme accordion (collapsed by default) + indicator search; selects the active indicator |
+| `IndicatorBrowser` | Theme accordion (collapsed by default) + search; indicators sorted **alphabetically within each theme**; a "Quality of Life Dimensions" sub-heading separates Character (general demographics) from the rest |
+| `IndicatorSelect` | Reusable `<select>` that groups indicators into **theme-colored `<optgroup>`s** (alphabetical within); used by the bivariate and LISA panels |
 | `YearSlider` | Scrubs the active year (per-indicator `years`) |
 | `GeoLevelToggle` | Tract vs county view |
 | `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
-| `TrendChart` | Area vs county vs region SVG trend; **MOE error band, ±MOE readout, reliability badge** for the selected tract |
-| Trend float (in `/explore`) | Shows **comparable-period change markers** for a single selected tract — Δ for the **5-yr and 10-yr** non-overlapping periods (e.g. 2019→2024 and 2014→2024) each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year). The `TrendChart` x-axis is **year-proportional**, so uneven cadence (NLCD epochs, VIIRS) and gaps render truthfully |
+| `TrendChart` | Tract vs county vs region SVG trend; **MOE error bands on all three lines** (tract MOE; county/region from `aggregates` `countyMoe`/`regionMoe`), ±MOE readout, reliability badge; aggregate lines labeled "(avg of tracts)" |
+| Trend float (in `/explore`) | For a selected tract: **comparable-period change markers** — Δ for the **5-yr and 10-yr** non-overlapping periods each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year) — plus **provenance badges** (vintage, *model-based* for CDC PLACES, *pre-2020 harmonized* for ACS). The x-axis is **year-proportional** so uneven cadence renders truthfully |
+| `BivariateScatter` | z-score scatter with marginal distributions, regression line, **Pearson + Spearman** (descriptive), two-way map↔dot hover + neighborhood name |
 | `AreaSearch` | Fuse-based search across tracts/counties/places |
 | `ComparePanel` / `PinButton` | Pin/compare areas |
-| `MapSettings` | Basemap choice, transparency, overlay toggle |
-| `MapSnapshot` | Export current map view (reports) |
-| `MetricInfoPanel` / `MarkdownBlock` | Render `meta/m<id>.md` |
+| `MapSettings` | Basemap choice, transparency, reliability-hatch toggle |
+| `CountyLocator` | Inset/locator map drawing the 14 real county polygons, active one highlighted, each a link (doubles as a switcher) |
+| `CountySwitcher` | Prev/next + jump-to dropdown across the 14 county profiles |
+| `MetricInfoPanel` / `MarkdownBlock` | Render an indicator's brief; compact (sidebar) shows the lead paragraph + a "Full details & sources" link, full (indicator page) adds cited resources + "About the data" |
 | `ProfileHero`, `MetricCardGrid`, `PercentileStrip`, `Sparkline`, `DumbbellChart` | County/city profile + report visuals |
-| `Seo`, `ShareButtons` | Metadata + sharing |
+| `AttributionFooter` | Standard "Carolinas Regional Explorer · UNC Charlotte Urban Institute · (year)" footer on shareable/printable artifacts (profiles, reports) |
+| `Seo`, `ShareButtons` | Metadata + social sharing (profiles **and** custom reports) |
 
 # Analysis modes
 
@@ -201,14 +224,18 @@ flowchart LR
 - **Bivariate** — two indicators on a 3×3 tercile grid (rank terciles of raw values); hovering a grid
   cell filters matching tracts. The side panel shows a **correlation scatter** (`BivariateScatter`):
   standardized (z-score) values of the two indicators, dots colored by their 3×3 class, marginal
-  histograms, a regression line, and the Pearson **r**. Hovering a dot highlights the tract on the map
-  (`MapController.setHoverId`) and vice-versa, and shows that tract's **neighborhood name** above the
-  scatter.
+  distributions, a regression line, and **both Pearson and Spearman** correlations labeled *descriptive
+  only* (spatial autocorrelation precludes a naïve significance reading). Hovering a dot highlights the
+  tract on the map (`MapController.setHoverId`) and vice-versa, and shows that tract's **neighborhood
+  name** above the scatter.
 - **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
-  not significant) from `analytics/lisa/<id>.json`.
+  not significant) from `analytics/lisa/<id>.json`, **computed once in the pipeline** with a
+  without-replacement conditional-permutation null (999 permutations) and **Benjamini–Hochberg FDR**.
 
-The z-scores and LISA are **precomputed by the pipeline**; `lib/analytics/spatial.js` mirrors the
-pipeline's Python so on-the-fly analytics (e.g. bivariate terciles) stay consistent.
+LISA and z-scores are **precomputed by the pipeline** and consumed as-is (the app has no client-side LISA
+implementation — that avoids a second statistical code path drifting from the source of truth).
+`lib/analytics/spatial.js` keeps only the pure helpers the app still needs at runtime: z-scores, quantile
+breaks (for bivariate terciles), and Pearson/Spearman for the scatter.
 
 # Routing & pages
 
@@ -217,11 +244,12 @@ File-based routes under `src/routes/`:
 | Route | Description | Prerender |
 |---|---|---|
 | `/` | Landing page | yes |
-| `/explore` | Main map explorer (deep-linkable via query state) | yes |
-| `/indicators`, `/indicators/[slug]` | Indicator browser + per-indicator metadata pages | yes (one per indicator) |
-| `/county/[fips]` | County profile pages with OG cards | yes (one per county) |
-| `/report` | Custom multi-tract printable report | yes |
-| `/data`, `/methods`, `/about` | Reference pages (Methods explains MOE/reliability + rolling 5-yr) | yes |
+| `/explore` | Main map explorer (deep-linkable via query state); sidebar "About this indicator" shows the brief lead + a link to the full page | yes |
+| `/indicators`, `/indicators/[slug]` | Indicator catalog (alphabetical within theme, Character/QoL split) + per-indicator pages — **"Why this matters" brief, cited "Learn more" resources, "About the data"** | yes (one per indicator) |
+| `/county/[fips]` | County profiles — real-polygon **inset/locator map**, **14-county switcher**, metric cards, share buttons + attribution footer; OG cards | yes (one per county) |
+| `/report` | Custom multi-tract printable report — **social share buttons** + attribution footer; selection encoded in the URL (`?tracts=…&geo=…`) | yes |
+| `/data` | **Downloads page** — collapsible dimensions revealing a per-indicator data dictionary with **CSV + JSON** downloads, plus **"Download all (.zip)"** (a prebuilt static archive) | yes |
+| `/methods`, `/about` | Reference pages (Methods explains MOE/reliability, rolling 5-yr, FDR-LISA, unweighted aggregates) | yes |
 
 All pages are prerendered by adapter-static; `/indicators/[slug]` and `/county/[fips]` enumerate their
 entries from the manifest/areas at build time.
@@ -232,26 +260,34 @@ entries from the manifest/areas at build time.
 npm install
 npm run dev          # local dev server (Vite)
 npm run build:data   # validate the data contract only (fast gate)
-npm run build        # build:data + Vite build (prerender) → build/
-npm run build:full   # build + OG cards + sitemap + tests
+npm run build:zip    # prebuild the download artifacts (per-indicator CSVs + data-dictionary + crxp-data.zip)
+npm run build        # build:data + build:zip + Vite build (prerender) → build/
+npm run build:full   # build:data + build:zip + OG cards + sitemap + Vite build (production)
 npm run preview      # serve the production build locally
 npm test             # vitest
 ```
 
-- **Deploy:** Netlify serves `build/`. `netlify.toml` sets `Cache-Control` on `/data/*`
-  (currently ~1 hour) — note this means updated data can take up to that long to appear on the live
-  site after a deploy.
-- **Adapter:** `adapter-static` with full prerender; the app must remain prerenderable (no
-  server-only endpoints).
+- **Downloads are prebuilt:** `build:zip` (`scripts/build-data-zip.mjs`) writes `static/downloads/`
+  (`csv/<slug>.csv`, `data-dictionary.csv`, `README.txt`, `crxp-data.zip`) from the data contract on
+  every build, so the `/data` page serves them as static files (git-ignored, regenerated each build).
+  Uses `jszip` (a dev/build dependency only).
+- **Deploy (app):** Netlify runs `npm run build:full` and serves `build/`. `netlify.toml` sets
+  `Cache-Control` on `/data/*` (~1 hour), so updated data can take up to that long to appear after a deploy.
+- **Deploy (docs):** this documentation is rendered from Quarto and published to **GitHub Pages** by
+  `.github/workflows/deploy-docs.yml` on push (repo Settings → Pages → Source: GitHub Actions).
+- **Adapter:** `adapter-static` with full prerender (`fallback: '404.html'`); the app must remain
+  prerenderable (no server-only endpoints).
 
 # Updating the DATA shown in the app
 
 Data is produced by the pipeline and handed off; the app itself rarely changes when indicators change.
 
 1. In `crxp-data`, run the pipeline for the indicator(s) **with `--handoff`** — this writes/merges the
-   value, analytics, meta, **manifest**, and **aggregates** files into `crxp/static/data/`.
+   value, analytics, meta, **manifest**, **aggregates**, and **provenance.json** files into `crxp/static/data/`.
 2. Run `npm run build:data` (or `node scripts/build-data.mjs`) to validate the contract.
-3. Run `npm run build`, review locally with `npm run preview`, then deploy.
+3. Run `npm run build` (which also regenerates the download artifacts), review with `npm run preview`, deploy.
+4. For a brand-new indicator, also add a plain-language brief to `src/lib/content/indicatorBriefs.js`
+   (the indicator page falls back to the `meta` markdown if no brief exists yet).
 
 Adding a brand-new indicator requires **no app code change** — the manifest entry written by the
 pipeline makes it appear in the relevant theme automatically (themes are fixed in the manifest
@@ -270,8 +306,9 @@ pipeline makes it appear in the relevant theme automatically (themes are fixed i
 
 # Testing
 
-- **Unit:** Vitest over pure modules (`series.js`, `spatial.js`, `colorScale.js`, `bivariate.js`,
-  `contract.js`, neighborhoods, search, url, pins, geo).
-- **Contract:** `scripts/build-data.mjs` is the integration gate for the data contract.
+- **Unit:** Vitest over pure modules (`series.js`, `spatial.js` incl. z/quantile/**Pearson/Spearman**,
+  `colorScale.js`, `bivariate.js`, `contract.js`, neighborhoods, search, url, pins, geo).
+- **Contract:** `scripts/build-data.mjs` (`crossCheck`) is the integration gate for the data contract,
+  exercised both against the live `static/data` and a synthetic fixture in `build-data.test.js`.
 - **Visual/e2e:** manual + Playwright spot-checks during data updates (verify a refreshed indicator
   renders and shows the expected year/MOE).

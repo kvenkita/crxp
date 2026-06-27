@@ -22,10 +22,16 @@ data contract.
   descriptive only.
 - **Spatial clusters (LISA)** — Local Moran's I with a without-replacement conditional-permutation null and
   **Benjamini–Hochberg FDR** control (computed in the data pipeline, shipped precomputed).
-- **Profiles & reports** — county/city profile pages, a custom multi-tract report, and approximate
-  OpenStreetMap-derived neighborhood names for orientation.
-- **Navigation** — indicators are listed **alphabetically within each theme** and the dropdowns are grouped
-  into **theme-colored** sections.
+- **Researched briefs** — every indicator has a plain-language, cited *"why this matters"* brief with
+  verified "Learn more" resources, plus an "About the data" provenance note.
+- **County profiles** — one per county, with a real-polygon **inset/locator map**, a seamless **14-county
+  switcher**, metric cards, social sharing, and a standard attribution footer.
+- **Custom reports** — a printable multi-tract report, **shareable on social media** (selection encoded in
+  the URL), with the same attribution footer. Approximate OpenStreetMap neighborhood names aid orientation.
+- **Open-data downloads** — per-indicator **CSV** and **JSON**, or the complete dataset as a prebuilt
+  **`.zip`** (refreshed on every build).
+- **Navigation** — indicators are listed **alphabetically within each theme** (Character separated from the
+  Quality-of-Life dimensions); dropdowns are grouped into **theme-colored** sections.
 - **Provenance in context** — source vintage plus *model-based* and *pre-2020 harmonized* badges.
 
 ## Indicators
@@ -50,10 +56,13 @@ npm run check        # svelte-check
 ## Build & deploy
 
 ```sh
-npm run build        # validate the data contract + prerender
+npm run build        # validate the data contract + prebuild downloads + prerender
 npm run build:full   # + OG cards + sitemap (production)
 npm run preview
 ```
+
+`build` runs `build:data` (contract validation) and `build:zip` (prebuilds the per-indicator CSVs and the
+`crxp-data.zip` download artifact under `static/downloads/`, git-ignored) before the Vite prerender.
 
 Deployed as a static site on **Netlify** (`netlify.toml`: `npm run build:full`, publish dir `build/`).
 No server or database at runtime. Non-prerendered routes fall back to `404.html` (adapter-static).
