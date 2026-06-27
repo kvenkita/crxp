@@ -44,16 +44,20 @@
 	</p>
 
 	<h2>Data sources</h2>
-	<p>The current release draws on four public sources, spanning seven themes:</p>
+	<p>The current release has <strong>65 indicators</strong> from four public sources, across eight of the
+		ten themes (Safety and Arts &amp; Culture are still being populated):</p>
 	<ul>
 		<li>
 			<strong>U.S. Census Bureau — American Community Survey (ACS) 5-Year Estimates</strong> (annual,
 			latest 2024): demographics, economy, education, housing, transportation, health insurance,
-			disability, and more — published at the tract level with margins of error.
+			disability, residential stability, and more — published at the tract level with margins of error.
 		</li>
 		<li>
-			<strong>CDC PLACES</strong>: adult health measures (e.g. obesity, diabetes, frequent mental
-			distress, uninsured) as <em>model-based</em> small-area estimates with confidence intervals.
+			<strong>CDC PLACES</strong>: 16 adult-health measures as <em>model-based</em> small-area estimates
+			with confidence intervals — chronic conditions (obesity, diabetes, high blood pressure, asthma,
+			depression), behaviors (smoking, inactivity), access (uninsured, routine checkup), and
+			health-related social needs (food and housing insecurity, transportation barriers, social support,
+			loneliness).
 		</li>
 		<li>
 			<strong>USGS National Land Cover Database (NLCD)</strong>: environment measures — forest,

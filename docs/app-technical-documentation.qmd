@@ -131,10 +131,11 @@ fails cleanly. The full app build runs this first.
 
 ::: callout-tip
 **Uncertainty in the contract.** `values/<id>.json` carries per-tract `moe`/`cv`/`reliability`, and
-`aggregates.json` carries `regionMoe`/`countyMoe`. The app surfaces these as error bands on the **tract,
-county, and region** trend lines plus reliability badges, and an optional on-map hatch for unreliable
-tracts. Indicators without sampling MOE (raster/VIIRS, and the legacy *private school* indicator) omit
-them and the UI degrades gracefully.
+`aggregates.json` carries `regionMoe`/`countyMoe` — the MOE of the **authoritative county estimate** and
+the **pooled region** (not a tract average; see the pipeline's county/region rollup). The app surfaces these
+as error bands on the **tract, county, and region** trend lines plus reliability badges, and an optional
+on-map hatch for unreliable tracts. Indicators without sampling MOE (raster/VIIRS) omit them and the UI
+degrades gracefully.
 :::
 
 ::: callout-note
@@ -204,7 +205,7 @@ flowchart LR
 | `YearSlider` | Scrubs the active year (per-indicator `years`) |
 | `GeoLevelToggle` | Tract vs county view |
 | `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
-| `TrendChart` | Tract vs county vs region SVG trend; **MOE error bands on all three lines** (tract MOE; county/region from `aggregates` `countyMoe`/`regionMoe`), ±MOE readout, reliability badge; aggregate lines labeled "(avg of tracts)" |
+| `TrendChart` | Tract vs county vs region SVG trend; **MOE error bands on all three lines** (tract MOE; county/region from `aggregates` `countyMoe`/`regionMoe`), ±MOE readout, reliability badge; lines labeled **County** / **Region** (authoritative county estimate / pooled region) |
 | Trend float (in `/explore`) | For a selected tract: **comparable-period change markers** — Δ for the **5-yr and 10-yr** non-overlapping periods each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year) — plus **provenance badges** (vintage, *model-based* for CDC PLACES, *pre-2020 harmonized* for ACS). The x-axis is **year-proportional** so uneven cadence renders truthfully |
 | `BivariateScatter` | z-score scatter with marginal distributions, regression line, **Pearson + Spearman** (descriptive), two-way map↔dot hover + neighborhood name |
 | `AreaSearch` | Fuse-based search across tracts/counties/places |
@@ -249,7 +250,7 @@ File-based routes under `src/routes/`:
 | `/county/[fips]` | County profiles — real-polygon **inset/locator map**, **14-county switcher**, metric cards, share buttons + attribution footer; OG cards | yes (one per county) |
 | `/report` | Custom multi-tract printable report — **social share buttons** + attribution footer; selection encoded in the URL (`?tracts=…&geo=…`) | yes |
 | `/data` | **Downloads page** — collapsible dimensions revealing a per-indicator data dictionary with **CSV + JSON** downloads, plus **"Download all (.zip)"** (a prebuilt static archive) | yes |
-| `/methods`, `/about` | Reference pages (Methods explains MOE/reliability, rolling 5-yr, FDR-LISA, unweighted aggregates) | yes |
+| `/methods`, `/about` | Reference pages (Methods explains MOE/reliability, rolling 5-yr, FDR-LISA, authoritative county / pooled region) | yes |
 
 All pages are prerendered by adapter-static; `/indicators/[slug]` and `/county/[fips]` enumerate their
 entries from the manifest/areas at build time.

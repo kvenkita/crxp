@@ -37,10 +37,11 @@ data contract.
 
 ## Indicators
 
-52 indicators across **7 active themes** — Character, Economy, Education, Environment, Health, Housing,
-Transportation (Engagement, Safety, and Arts & Culture are planned). Data come from the U.S. Census
-**ACS 5-Year** estimates (annual 2014–2024), **CDC PLACES**, the USGS **National Land Cover Database**
-(incl. Tree Canopy Cover), and **EOG VIIRS** nighttime lights.
+65 indicators across **8 active themes** — Character, Economy, Education, Engagement, Environment, Health,
+Housing, Transportation (Safety and Arts & Culture are planned). Data come from the U.S. Census
+**ACS 5-Year** estimates (annual 2014–2024, 42 indicators), **CDC PLACES** (16 model-based health measures,
+including health-related social needs), the USGS **National Land Cover Database** (incl. Tree Canopy Cover),
+and **EOG VIIRS** nighttime lights.
 
 The data is produced by a separate, open data pipeline and delivered to this app as the static contract in
 `static/data/` (see below). This repository contains the **application only**.
@@ -108,7 +109,7 @@ builder, and the data-contract gate. Run `npm run test`.
 ## Roadmap
 
 Broaden data breadth (jobs/LODES, housing affordability/CHAS, life expectancy, air quality, food access);
-activate the Engagement, Safety, and Arts & Culture themes; add a composite equity index, demographic
+populate the remaining Safety and Arts & Culture themes; add a composite equity index, demographic
 disaggregation, data export, and accessibility improvements.
 
 ---
