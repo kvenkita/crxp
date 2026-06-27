@@ -27,12 +27,20 @@
 		most public data can be reliably placed.
 	</p>
 	<p>
-		County and region trend lines are the <strong>unweighted average of the tracts</strong> involved
-		(labeled "avg of tracts"). This is a simple, transparent summary — <em>not</em> a population-weighted
-		rate — so small and large tracts count equally; we name it plainly rather than presenting it as an
-		official rate. Their margins of error are propagated and shown as a band. (For rate-type measures the
-		average of tract rates differs from the true regional rate and leans toward small tracts; we keep the
-		transparent average and label it as such.)
+		<strong>County</strong> values (on county profiles and the county trend line) are the
+		<strong>authoritative county-level estimate published by the source</strong> — the U.S. Census
+		Bureau's ACS county tables (with their own, smaller county margin of error), the CDC PLACES county
+		model, or county zonal statistics for satellite measures. They are <em>not</em> an average of the
+		county's tracts: averaging tract rates is biased toward small tracts, and you cannot average tract
+		medians or indices (e.g. a county's median income or Gini coefficient must come from the published
+		county figure, not from averaging its tracts).
+	</p>
+	<p>
+		The 14-county <strong>region</strong> has no single published estimate, so it is <strong>pooled</strong>
+		correctly by measure type: counts are summed; rates use the pooled numerator ÷ pooled denominator; and
+		medians and indices use a population-weighted average of the county values (a documented approximation,
+		since an exact regional median would require microdata). Margins of error are carried through and shown
+		as a band.
 	</p>
 
 	<h2>Data sources</h2>

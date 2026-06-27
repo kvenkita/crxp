@@ -45,9 +45,9 @@
 	<section class="methods">
 		<h2>About this profile</h2>
 		<p>
-			Values are county averages of Census-tract estimates (unweighted average of the tracts). Each
-			card links to the full indicator definition. See <a href="{base}/methods/">Methods</a> for
-			details and limitations.
+			Values are authoritative county-level estimates from the source (U.S. Census ACS county tables,
+			CDC PLACES county model, or county zonal statistics) — not an average of tracts. Each card links
+			to the full indicator definition. See <a href="{base}/methods/">Methods</a> for details and limitations.
 		</p>
 	</section>
 

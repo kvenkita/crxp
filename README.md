@@ -13,8 +13,9 @@ data contract.
   that filters the map, and a year slider.
 - **Uncertainty, first-class.** Estimates carry a 90% **margin of error** (band on the trend), a
   **reliability** flag (ok / caution / unreliable from the coefficient of variation), and an optional
-  on-map hatch for unreliable tracts. County/region lines are labeled "avg of tracts" with their MOE
-  propagated.
+  on-map hatch for unreliable tracts. County values are the authoritative published county estimate
+  (ACS county tables / CDC PLACES county / county zonal); the region is correctly pooled (sum, pooled
+  rate, or population-weighted), with MOE carried through.
 - **Comparable-period change.** 5- and 10-year change between **non-overlapping** ACS periods, with a
   significance test (so noise isn't read as change).
 - **Bivariate analysis** — a 3×3 tercile choropleth plus a **correlation scatter** of standardized values

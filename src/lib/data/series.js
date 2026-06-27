@@ -67,10 +67,11 @@ export function seriesForSet({ valueFile, aggregates, geoids, level = 'tract', l
 	const countyVals = years.map((_, yi) => mean(counties.map((fips) => agg?.countyAvg?.[fips]?.[yi])));
 
 	const areaLabel = label ?? (geoids.length === 1 ? 'This area' : `Selected (${geoids.length})`);
-	const countyLabel = counties.length === 1 ? 'County (avg of tracts)' : `Counties (avg of tracts, ${counties.length})`;
+	// county line is the authoritative county estimate (mean across counties if the selection spans several)
+	const countyLabel = counties.length === 1 ? 'County' : `Counties (avg, ${counties.length})`;
 	// a single selected tract carries its margin of error; a multi-tract mean does not
 	const single = geoids.length === 1 && level === 'tract' ? geoids[0] : null;
-	// aggregate MOE bands (MOE of the unweighted mean); only for a single county, and for the region
+	// authoritative county/region MOE bands; only for a single county, and for the region
 	const countyBand = counties.length === 1 ? agg?.countyMoe?.[counties[0]] ?? null : null;
 	return {
 		years,
@@ -81,7 +82,7 @@ export function seriesForSet({ valueFile, aggregates, geoids, level = 'tract', l
 				reliability: single ? valueFile?.reliability?.[single] ?? null : null
 			},
 			{ label: countyLabel, values: countyVals, color: COLORS.county, dash: 'dash', delay: 150, band: countyBand },
-			{ label: 'Region (avg of tracts)', values: region, color: COLORS.region, dash: 'dot', delay: 300, band: agg?.regionMoe ?? null }
+			{ label: 'Region', values: region, color: COLORS.region, dash: 'dot', delay: 300, band: agg?.regionMoe ?? null }
 		]
 	};
 }
@@ -112,12 +113,12 @@ export function seriesFor({ valueFile, aggregates, geoid, level = 'tract' }) {
 			band: valueFile?.moe?.[geoid] ?? null, reliability: valueFile?.reliability?.[geoid] ?? null
 		});
 		series.push({
-			label: 'County (avg of tracts)', values: county, color: COLORS.county, dash: 'dash', delay: 150,
+			label: 'County', values: county, color: COLORS.county, dash: 'dash', delay: 150,
 			band: agg?.countyMoe?.[fips] ?? null
 		});
 	}
 	series.push({
-		label: 'Region (avg of tracts)', values: region, color: COLORS.region, dash: 'dot', delay: 300,
+		label: 'Region', values: region, color: COLORS.region, dash: 'dot', delay: 300,
 		band: agg?.regionMoe ?? null
 	});
 	return { years, series };

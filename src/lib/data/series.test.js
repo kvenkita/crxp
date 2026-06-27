@@ -47,14 +47,14 @@ describe('seriesForSet (multi-tract average)', () => {
 		expect(series[0].label).toBe('Selected (3)');
 		// counties involved: 37119 + 37071 → mean of their county averages
 		expect(series[1].values).toEqual([22.5, 23.5, 24.5]);
-		expect(series[1].label).toBe('Counties (avg of tracts, 2)');
+		expect(series[1].label).toBe('Counties (avg, 2)');
 		expect(series[2].values).toEqual([20, 21, 22]); // region
 	});
 
 	it('handles a single tract', () => {
 		const { series } = seriesForSet({ valueFile: vf, aggregates: agg, geoids: ['37119000100'], level: 'tract' });
 		expect(series[0].values).toEqual([10, 12, 14]);
-		expect(series[1].label).toBe('County (avg of tracts)');
+		expect(series[1].label).toBe('County');
 	});
 });
 
