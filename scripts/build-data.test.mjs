@@ -6,9 +6,11 @@ import { crossCheck } from './build-data.mjs';
 const DATA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'static', 'data');
 
 describe('crossCheck against the generated fixture', () => {
+	// crossCheck reads the full data contract (52 indicators × values + z + lisa + aggregates,
+	// ~22MB synchronously), so give it a generous timeout in the test environment.
 	it('passes for the committed fixture', () => {
 		const r = crossCheck(DATA);
 		if (!r.ok) console.error(r.errors);
 		expect(r.ok).toBe(true);
-	});
+	}, 30000);
 });
