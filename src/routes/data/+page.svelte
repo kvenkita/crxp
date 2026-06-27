@@ -25,108 +25,11 @@
 	}
 	const isOpen = (key) => openKeys.has(key);
 
-	const valuesUrl = (id) => `${base}/data/values/${id}.json`;
-	const year = new Date().getFullYear();
-
-	// --- CSV helpers ---
-	const csvEsc = (s) => {
-		s = String(s ?? '');
-		return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-	};
-	const cell = (x) => (x == null || (typeof x === 'number' && Number.isNaN(x)) ? '' : x);
-
-	/** Long-format CSV for one indicator's value file. */
-	function fileToCsv(file) {
-		const years = file.years || [];
-		const out = ['geoid,year,value,moe,cv,reliability'];
-		for (const geoid of Object.keys(file.values || {})) {
-			const v = file.values[geoid] || [];
-			const m = file.moe?.[geoid] || [];
-			const c = file.cv?.[geoid] || [];
-			const r = file.reliability?.[geoid] || [];
-			years.forEach((y, i) => {
-				out.push([geoid, y, cell(v[i]), cell(m[i]), cell(c[i]), cell(r[i])].join(','));
-			});
-		}
-		return out.join('\n');
-	}
-
-	function dictionaryCsv() {
-		const out = ['id,slug,label,dimension,format,source,vintage,first_year,last_year'];
-		for (const i of data.indicators ?? []) {
-			out.push([
-				i.id, i.slug, csvEsc(i.label), i.category, i.format,
-				csvEsc(i.source), csvEsc(i.vintage), i.years?.[0] ?? '', i.years?.at(-1) ?? ''
-			].join(','));
-		}
-		return out.join('\n');
-	}
-
-	function readme() {
-		return [
-			'Carolinas Regional Explorer — data download',
-			`Carolinas Regional Explorer · UNC Charlotte Urban Institute · ${year}`,
-			'',
-			'Contents:',
-			'  data-dictionary.csv   catalog of every indicator (id, label, dimension, source, vintage)',
-			'  csv/<indicator>.csv   long-format values per indicator:',
-			'      geoid, year, value, moe, cv, reliability',
-			'      moe = 90% margin of error; cv = coefficient of variation (%);',
-			'      reliability = ok / caution / unreliable; blank where not applicable.',
-			'',
-			'Geography: 2020 U.S. Census tracts, 14-county Charlotte region.',
-			'Sources: U.S. Census ACS 5-Year, CDC PLACES, USGS NLCD, EOG VIIRS.',
-			'Indicator data is public-domain; neighborhood names © OpenStreetMap contributors (ODbL).',
-			'See the Methods page for methodology and limitations.'
-		].join('\n');
-	}
-
-	function downloadBlob(name, blob) {
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = name;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		setTimeout(() => URL.revokeObjectURL(url), 1000);
-	}
-
-	let busyId = $state(null);
-	async function downloadCsv(ind) {
-		busyId = ind.id;
-		try {
-			const file = await (await fetch(valuesUrl(ind.id))).json();
-			downloadBlob(`${ind.slug}.csv`, new Blob([fileToCsv(file)], { type: 'text/csv;charset=utf-8' }));
-		} finally {
-			busyId = null;
-		}
-	}
-
-	let zipping = $state(false);
-	let zipProgress = $state(0);
-	async function downloadAll() {
-		zipping = true;
-		zipProgress = 0;
-		try {
-			const { default: JSZip } = await import('jszip');
-			const zip = new JSZip();
-			zip.file('data-dictionary.csv', dictionaryCsv());
-			zip.file('README.txt', readme());
-			const folder = zip.folder('csv');
-			const inds = data.indicators ?? [];
-			for (let k = 0; k < inds.length; k++) {
-				const i = inds[k];
-				const file = await (await fetch(valuesUrl(i.id))).json();
-				folder.file(`${i.slug}.csv`, fileToCsv(file));
-				zipProgress = Math.round(((k + 1) / inds.length) * 100);
-			}
-			const blob = await zip.generateAsync({ type: 'blob' });
-			downloadBlob('crxp-data.zip', blob);
-		} finally {
-			zipping = false;
-		}
-	}
+	// All download artifacts are prebuilt at build time (scripts/build-data-zip.mjs), so they
+	// refresh whenever the data is rebuilt and download instantly as static files.
+	const csvUrl = (slug) => `${base}/downloads/csv/${slug}.csv`;
+	const jsonUrl = (id) => `${base}/data/values/${id}.json`;
+	const zipUrl = `${base}/downloads/crxp-data.zip`;
 </script>
 
 <svelte:head>
@@ -171,10 +74,8 @@
 										<td class="src">{i.source}</td>
 										<td>{i.vintage}</td>
 										<td class="dl">
-											<button class="dlbtn" onclick={() => downloadCsv(i)} disabled={busyId === i.id}>
-												{busyId === i.id ? '…' : 'CSV'}
-											</button>
-											<a class="dlbtn" href={valuesUrl(i.id)} download="{i.slug}.json">JSON</a>
+											<a class="dlbtn" href={csvUrl(i.slug)} download="{i.slug}.csv">CSV</a>
+											<a class="dlbtn" href={jsonUrl(i.id)} download="{i.slug}.json">JSON</a>
 										</td>
 									</tr>
 								{/each}
@@ -190,11 +91,9 @@
 		<h2>Download all data</h2>
 		<p class="hint">
 			The complete dataset — every indicator as a long-format CSV, plus a data dictionary — in a single
-			<code>.zip</code> archive.
+			<code>.zip</code> archive, rebuilt with every data update.
 		</p>
-		<button class="btn btn-primary" onclick={downloadAll} disabled={zipping}>
-			{zipping ? `Preparing… ${zipProgress}%` : 'Download all (.zip)'}
-		</button>
+		<a class="btn btn-primary" href={zipUrl} download="crxp-data.zip">Download all (.zip)</a>
 	</section>
 </div>
 
@@ -308,16 +207,11 @@
 		border-radius: var(--r-pill);
 		padding: 2px var(--sp-3);
 		margin-left: var(--sp-1);
-		cursor: pointer;
 	}
 	.dlbtn:hover {
 		border-color: var(--theme, var(--c-teal));
 		color: var(--c-text);
 		text-decoration: none;
-	}
-	.dlbtn:disabled {
-		opacity: 0.5;
-		cursor: default;
 	}
 	code {
 		font-family: var(--font-mono);

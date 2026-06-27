@@ -8,9 +8,10 @@ node_modules
 /.svelte-kit
 /build
 
-# Generated data artifacts (produced by build:og / build:sitemap)
+# Generated data artifacts (produced by build:og / build:sitemap / build:zip)
 /static/og
 /static/sitemap.xml
+/static/downloads
 
 # Test/inspection artifacts
 /.playwright-mcp
