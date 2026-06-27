@@ -46,6 +46,12 @@
 	let showAbout = $state(false);
 	let flyBbox = $state(null);
 	let booted = $state(false);
+	// Mobile collapse state for the controls panel + map floats. These default collapsed, which only
+	// affects small screens — on desktop the panel/legend/trend bodies are shown by CSS regardless, so
+	// there is no hydration flash and the desktop layout is unchanged.
+	let controlsOpen = $state(false);
+	let legendOpen = $state(false);
+	let trendOpen = $state(false);
 
 	// map display settings
 	let basemap = $state('light');
@@ -379,7 +385,12 @@
 </svelte:head>
 
 <div class="explore">
-	<aside class="panel" aria-label="Map controls">
+	<aside class="panel" class:is-open={controlsOpen} aria-label="Map controls">
+		<button class="panel-toggle no-print" aria-expanded={controlsOpen} onclick={() => (controlsOpen = !controlsOpen)}>
+			<span>Indicator &amp; controls</span>
+			<span class="chev" class:open={controlsOpen}>▸</span>
+		</button>
+		<div class="panel-body">
 		<div class="panel-section">
 			<AnalysisModeBar mode={analysis.mode} onChange={changeMode} />
 		</div>
@@ -429,6 +440,7 @@
 				/>
 			</div>
 		{/if}
+		</div>
 	</aside>
 
 	<div class="map-wrap">
@@ -452,32 +464,41 @@
 		</div>
 
 		{#if analysis.mode === 'bivariate' && bivariateScatter}
-			<div class="trend-float card no-print">
+			<div class="trend-float card no-print" class:is-open={trendOpen}>
 				<div class="trend-head">
 					<div>
 						<strong>Correlation</strong>
 						<span class="trend-sub">{bivariateScatter.labelA} × {bivariateScatter.labelB}</span>
 					</div>
+					<button class="float-toggle" aria-expanded={trendOpen} onclick={() => (trendOpen = !trendOpen)} aria-label="Toggle scatter">
+						<span class="chev" class:open={trendOpen}>▸</span>
+					</button>
 				</div>
-				<BivariateScatter
-					points={bivariateScatter.points}
-					r={bivariateScatter.r}
-					rho={bivariateScatter.rho}
-					labelA={bivariateScatter.labelA}
-					labelB={bivariateScatter.labelB}
-					hoverGeoid={selection.hover}
-					hoverName={selection.hover ? areaName(areas, selection.hover) : ''}
-					onHover={onScatterHover}
-				/>
+				<div class="trend-body">
+					<BivariateScatter
+						points={bivariateScatter.points}
+						r={bivariateScatter.r}
+						rho={bivariateScatter.rho}
+						labelA={bivariateScatter.labelA}
+						labelB={bivariateScatter.labelB}
+						hoverGeoid={selection.hover}
+						hoverName={selection.hover ? areaName(areas, selection.hover) : ''}
+						onHover={onScatterHover}
+					/>
+				</div>
 			</div>
 		{:else if trend && indicator}
-			<div class="trend-float card no-print">
+			<div class="trend-float card no-print" class:is-open={trendOpen}>
 				<div class="trend-head">
 					<div>
 						<strong>{trendName}</strong>
 						<span class="trend-sub" style="border-bottom:2px solid {accent}; padding-bottom:1px;">{indicator.label}</span>
 					</div>
+					<button class="float-toggle" aria-expanded={trendOpen} onclick={() => (trendOpen = !trendOpen)} aria-label="Toggle trend chart">
+						<span class="chev" class:open={trendOpen}>▸</span>
+					</button>
 				</div>
+				<div class="trend-body">
 				{#if provenanceFlags}
 					<div class="prov-flags">
 						{#if provenanceFlags.vintage}<span class="prov">{provenanceFlags.vintage}</span>{/if}
@@ -508,11 +529,17 @@
 						<button class="btn-report" onclick={openReport}>Generate report →</button>
 					</div>
 				{/if}
+				</div>
 			</div>
 		{/if}
 
 		{#if analysis.mode === 'explore' && classes.length}
-			<div class="legend-float no-print">
+			<div class="legend-float no-print" class:is-open={legendOpen}>
+				<button class="legend-toggle" aria-expanded={legendOpen} onclick={() => (legendOpen = !legendOpen)}>
+					<span>Legend</span>
+					<span class="chev" class:open={legendOpen}>▸</span>
+				</button>
+				<div class="legend-body">
 				<Legend
 					{classes}
 					title={indicator?.label}
@@ -541,6 +568,7 @@
 						/>
 					</div>
 				{/if}
+				</div>
 			</div>
 		{/if}
 
@@ -568,10 +596,21 @@
 		flex-direction: column;
 		gap: var(--sp-4);
 	}
+	.panel-body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-4);
+	}
 	.panel-section {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-2);
+	}
+	/* collapse toggles are mobile-only; hidden on desktop so the layout is unchanged */
+	.panel-toggle,
+	.float-toggle,
+	.legend-toggle {
+		display: none;
 	}
 	.field-label {
 		font-size: var(--t-xs);
@@ -764,8 +803,118 @@
 			grid-template-columns: 1fr;
 			grid-template-rows: auto 1fr;
 		}
+
+		/* Controls become a collapsible top drawer so the map gets the screen by default */
 		.panel {
-			max-height: 42vh;
+			max-height: 60vh;
+			padding: 0;
+			gap: 0;
+			border-right: 0;
+			border-bottom: 1px solid var(--c-border);
+		}
+		.panel-toggle {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			width: 100%;
+			border: 0;
+			background: var(--c-surface);
+			padding: var(--sp-3) var(--sp-4);
+			font-weight: 700;
+			font-size: var(--t-sm);
+			color: var(--c-text);
+		}
+		.panel-body {
+			padding: 0 var(--sp-4) var(--sp-4);
+		}
+		.panel:not(.is-open) .panel-body {
+			display: none;
+		}
+
+		/* Search fills the top; settings gear tucks to the top-right corner */
+		.search-float {
+			top: var(--sp-2);
+			left: var(--sp-2);
+			right: 3.4rem;
+			width: auto;
+		}
+		.settings-float {
+			top: var(--sp-2);
+			right: var(--sp-2);
+			left: auto;
+		}
+
+		/* Trend / scatter: a collapsible card under the search bar — collapsed shows only its header */
+		.float-toggle {
+			display: inline-flex;
+			align-items: center;
+			border: 0;
+			background: transparent;
+			color: var(--c-text-3);
+			font-size: var(--t-sm);
+			padding: 0 4px;
+			cursor: pointer;
+		}
+		.trend-float {
+			top: calc(var(--sp-2) + 3rem);
+			left: var(--sp-2);
+			right: var(--sp-2);
+			width: auto;
+			max-width: none;
+			padding: var(--sp-2) var(--sp-3);
+			max-height: 62vh;
+			overflow-y: auto;
+		}
+		.trend-float:not(.is-open) {
+			max-height: none;
+			overflow: visible;
+		}
+		.trend-float:not(.is-open) .trend-body {
+			display: none;
+		}
+		.trend-head {
+			margin-bottom: 0;
+		}
+		.trend-float.is-open .trend-head {
+			margin-bottom: var(--sp-2);
+		}
+
+		/* Legend: a pill anchored bottom-left that expands UPWARD over the map (column-reverse) */
+		.legend-float {
+			left: var(--sp-2);
+			bottom: calc(var(--sp-2) + 3.4rem);
+			max-width: 78vw;
+			flex-direction: column-reverse;
+			gap: var(--sp-2);
+		}
+		.legend-toggle {
+			display: inline-flex;
+			align-self: flex-start;
+			align-items: center;
+			gap: var(--sp-2);
+			background: color-mix(in srgb, var(--c-surface) 92%, transparent);
+			backdrop-filter: blur(8px);
+			border: 1px solid var(--c-border);
+			border-radius: var(--r-pill);
+			box-shadow: var(--shadow-md);
+			padding: var(--sp-1) var(--sp-3);
+			font-size: var(--t-xs);
+			font-weight: 700;
+			color: var(--c-text);
+			cursor: pointer;
+		}
+		.legend-body {
+			max-height: 40vh;
+			overflow-y: auto;
+		}
+		.legend-float:not(.is-open) .legend-body {
+			display: none;
+		}
+
+		/* Year slider hugs the very bottom, full width */
+		.bottom-bar {
+			bottom: var(--sp-2);
+			width: calc(100% - 1rem);
 		}
 	}
 </style>

@@ -156,12 +156,27 @@
 		.brand-logo {
 			height: 1.9rem;
 		}
+		.header-inner {
+			padding: 0 var(--sp-3);
+			gap: var(--sp-2);
+		}
+		/* nav stays on one line but scrolls within the header instead of widening the page */
 		.site-nav {
-			gap: 0;
+			gap: 2px;
+			min-width: 0;
+			overflow-x: auto;
+			flex-wrap: nowrap;
+			scrollbar-width: none;
+			-webkit-overflow-scrolling: touch;
+		}
+		.site-nav::-webkit-scrollbar {
+			display: none;
 		}
 		.nav-link {
 			padding: var(--sp-1) var(--sp-2);
-			font-size: var(--t-base);
+			font-size: var(--t-sm);
+			flex-shrink: 0;
+			white-space: nowrap;
 		}
 	}
 </style>
