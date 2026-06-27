@@ -21,6 +21,7 @@
 	import LisaPanel from '$lib/components/LisaPanel.svelte';
 
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
+	import { indicatorBriefs } from '$lib/content/indicatorBriefs.js';
 	import { explorer, setIndicator, setYear, setGeoLevel } from '$lib/state/explorer.svelte.js';
 	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
@@ -57,6 +58,7 @@
 	let bivarBFile = $state(null); // value file for the 2nd bivariate variable (for the scatter)
 
 	let indicator = $derived(indicatorById(explorer.indicatorId));
+	let indicatorBrief = $derived(indicator ? indicatorBriefs[indicator.slug] ?? null : null);
 	let accent = $derived(
 		(indicator && manifest.categories.find((c) => c.key === indicator.category)?.color) || '#1f6f63'
 	);
@@ -399,7 +401,7 @@
 						<span class="chev" class:open={showAbout}>▸</span>
 					</button>
 					{#if showAbout}
-						<MetricInfoPanel {indicator} meta={metaText} compact />
+						<MetricInfoPanel {indicator} meta={metaText} brief={indicatorBrief} compact />
 						<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page →</a>
 					{/if}
 				</div>
