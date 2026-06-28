@@ -205,8 +205,8 @@ flowchart LR
 | `YearSlider` | Scrubs the active year (per-indicator `years`) |
 | `GeoLevelToggle` | Tract vs county view |
 | `Legend` / `LisaLegend` / `BivariateLegend` | Class legends; hoverable filtering (incl. bivariate cell → tract filter) |
-| `TrendChart` | Tract vs county vs region SVG trend; **MOE error bands on all three lines** (tract MOE; county/region from `aggregates` `countyMoe`/`regionMoe`), ±MOE readout, reliability badge; lines labeled **County** / **Region** (authoritative county estimate / pooled region) |
-| Trend float (in `/explore`) | For a selected tract: **comparable-period change markers** — Δ for the **5-yr and 10-yr** non-overlapping periods each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year) — plus **provenance badges** (vintage, *model-based* for CDC PLACES, *pre-2020 harmonized* for ACS). The x-axis is **year-proportional** so uneven cadence renders truthfully |
+| `TrendChart` | Tract vs county vs region SVG trend; **MOE error bands on all three lines** (tract MOE; county/region from `aggregates` `countyMoe`/`regionMoe`), ±MOE readout, reliability badge; lines labeled **County** / **Region** (authoritative county estimate / pooled region). The band note is **source-aware**: ACS indicators get the rolling-5-year/non-overlapping caption; CDC PLACES indicators (`crossReleaseTrend`) get a model-uncertainty caption that tells users to read levels, not year-to-year change |
+| Trend float (in `/explore`) | For a selected tract: **comparable-period change markers** — Δ for the **5-yr and 10-yr** non-overlapping periods each with a 90% significance flag (`data/series.js → comparableChanges`, periods derived from the latest year) — plus **provenance badges** (vintage, *model-based* for CDC PLACES, *pre-2020 harmonized* for ACS). **The change markers are suppressed for CDC PLACES indicators** (`crossReleaseTrend`), whose stitched-across-releases series is not valid for trend analysis. The x-axis is **year-proportional** so uneven cadence renders truthfully |
 | `BivariateScatter` | z-score scatter with marginal distributions, regression line, **Pearson + Spearman** (descriptive), two-way map↔dot hover + neighborhood name |
 | `AreaSearch` | Fuse-based search across tracts/counties/places |
 | `ComparePanel` / `PinButton` | Pin/compare areas |
@@ -214,7 +214,7 @@ flowchart LR
 | `CountyLocator` | Inset/locator map drawing the 14 real county polygons, active one highlighted, each a link (doubles as a switcher) |
 | `CountySwitcher` | Prev/next + jump-to dropdown across the 14 county profiles |
 | `MetricInfoPanel` / `MarkdownBlock` | Render an indicator's brief; compact (sidebar) shows the lead paragraph + a "Full details & sources" link, full (indicator page) adds cited resources + "About the data" |
-| `ProfileHero`, `MetricCardGrid`, `PercentileStrip`, `Sparkline`, `DumbbellChart` | County/city profile + report visuals |
+| `ProfileHero`, `MetricCardGrid`, `PercentileStrip`, `Sparkline`, `DumbbellChart` | County/city profile + report visuals. `MetricCardGrid` shows each card's value, level sparkline, and a "since YYYY" change delta — **the delta is omitted for CDC PLACES** (`crossReleaseTrend`); the level sparkline is retained |
 | `AttributionFooter` | Standard "Carolinas Regional Explorer · UNC Charlotte Urban Institute · (year)" footer on shareable/printable artifacts (profiles, reports) |
 | `Seo`, `ShareButtons` | Metadata + social sharing (profiles **and** custom reports) |
 
@@ -248,7 +248,7 @@ File-based routes under `src/routes/`:
 | `/explore` | Main map explorer (deep-linkable via query state); sidebar "About this indicator" shows the brief lead + a link to the full page | yes |
 | `/indicators`, `/indicators/[slug]` | Indicator catalog (alphabetical within theme, Character/QoL split) + per-indicator pages — **"Why this matters" brief, cited "Learn more" resources, "About the data"** | yes (one per indicator) |
 | `/county/[fips]` | County profiles — real-polygon **inset/locator map**, **14-county switcher**, metric cards, share buttons + attribution footer; OG cards | yes (one per county) |
-| `/report` | Custom multi-tract printable report — **social share buttons** + attribution footer; selection encoded in the URL (`?tracts=…&geo=…`) | yes |
+| `/report` | Custom multi-tract printable report — **social share buttons** + attribution footer; selection encoded in the URL (`?tracts=…&geo=…`). Each row's *Selected* value and *Change* are labelled with **that indicator's own years** (coverage differs by source); **CDC PLACES rows show "—" for change** (not comparable across model releases) | yes |
 | `/data` | **Downloads page** — collapsible dimensions revealing a per-indicator data dictionary with **CSV + JSON** downloads, plus **"Download all (.zip)"** (a prebuilt static archive) | yes |
 | `/methods`, `/about` | Reference pages (Methods explains MOE/reliability, rolling 5-yr, FDR-LISA, authoritative county / pooled region) | yes |
 

@@ -126,10 +126,13 @@
 	<p>
 		<strong>CDC PLACES health measures are different.</strong> Each annual PLACES release is a separate
 		model fit, so the multi-year series shown here is <strong>stitched across releases</strong> rather than
-		one consistent time series. The app shows each year's estimate with its model uncertainty band, but —
-		unlike the ACS indicators — does <strong>not</strong> report a significance-tested change for them,
-		because year-to-year movement can reflect model revisions as much as real change. Read these as the
-		level in each year and broad direction, not as a validated trend.
+		one consistent time series. CDC states the estimates <strong>do not support tracking change over
+		time</strong>: sub-county models hold the population distribution fixed, time is not a model variable
+		even at county level, and apparent movement can reflect questionnaire changes or the pandemic-affected
+		2020 survey. The app therefore shows each year's estimate with its model uncertainty band but reports
+		<strong>no change figure at all</strong> for these measures — no significance-tested change markers, no
+		change column in reports, no county-card delta. Read them as <strong>levels in each year</strong>, not
+		as a trend.
 	</p>
 
 	<h2>Harmonizing tract boundaries</h2>
