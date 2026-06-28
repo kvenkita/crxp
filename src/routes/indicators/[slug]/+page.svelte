@@ -1,6 +1,7 @@
 <script>
 	import { base } from '$app/paths';
 	import MarkdownBlock from '$lib/components/MarkdownBlock.svelte';
+	import RegionContext from '$lib/components/RegionContext.svelte';
 
 	let { data } = $props();
 	let { indicator, meta, brief, aboutMd, related } = $derived(data);
@@ -43,6 +44,8 @@
 	{:else if meta}
 		<section class="why"><MarkdownBlock source={meta} /></section>
 	{/if}
+
+	<RegionContext />
 
 	{#if brief?.resources?.length}
 		<section class="resources">
