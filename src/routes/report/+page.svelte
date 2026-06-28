@@ -47,6 +47,10 @@
 			const selected = valAt(last);
 			const selectedFirst = valAt(first);
 			const region = regionAvgAt(aggregates, ind.id, last);
+			// CDC PLACES series are stitched across separate annual model releases, so a change figure
+			// would conflate real change with model revisions — omit change for them (matches the explorer).
+			const crossReleaseTrend = !!ind.crossReleaseTrend;
+			const hasSpan = first != null && last != null && first !== last;
 			const item = {
 				label: ind.label,
 				slug: ind.slug,
@@ -54,7 +58,11 @@
 				decimals: ind.decimals ?? 1,
 				selected,
 				region,
-				delta: selected != null && selectedFirst != null ? selected - selectedFirst : null,
+				crossReleaseTrend,
+				delta:
+					!crossReleaseTrend && hasSpan && selected != null && selectedFirst != null
+						? selected - selectedFirst
+						: null,
 				firstYear: first,
 				lastYear: last
 			};
@@ -123,20 +131,22 @@
 					<thead>
 						<tr>
 							<th>Indicator</th>
-							<th class="num">Selected ({rows[0].items[0].lastYear})</th>
+							<th class="num">Selected</th>
 							<th class="num">Region</th>
 							<th class="num">vs. Region</th>
-							<th class="num">Change since {rows[0].items[0].firstYear}</th>
+							<th class="num">Change</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each cat.items as it (it.slug)}
 							<tr>
 								<td>{it.label}</td>
-								<td class="num strong">{fmt(it.selected, it)}</td>
+								<td class="num strong">{fmt(it.selected, it)} <span class="yr">{it.lastYear}</span></td>
 								<td class="num">{fmt(it.region, it)}</td>
 								<td class="num">{vsRegion(it)}</td>
-								<td class="num">{it.delta == null ? '—' : (it.delta > 0 ? '▲ ' : it.delta < 0 ? '▼ ' : '') + formatValue(Math.abs(it.delta), it.format, it.decimals)}</td>
+								<td class="num">
+									{#if it.delta == null}—{:else}{it.delta > 0 ? '▲ ' : it.delta < 0 ? '▼ ' : ''}{formatValue(Math.abs(it.delta), it.format, it.decimals)} <span class="yr">{it.firstYear}→{it.lastYear}</span>{/if}
+								</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -148,7 +158,9 @@
 			<p>
 				Source: U.S. Census Bureau, American Community Survey 5-Year Estimates (and CDC PLACES, USGS
 				NLCD, EOG VIIRS for non-ACS indicators). Values are unweighted averages across the selected
-				areas. See the methodology at {base ? base : ''}/methods.
+				areas. The <em>Selected</em> and <em>Change</em> columns are labelled with each indicator's own
+				years, since coverage differs by source. Model-based CDC PLACES measures show no change
+				(estimates are not comparable across annual model releases). See the methodology at {base ? base : ''}/methods.
 			</p>
 		</footer>
 
@@ -232,6 +244,12 @@
 	.strong {
 		font-weight: 700;
 		color: var(--c-plum);
+	}
+	.yr {
+		font-weight: 400;
+		font-size: 0.82em;
+		color: var(--c-text-3);
+		white-space: nowrap;
 	}
 	.rpt-foot {
 		margin-top: var(--sp-6);

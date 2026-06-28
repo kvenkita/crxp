@@ -66,6 +66,7 @@ export function load({ params }) {
 			format: ind.format,
 			decimals: ind.decimals ?? 1,
 			source: ind.source,
+			crossReleaseTrend: !!ind.crossReleaseTrend,
 			years,
 			values,
 			value: values[li] ?? null,

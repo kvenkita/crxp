@@ -31,7 +31,9 @@
 					</div>
 					<div class="m-val">
 						<strong>{formatValue(m.value, m.format, m.decimals)}</strong>
-						{#if delta(m.values) != null}
+						<!-- Omit the change figure for CDC PLACES: its series is stitched across separate annual
+						     model releases, so a delta would conflate real change with model revisions. -->
+						{#if !m.crossReleaseTrend && delta(m.values) != null}
 							{@const d = delta(m.values)}
 							<span class="m-delta" class:up={d > 0} class:down={d < 0}>
 								{d > 0 ? '▲' : d < 0 ? '▼' : '—'} {formatValue(Math.abs(d), m.format, m.decimals)}
