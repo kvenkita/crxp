@@ -70,13 +70,32 @@
 	);
 	let aboutEl = $state(null);
 
-	// Full timeline = union of every indicator's years, so the year slider is ALWAYS shown and scrubbable
-	// (even for single-year indicators like CDC PLACES). Years without data render an empty choropleth.
-	let allYears = $derived(
-		manifest?.indicators?.length
-			? [...new Set(manifest.indicators.flatMap((i) => i.years ?? []))].sort((a, b) => a - b)
-			: []
-	);
+	// Survey sources (ACS, CDC PLACES) follow an annual cadence; raster sources (NLCD, VIIRS) have their own
+	// (often decadal) extents. The slider domain adapts to the data extent of the current indicator(s) rather
+	// than a global union, so an ACS variable's slider doesn't stretch back to the NLCD 2001 floor.
+	const isSurvey = (ind) => /american community survey|cdc places/i.test(ind?.source ?? '');
+	// the survey timeline (contiguous min..max of ACS/CDC years) — used as the fallback domain for a
+	// single-year survey indicator (e.g. a lone CDC PLACES measure) so its slider is still usable.
+	let surveyYears = $derived.by(() => {
+		const ys = (manifest?.indicators ?? []).filter(isSurvey).flatMap((i) => i.years ?? []);
+		if (!ys.length) return [];
+		const lo = Math.min(...ys), hi = Math.max(...ys);
+		return Array.from({ length: hi - lo + 1 }, (_, k) => lo + k);
+	});
+	// the slider's year domain = union of the current context's indicators' own years (A in explore/lisa;
+	// A and B in bivariate); a single-year survey context expands to the survey timeline.
+	let sliderYears = $derived.by(() => {
+		const inds = [indicator];
+		if (analysis.mode === 'bivariate' && analysis.biB != null) {
+			const b = indicatorById(analysis.biB);
+			if (b && b.id !== indicator?.id) inds.push(b);
+		}
+		let ys = [...new Set(inds.filter(Boolean).flatMap((i) => i.years ?? []))].sort((a, b) => a - b);
+		if (ys.length < 2 && indicator && isSurvey(indicator)) {
+			ys = [...new Set([...surveyYears, ...ys])].sort((a, b) => a - b);
+		}
+		return ys;
+	});
 	// Years that actually have data for the current context: the indicator's years in explore/lisa, or the
 	// years BOTH variables share in bivariate (falling back to A's years if they never overlap).
 	function availableYearsFor(aId, bId, mode) {
@@ -611,8 +630,8 @@
 		{/if}
 
 		<div class="bottom-bar no-print">
-			{#if indicator && allYears.length > 1}
-				<YearSlider years={allYears} availableYears={ctxYears} value={explorer.year} onChange={setYear} />
+			{#if indicator && sliderYears.length > 1}
+				<YearSlider years={sliderYears} availableYears={ctxYears} value={explorer.year} onChange={setYear} />
 			{/if}
 		</div>
 	</div>
