@@ -162,17 +162,17 @@ views are deep-linkable.
 
 # Map layer
 
-`lib/map/MapController.js` is the **only** module that talks to MapLibre imperatively. It:
+`lib/map/MapController.js` is the only module that talks to MapLibre imperatively. It:
 
 - builds the map, tract/county fill + line layers, and basemap/overlay handling;
 - joins values via **feature-state** (`setFeatureState` per geoid) rather than re-styling per feature;
 - applies a **step color expression** built from the indicator's shared breaks and the theme color
   ramp (`map/colorScale.js → themeRamp`, `buildStepExpression`, `legendClasses`);
-- supports legend-class **filtering/dimming**, hover, multi-select, and boundary highlight;
+- supports legend-class filtering/dimming, hover, multi-select, and boundary highlight;
 - renders an **uncertainty hatch** layer (`<level>-hatch`, a canvas-generated diagonal pattern with
   `fill-pattern`) over tracts whose `reliability` feature-state is `unreliable` (CV > 30%), shown only
   in explore mode and toggleable via `setReliabilityVisible` (Map settings → "Flag unreliable areas",
-  **off by default**);
+  off by default);
 - swaps into bivariate (3×3, `map/bivariate.js`) and LISA (`map/lisaColors.js`) styling for the
   analysis modes.
 
@@ -230,11 +230,11 @@ flowchart LR
   tract on the map (`MapController.setHoverId`) and vice-versa, and shows that tract's **neighborhood
   name** above the scatter.
 - **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
-  not significant) from `analytics/lisa/<id>.json`, **computed once in the pipeline** with a
+  not significant) from `analytics/lisa/<id>.json`, computed once in the pipeline with a
   without-replacement conditional-permutation null (999 permutations) and **Benjamini–Hochberg FDR**.
 
-LISA and z-scores are **precomputed by the pipeline** and consumed as-is (the app has no client-side LISA
-implementation — that avoids a second statistical code path drifting from the source of truth).
+LISA and z-scores are precomputed by the pipeline and consumed as-is (the app has no client-side LISA
+implementation, which avoids a second statistical code path drifting from the source of truth).
 `lib/analytics/spatial.js` keeps only the pure helpers the app still needs at runtime: z-scores, quantile
 breaks (for bivariate terciles), and Pearson/Spearman for the scatter.
 
