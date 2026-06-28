@@ -27,6 +27,10 @@
 			{#if indicator.higherIsBetter === false}<span class="chip need">Higher = more need</span>{/if}
 		</div>
 
+		{#if indicator.crossReleaseTrend && indicator.trendNote}
+			<p class="trend-note">{indicator.trendNote}</p>
+		{/if}
+
 		{#if brief?.why}
 			<MarkdownBlock source={whyShown} />
 			{#if !compact && brief.resources?.length}
@@ -77,6 +81,13 @@
 		background: #f7eede;
 		color: var(--c-warn);
 		border-color: #ecdcc0;
+	}
+	.trend-note {
+		font-size: var(--t-xs);
+		color: var(--c-text-3);
+		font-style: italic;
+		margin: 0 0 var(--sp-3);
+		line-height: 1.35;
 	}
 	.loading {
 		color: var(--c-text-3);

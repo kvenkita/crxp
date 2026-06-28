@@ -22,6 +22,8 @@
  * @property {number[]} [related]
  * @property {boolean} [hasZ]
  * @property {boolean} [hasLisa]
+ * @property {boolean} [crossReleaseTrend]
+ * @property {string} [trendNote]
  *
  * @typedef {Object} Manifest
  * @property {{key:string,label:string,order?:number}[]} categories
