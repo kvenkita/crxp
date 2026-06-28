@@ -563,21 +563,27 @@
 						{#if provenanceFlags.harmonized}<span class="prov prov-harm" title="Pre-2020 years are reallocated from 2010 to 2020 census tracts (population-weighted); read pre/post-2020 change with extra caution">pre-2020 harmonized</span>{/if}
 					</div>
 				{/if}
-				{#each trendChanges as c (c.span)}
-					{@const up = c.delta > 0}
-					{@const flat = c.delta === 0}
-					<div class="change-marker" class:sig={c.significant === true}>
-						<span class="chg-label">{c.y1}→{c.y2}</span>
-						<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(c.delta, indicator.format, indicator.decimals ?? 1)}</span>
-						<span class="chg-sig">{c.significant === true ? 'significant' : c.significant === false ? 'not significant' : '—'}{c.significant != null ? ' (90%)' : ''}</span>
-					</div>
-				{/each}
+				<!-- Comparable-period change + significance is an ACS rolling-vintage concept. CDC PLACES
+				     series are stitched across separate annual model releases, so a "significant change"
+				     badge would conflate real change with model revisions — suppress it for those. -->
+				{#if !indicator.crossReleaseTrend}
+					{#each trendChanges as c (c.span)}
+						{@const up = c.delta > 0}
+						{@const flat = c.delta === 0}
+						<div class="change-marker" class:sig={c.significant === true}>
+							<span class="chg-label">{c.y1}→{c.y2}</span>
+							<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(c.delta, indicator.format, indicator.decimals ?? 1)}</span>
+							<span class="chg-sig">{c.significant === true ? 'significant' : c.significant === false ? 'not significant' : '—'}{c.significant != null ? ' (90%)' : ''}</span>
+						</div>
+					{/each}
+				{/if}
 				<TrendChart
 					years={trend.years}
 					series={trend.series}
 					{currentYearIndex}
 					format={indicator.format}
 					decimals={indicator.decimals ?? 1}
+					crossReleaseTrend={!!indicator.crossReleaseTrend}
 					{animKey}
 				/>
 				{#if selection.selectedIds.length}

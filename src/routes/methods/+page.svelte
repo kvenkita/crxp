@@ -100,7 +100,7 @@
 	</p>
 	<p>
 		When you select a tract, its trend shows the estimate with a shaded <strong>± MOE band</strong>, the
-		reliability badge, and the significance-tested change (below). On the map, unreliable tracts can be
+		reliability badge, and — for the survey-based ACS indicators — a significance-tested change (below). On the map, unreliable tracts can be
 		drawn with a diagonal <strong>hatch</strong> (toggle under <em>Map settings → Flag unreliable
 		areas</em>). Satellite-derived measures carry no sampling MOE (they have classification accuracy
 		instead), so no band is shown for them.
@@ -122,6 +122,14 @@
 		<strong>10-year</strong> (e.g. 2014→2024) — each tested for <strong>statistical significance</strong>
 		at 90% confidence with the Census difference test, which guards against reading sampling noise as real
 		change. These periods advance automatically as new years are released.
+	</p>
+	<p>
+		<strong>CDC PLACES health measures are different.</strong> Each annual PLACES release is a separate
+		model fit, so the multi-year series shown here is <strong>stitched across releases</strong> rather than
+		one consistent time series. The app shows each year's estimate with its model uncertainty band, but —
+		unlike the ACS indicators — does <strong>not</strong> report a significance-tested change for them,
+		because year-to-year movement can reflect model revisions as much as real change. Read these as the
+		level in each year and broad direction, not as a validated trend.
 	</p>
 
 	<h2>Harmonizing tract boundaries</h2>
