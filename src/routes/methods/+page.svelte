@@ -1,5 +1,58 @@
 <script>
 	import { base } from '$app/paths';
+	import { onMount } from 'svelte';
+
+	// Section anchors for the floating contents menu (must match the h2 ids below, in order).
+	const sections = [
+		{ id: 'geography', label: 'Geography & combining areas' },
+		{ id: 'sources', label: 'Data sources' },
+		{ id: 'estimates', label: 'How estimates are produced' },
+		{ id: 'moe', label: 'Margins of error & reliability' },
+		{ id: 'time', label: 'Comparing over time' },
+		{ id: 'harmonize', label: 'Harmonizing tract boundaries' },
+		{ id: 'environment', label: 'Environment (satellite rasters)' },
+		{ id: 'classification', label: 'Classification & color' },
+		{ id: 'bivariate', label: 'Bivariate analysis' },
+		{ id: 'lisa', label: 'Spatial clusters (LISA)' },
+		{ id: 'neighborhoods', label: 'Neighborhood names' },
+		{ id: 'open', label: 'Open & reproducible' },
+		{ id: 'availability', label: 'Data availability' }
+	];
+
+	let open = $state(false);
+	let activeId = $state(sections[0].id);
+	let navEl;
+
+	function go(id) {
+		open = false;
+		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function onKey(e) {
+		if (e.key === 'Escape') open = false;
+	}
+	function onDocClick(e) {
+		if (open && navEl && !navEl.contains(e.target)) open = false;
+	}
+
+	onMount(() => {
+		const headings = sections.map((s) => document.getElementById(s.id)).filter(Boolean);
+		// Scrollspy: mark the section currently in the upper-middle of the viewport.
+		const io = new IntersectionObserver(
+			(entries) => {
+				for (const en of entries) if (en.isIntersecting) activeId = en.target.id;
+			},
+			{ rootMargin: '-20% 0px -70% 0px', threshold: 0 }
+		);
+		headings.forEach((h) => io.observe(h));
+		document.addEventListener('keydown', onKey);
+		document.addEventListener('click', onDocClick);
+		return () => {
+			io.disconnect();
+			document.removeEventListener('keydown', onKey);
+			document.removeEventListener('click', onDocClick);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -18,7 +71,7 @@
 		see the project's methodology guide and working paper.
 	</p>
 
-	<h2>Geography &amp; how areas are combined</h2>
+	<h2 id="geography">Geography &amp; how areas are combined</h2>
 	<p>
 		Indicators are reported for <strong>2020 U.S. Census tracts</strong> — neighborhood-scale areas of
 		roughly 1,200–8,000 residents — across the 14-county Charlotte region (11 North Carolina counties:
@@ -43,7 +96,7 @@
 		as a band.
 	</p>
 
-	<h2>Data sources</h2>
+	<h2 id="sources">Data sources</h2>
 	<p>The current release has <strong>65 indicators</strong> from four public sources, across eight of the
 		ten themes (Safety and Arts &amp; Culture are still being populated):</p>
 	<ul>
@@ -76,7 +129,7 @@
 		<a href="{base}/data/">Data</a> page.
 	</p>
 
-	<h2>How estimates are produced</h2>
+	<h2 id="estimates">How estimates are produced</h2>
 	<p>
 		Most indicators are <strong>direct estimates</strong> the ACS publishes for each tract. Health
 		measures from CDC PLACES are <strong>model-based</strong>: they combine survey responses with
@@ -85,7 +138,7 @@
 		(land cover, tree canopy, night lights) are wall-to-wall <strong>measurements</strong>, not surveys.
 	</p>
 
-	<h2>Margins of error &amp; reliability</h2>
+	<h2 id="moe">Margins of error &amp; reliability</h2>
 	<p>
 		ACS figures are survey estimates, each with a 90% <strong>margin of error (MOE)</strong> that is
 		larger for small populations. Derived rates propagate the MOE using the Census Bureau's formulas
@@ -100,7 +153,8 @@
 	</p>
 	<p>
 		When you select a tract, its trend shows the estimate with a shaded <strong>± MOE band</strong>, the
-		reliability badge, and — for the survey-based ACS indicators — a significance-tested change (below). On the map, unreliable tracts can be
+		reliability badge, and — for the survey-based ACS indicators — a significance-tested change (below).
+		On the map, unreliable tracts can be
 		drawn with a diagonal <strong>hatch</strong> (toggle under <em>Map settings → Flag unreliable
 		areas</em>). Satellite-derived measures carry no sampling MOE (they have classification accuracy
 		instead), so no band is shown for them.
@@ -113,7 +167,7 @@
 		</figcaption>
 	</figure>
 
-	<h2>Comparing over time</h2>
+	<h2 id="time">Comparing over time</h2>
 	<p>
 		ACS 5-year estimates <strong>overlap</strong> from one year to the next (adjacent vintages share
 		four years of sample), so the annual series (2014–2024) is best read as a <strong>rolling</strong>
@@ -135,7 +189,7 @@
 		as a trend.
 	</p>
 
-	<h2>Harmonizing tract boundaries</h2>
+	<h2 id="harmonize">Harmonizing tract boundaries</h2>
 	<p>
 		Census tract boundaries are redrawn each decade: ACS years through 2019 use 2010 tracts, and 2020
 		onward use 2020 tracts. Comparing an older value to a newer one therefore means comparing two
@@ -154,7 +208,7 @@
 		</figcaption>
 	</figure>
 
-	<h2>Environment measures (satellite rasters)</h2>
+	<h2 id="environment">Environment measures (satellite rasters)</h2>
 	<p>
 		Environment indicators are computed from 30-meter satellite rasters using <strong>area-weighted
 		zonal statistics</strong> — the exact fraction of each pixel inside a tract is used, not just whether
@@ -163,7 +217,7 @@
 		radiance are area-weighted averages.
 	</p>
 
-	<h2>Classification &amp; color</h2>
+	<h2 id="classification">Classification &amp; color</h2>
 	<p>
 		Choropleth maps use quantile class breaks held <strong>consistent across years</strong> for each
 		indicator, so a given color always means the same value range — which is what makes year-to-year
@@ -171,7 +225,7 @@
 		indicators where higher values signal greater need, read darker shades as more need.
 	</p>
 
-	<h2>Bivariate analysis</h2>
+	<h2 id="bivariate">Bivariate analysis</h2>
 	<p>
 		The bivariate map crosses two indicators on a 3×3 grid: each is split into thirds (low / middle /
 		high) and the two combine into nine colors, so darker cells mark tracts that are high on both. A
@@ -190,7 +244,7 @@
 		</figcaption>
 	</figure>
 
-	<h2>Spatial clusters (LISA)</h2>
+	<h2 id="lisa">Spatial clusters (LISA)</h2>
 	<p>
 		The spatial-cluster map uses Local Indicators of Spatial Association (Local Moran's I) with an
 		8-nearest-neighbor spatial weights matrix and a conditional-permutation significance test: each
@@ -205,7 +259,7 @@
 		<figcaption>Spatial clusters (LISA): hot spots, cold spots, and spatial outliers, after FDR correction.</figcaption>
 	</figure>
 
-	<h2>Neighborhood names</h2>
+	<h2 id="neighborhoods">Neighborhood names</h2>
 	<p>
 		To help residents orient themselves, each tract is labeled with one or more nearby
 		<strong>named neighborhoods</strong>. Names and locations come from
@@ -219,7 +273,7 @@
 		<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).
 	</p>
 
-	<h2>Open &amp; reproducible</h2>
+	<h2 id="open">Open &amp; reproducible</h2>
 	<p>
 		The application and the data pipeline are open source, use no proprietary GIS, and pin their software
 		versions; each data build records the exact library versions that produced it. The data is published
@@ -228,7 +282,7 @@
 		scrutinized and improved.
 	</p>
 
-	<h2>Data availability</h2>
+	<h2 id="availability">Data availability</h2>
 	<p>
 		Each indicator carries its own available years and cadence; the year slider only offers years with
 		data. Cadence varies by source — ACS is annual (rolling), CDC PLACES and the satellite layers update
@@ -236,10 +290,52 @@
 	</p>
 </div>
 
+<nav class="toc no-print" class:open bind:this={navEl} aria-label="Sections on this page">
+	{#if open}
+		<ul id="toc-list" class="toc-list">
+			{#each sections as s (s.id)}
+				<li>
+					<a
+						href="#{s.id}"
+						class:active={activeId === s.id}
+						aria-current={activeId === s.id ? 'true' : undefined}
+						onclick={(e) => {
+							e.preventDefault();
+							go(s.id);
+						}}>{s.label}</a
+					>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	<button
+		class="toc-toggle"
+		type="button"
+		onclick={() => (open = !open)}
+		aria-expanded={open}
+		aria-controls="toc-list"
+	>
+		<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+			<path
+				d="M2 3.5h12M2 8h12M2 12.5h12"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.6"
+				stroke-linecap="round"
+			/>
+		</svg>
+		<span>Contents</span>
+	</button>
+</nav>
+
 <style>
 	.prose-page {
 		max-width: 48rem;
 		padding: var(--sp-6) var(--sp-5) var(--sp-8);
+	}
+	/* keep anchored sections clear of the sticky site header when jumped to */
+	.prose-page :global(h2) {
+		scroll-margin-top: calc(var(--header-h) + 1rem);
 	}
 	.lede {
 		font-size: var(--t-lg);
@@ -304,5 +400,78 @@
 	.rel-unreliable {
 		background: #f7d4d4;
 		color: #9a1f1f;
+	}
+
+	/* ---- floating contents menu ---- */
+	.toc {
+		position: fixed;
+		right: var(--sp-4);
+		bottom: var(--sp-4);
+		z-index: 45;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: var(--sp-2);
+		max-width: calc(100vw - 2 * var(--sp-4));
+	}
+	.toc-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		background: var(--c-accent-strong);
+		color: #fff;
+		border: none;
+		border-radius: var(--r-pill);
+		padding: 0.55rem 0.95rem;
+		font-family: var(--font-display);
+		font-size: var(--t-sm);
+		font-weight: 600;
+		box-shadow: var(--shadow-md);
+		cursor: pointer;
+	}
+	.toc-toggle:hover {
+		filter: brightness(1.08);
+	}
+	.toc-toggle:focus-visible {
+		outline: 2px solid var(--c-accent-strong);
+		outline-offset: 2px;
+	}
+	.toc-list {
+		list-style: none;
+		margin: 0;
+		padding: var(--sp-2);
+		width: 17rem;
+		max-width: calc(100vw - 2 * var(--sp-4));
+		max-height: min(62vh, 30rem);
+		overflow-y: auto;
+		background: var(--c-surface);
+		border: 1px solid var(--c-border);
+		border-radius: var(--r-md);
+		box-shadow: var(--shadow-md);
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+	}
+	.toc-list a {
+		display: block;
+		padding: 0.4rem 0.6rem;
+		border-radius: 6px;
+		font-size: var(--t-sm);
+		line-height: 1.3;
+		color: var(--c-text-2);
+		text-decoration: none;
+	}
+	.toc-list a:hover {
+		background: var(--c-surface-2);
+	}
+	.toc-list a.active {
+		background: var(--c-surface-2);
+		color: var(--c-accent-strong);
+		font-weight: 600;
+	}
+	@media print {
+		.toc {
+			display: none;
+		}
 	}
 </style>
