@@ -83,7 +83,7 @@ The data also support fair treatment: upholding voting rights, including languag
 		]
 	},
 	'asian-residents': {
-		why: `**Asian residents** form a broad, self-identified category spanning more than two dozen origin groups with roots in East, South, Southeast, and Central Asia, each with its own language, culture, and history. A single number summarizes a very diverse population.
+		why: `**Asian residents** form a broad, self-identified category spanning more than two dozen origin groups with roots in East, South, Southeast, and Central Asia, each with its own language, culture, and history. A single number summarizes a diverse population.
 
 This share helps communities plan inclusively. It can inform language access, cultural programming, small-business support, and health outreach. The Asian population is among the fastest-growing in the country, and in fast-growing metros like Charlotte that growth can reshape neighborhoods and schools.
 
@@ -105,7 +105,7 @@ Tracking this share helps communities recognize a more complex, blended populati
 		]
 	},
 	'foreign-born': {
-		why: `**Foreign-born residents** are people who were born in another country and now live here. The group includes naturalized U.S. citizens, green-card holders, students, workers, and others. It is simply a measure of where people were born, not their current legal status.
+		why: `**Foreign-born residents** are people who were born in another country and now live here. The group includes naturalized U.S. citizens, green-card holders, students, workers, and others. It is a measure of where people were born, not their current legal status.
 
 Knowing how many residents are foreign-born helps a community plan well. Newcomers may need help learning English, getting professional licenses recognized, or finding their way around local services. Schools, clinics, and libraries can tailor programs when they understand who lives nearby.
 
@@ -185,7 +185,7 @@ Veterans bring valuable skills and leadership to their communities as workers, v
 
 	// ---------------- Economy ----------------
 	'household-income': {
-		why: `**Median household income** is the income earned by a household right in the middle of the pack: half of households earn more, and half earn less. Unlike an average, it isn’t thrown off by a handful of very high earners, so it gives a fair picture of how a typical family is doing.
+		why: `**Median household income** is the income earned by a household right in the middle of the pack: half of households earn more, and half earn less. Unlike an average, it isn’t thrown off by a handful of the highest earners, so it gives a fair picture of how a typical family is doing.
 
 Income shapes nearly every part of daily life: whether a family can cover rent, afford healthy food, handle a car repair, or save for the future. When typical incomes rise faster than the cost of living, families gain breathing room. When they stall, even working households can struggle.
 
@@ -201,7 +201,7 @@ Income tells only part of the story; whether children can climb beyond their par
 	'poverty-rate': {
 		why: `**The poverty rate** is the share of people whose household income falls below the federal poverty line, a dollar amount the government sets based on family size. If a family earns less than their threshold, everyone in it is counted as living in poverty.
 
-Poverty is about more than money. People with very low incomes are more likely to face food insecurity, unstable housing, untreated health problems, and added stress — all of which can make it harder to work, learn, and stay healthy.
+Poverty is about more than money. People with the lowest incomes are more likely to face food insecurity, unstable housing, untreated health problems, and added stress — all of which can make it harder to work, learn, and stay healthy.
 
 Tracking the poverty rate shows how many neighbors are struggling to afford basics, and where extra support could make the biggest difference. A high rate signals greater need, not a judgment about the people or place.
 
@@ -217,7 +217,7 @@ In the Charlotte region, poverty maps are inseparable from the area’s defining
 
 Growing up in poverty can leave lasting marks. Research links it to worse health, lower school achievement, and lower earnings later in life. From an early age, financial hardship raises the risk of chronic conditions and limits access to stable housing, nutritious food, and health care.
 
-Because early circumstances shape long-term opportunity, child poverty is one of the strongest signals of a community’s future. That link is the heart of Charlotte’s defining civic question. In a landmark study, economists Raj Chetty, Nathaniel Hendren and colleagues (2014) found a Charlotte child raised in the bottom income fifth had just a **4.4% chance of reaching the top fifth — last of the 50 largest U.S. metros** (versus 12.9% in San Jose and 10.8% in Salt Lake City). That finding launched the Charlotte-Mecklenburg Opportunity Task Force and the Leading on Opportunity initiative; an updated 2024 analysis shows the region has since improved to about 38th of 50.`,
+Because early circumstances shape long-term opportunity, child poverty is one of the strongest signals of a community’s future. That link is the heart of Charlotte’s defining civic question. In a landmark study, economists Raj Chetty, Nathaniel Hendren and colleagues (2014) found a Charlotte child raised in the bottom income fifth had just a **4.4% chance of reaching the top fifth, last of the 50 largest U.S. metros**. For comparison, the odds were 12.9% in San Jose and 10.8% in Salt Lake City. That finding launched the Charlotte-Mecklenburg Opportunity Task Force and the Leading on Opportunity initiative. An updated 2024 analysis shows the region has since improved to about 38th of 50.`,
 		resources: [
 			{ title: 'County Health Rankings — Children in Poverty', url: 'https://www.countyhealthrankings.org/health-data/health-factors/social-economic-factors/income/children-in-poverty', note: 'Research-backed explainer on how child poverty affects health and long-term outcomes.' },
 			{ title: 'The Opportunity Atlas', url: 'https://www.opportunityatlas.org/', note: 'Maps children’s adult outcomes by the neighborhood where they grew up, the data behind Charlotte’s mobility ranking.' },
@@ -531,7 +531,9 @@ A higher share signals greater need and financial strain. Cost-burdened renters 
 
 In recent years, rent burden has climbed to record levels nationwide, reaching well beyond the lowest-income renters. Tracking it locally shows where affordable rental housing is falling short.
 
-Charlotte makes the stakes concrete. Mecklenburg County faces a shortfall of roughly 36,000 affordable units (about 23,000 for households at or below 30% of area median income), and its eviction caseload is among the nation’s highest: around 46,000 cases filed in 2024, roughly double the 2020 level. The city’s voter-approved Housing Trust Fund (a $100 million bond in 2024) is the main local tool for adding affordable homes.`,
+Charlotte makes the stakes concrete. Mecklenburg County faces a shortfall of roughly 36,000 affordable units (about 23,000 for households at or below 30% of area median income), and its eviction caseload is among the nation’s highest: around 46,000 cases filed in 2024, roughly double the 2020 level.
+
+The city’s voter-approved Housing Trust Fund (a $100 million bond in 2024) is the main local tool for adding affordable homes.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — Nearly half of renters are cost-burdened', url: 'https://www.census.gov/newsroom/press-releases/2024/renter-households-cost-burdened-race.html', note: 'About half of U.S. renters pay 30%+ of income on housing, with breakdowns.' },
 			{ title: 'Princeton Eviction Lab', url: 'https://evictionlab.org/', note: 'National eviction data and rankings; Charlotte ranks among the highest-filing large cities.' },
