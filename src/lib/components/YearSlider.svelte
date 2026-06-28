@@ -1,7 +1,10 @@
 <script>
-	let { years = [], value, onChange = () => {} } = $props();
+	let { years = [], value, availableYears = null, onChange = () => {} } = $props();
 
 	let idx = $derived(Math.max(0, years.indexOf(value)));
+	// set of years that actually have data for the current context (null = all years have data)
+	let avail = $derived(availableYears && availableYears.length ? new Set(availableYears) : null);
+	let hasData = $derived(!avail || avail.has(value));
 
 	function commit(e) {
 		const i = Number(e.target.value);
@@ -23,8 +26,16 @@
 			aria-valuetext={String(value)}
 			list="year-ticks"
 		/>
+		<!-- ticks mark the years that have data for the current indicator(s) -->
+		<datalist id="year-ticks">
+			{#each years as y, i}
+				{#if !avail || avail.has(y)}<option value={i}></option>{/if}
+			{/each}
+		</datalist>
 		<span class="yr-label">{years[years.length - 1]}</span>
-		<output class="yr-current">{value}</output>
+		<output class="yr-current" class:nodata={!hasData}>
+			{value}{#if !hasData}<span class="nd"> · no data</span>{/if}
+		</output>
 	</div>
 {/if}
 
@@ -49,5 +60,14 @@
 		color: var(--c-teal);
 		min-width: 3ch;
 		text-align: right;
+		white-space: nowrap;
+	}
+	.yr-current.nodata {
+		color: var(--c-text-3);
+	}
+	.nd {
+		font-family: var(--font-sans, inherit);
+		font-weight: 400;
+		font-size: var(--t-xs);
 	}
 </style>

@@ -70,6 +70,36 @@
 	);
 	let aboutEl = $state(null);
 
+	// Full timeline = union of every indicator's years, so the year slider is ALWAYS shown and scrubbable
+	// (even for single-year indicators like CDC PLACES). Years without data render an empty choropleth.
+	let allYears = $derived(
+		manifest?.indicators?.length
+			? [...new Set(manifest.indicators.flatMap((i) => i.years ?? []))].sort((a, b) => a - b)
+			: []
+	);
+	// Years that actually have data for the current context: the indicator's years in explore/lisa, or the
+	// years BOTH variables share in bivariate (falling back to A's years if they never overlap).
+	function availableYearsFor(aId, bId, mode) {
+		const a = indicatorById(aId);
+		if (!a) return [];
+		if (mode === 'bivariate' && bId != null && bId !== aId) {
+			const b = indicatorById(bId);
+			if (b) {
+				const bs = new Set(b.years ?? []);
+				const common = (a.years ?? []).filter((y) => bs.has(y));
+				return common.length ? common : a.years ?? [];
+			}
+		}
+		return a.years ?? [];
+	}
+	let ctxYears = $derived(availableYearsFor(explorer.indicatorId, analysis.biB, analysis.mode));
+	// Snap the year to the latest one WITH data for the current context — called only on context change
+	// (indicator / 2nd variable / mode), never on manual scrub, so the user can still land on empty years.
+	function snapYear(aId = explorer.indicatorId, bId = analysis.biB, mode = analysis.mode) {
+		const ys = availableYearsFor(aId, bId, mode);
+		if (ys.length && !ys.includes(explorer.year)) setYear(ys.at(-1));
+	}
+
 	async function infoClick() {
 		showAbout = !showAbout;
 		if (showAbout) {
@@ -89,6 +119,7 @@
 		setYear(u.y && ind?.years.includes(u.y) ? u.y : ind?.years.at(-1) ?? null);
 		if (u.mode) setMode(u.mode);
 		if (u.biB) setBivariateB(indicatorBySlug(u.biB)?.id ?? null);
+		snapYear(); // ensure the year has data for the (possibly bivariate) context restored from the URL
 		booted = true;
 	});
 
@@ -96,13 +127,13 @@
 	$effect(() => {
 		const id = explorer.indicatorId;
 		if (id == null) return;
-		const avail = indicator?.years ?? [];
 		let cancelled = false;
 		loadValueFile(id).then((file) => {
 			if (cancelled) return;
 			valueFile = file;
-			// snap the year into the indicator's available range (some indicators lack early years)
-			if (avail.length && !avail.includes(explorer.year)) setYear(avail.at(-1));
+			// snap the year to the latest one with data for the current context (read non-reactively here,
+			// so this fires on indicator change but not on manual year scrubbing)
+			snapYear(id, analysis.biB, analysis.mode);
 		});
 		return () => (cancelled = true);
 	});
@@ -123,9 +154,9 @@
 			const agg = aggregates?.[indicator.id];
 			if (!agg) return null;
 			const yi = agg.years.indexOf(explorer.year);
-			if (yi < 0) return null;
 			const valuesByGeoid = {};
-			for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
+			// yi < 0 → the selected year has no county data: render an EMPTY choropleth (clears the map)
+			if (yi >= 0) for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
 			const breaks = agg.breaks ?? [];
 			const colors = themeRamp(accent, breaks.length + 1);
 			const stats = { min: agg.domain?.min ?? 0, max: agg.domain?.max ?? 0, breaks };
@@ -327,6 +358,12 @@
 	// ---- handlers ----
 	function pickIndicatorId(id) {
 		setIndicator(id);
+		snapYear(id, analysis.biB, analysis.mode);
+	}
+	// 2nd bivariate variable: snap the year to the latest one both variables share
+	function pickBivariateB(id) {
+		setBivariateB(id);
+		snapYear(explorer.indicatorId, id, 'bivariate');
 	}
 	function changeGeoLevel(l) {
 		setGeoLevel(l);
@@ -374,6 +411,7 @@
 		}
 		bivarCell = null;
 		setMode(m);
+		snapYear(explorer.indicatorId, analysis.biB, m); // default to the latest year valid for this mode
 	}
 	function onBivarCell(a, b) {
 		bivarCell = a == null ? null : { a, b };
@@ -425,7 +463,7 @@
 					biB={analysis.biB}
 					activeCell={bivarCell}
 					onChangeA={pickIndicatorId}
-					onChangeB={setBivariateB}
+					onChangeB={pickBivariateB}
 					onCellHover={onBivarCell}
 				/>
 			</div>
@@ -467,7 +505,7 @@
 			<div class="trend-float card no-print" class:is-open={trendOpen}>
 				<div class="trend-head">
 					<div>
-						<strong>Correlation</strong>
+						<strong>Correlation · {explorer.year}</strong>
 						<span class="trend-sub">{bivariateScatter.labelA} × {bivariateScatter.labelB}</span>
 					</div>
 					<button class="float-toggle" aria-expanded={trendOpen} onclick={() => (trendOpen = !trendOpen)} aria-label="Toggle scatter">
@@ -573,8 +611,8 @@
 		{/if}
 
 		<div class="bottom-bar no-print">
-			{#if indicator}
-				<YearSlider years={indicator.years} value={explorer.year} onChange={setYear} />
+			{#if indicator && allYears.length > 1}
+				<YearSlider years={allYears} availableYears={ctxYears} value={explorer.year} onChange={setYear} />
 			{/if}
 		</div>
 	</div>
