@@ -14,7 +14,7 @@
 	<p class="lead">
 		The Carolinas Regional Explorer is an open, neighborhood-scale community-data platform for the
 		14-county region around Charlotte. It lets residents, journalists, advocates, planners, and
-		policymakers see how quality-of-life indicators vary from one neighborhood to the next — and how
+		policymakers see how quality-of-life indicators vary from one neighborhood to the next, and how
 		their own community compares.
 	</p>
 
@@ -23,7 +23,7 @@
 		The Explorer builds on the Charlotte-Mecklenburg Quality of Life Explorer, a longstanding
 		collaboration of the UNC Charlotte Urban Institute, the City of Charlotte, and Mecklenburg County
 		that reports on 462 Neighborhood Profile Areas <em>within Mecklenburg</em>. This tool extends that
-		idea across the whole region — 11 North Carolina counties and 3 in South Carolina — using U.S.
+		idea across the whole region (11 North Carolina counties and 3 in South Carolina) using U.S.
 		Census tracts as a common neighborhood unit. The two-state frame is its distinct value: it can put a
 		county in York or Lancaster, S.C. next to one in Mecklenburg or Gaston, N.C. on the same map.
 	</p>
@@ -44,7 +44,7 @@
 		statistical uncertainty as a first-class concern: survey estimates carry their margins of error,
 		low-reliability values are flagged, and model-based estimates (such as the CDC health measures) are
 		shown as levels rather than trends where the source does not support comparison over time. How every
-		number is produced — and its limits — is documented on the <a href="{base}/methods/">Methods</a>
+		number is produced, and its limits, is documented on the <a href="{base}/methods/">Methods</a>
 		page.
 	</p>
 

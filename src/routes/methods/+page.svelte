@@ -65,23 +65,23 @@
 	<h1>Methods</h1>
 	<p class="lede">
 		The Carolinas Regional Explorer is built from an open, reproducible data pipeline. Every indicator
-		is computed to the Census-tract level, carries its source and vintage, and — where it comes from a
-		survey — carries a margin of error. This page explains, in plain language, where the data comes from
+		is computed to the Census-tract level, carries its source and vintage, and, where it comes from a
+		survey, carries a margin of error. This page explains, in plain language, where the data comes from
 		and how it is processed, classified, and analyzed. For the full technical treatment and citations,
 		see the project's methodology guide and working paper.
 	</p>
 
 	<h2 id="geography">Geography &amp; how areas are combined</h2>
 	<p>
-		Indicators are reported for <strong>2020 U.S. Census tracts</strong> — neighborhood-scale areas of
-		roughly 1,200–8,000 residents — across the 14-county Charlotte region (11 North Carolina counties:
+		Indicators are reported for <strong>2020 U.S. Census tracts</strong>, neighborhood-scale areas of
+		roughly 1,200–8,000 residents, across the 14-county Charlotte region (11 North Carolina counties:
 		Anson, Cabarrus, Catawba, Cleveland, Gaston, Iredell, Lincoln, Mecklenburg, Rowan, Stanly, Union;
 		and 3 South Carolina counties: York, Chester, Lancaster). The tract is the finest geography at which
 		most public data can be reliably placed.
 	</p>
 	<p>
 		<strong>County</strong> values (on county profiles and the county trend line) are the
-		<strong>authoritative county-level estimate published by the source</strong> — the U.S. Census
+		authoritative county-level estimate published by the source: the U.S. Census
 		Bureau's ACS county tables (with their own, smaller county margin of error), the CDC PLACES county
 		model, or county zonal statistics for satellite measures. They are <em>not</em> an average of the
 		county's tracts: averaging tract rates is biased toward small tracts, and you cannot average tract
@@ -97,23 +97,23 @@
 	</p>
 
 	<h2 id="sources">Data sources</h2>
-	<p>The current release has <strong>65 indicators</strong> from four public sources, across eight of the
+	<p>The current release has 65 indicators from four public sources, across eight of the
 		ten themes (Safety and Arts &amp; Culture are still being populated):</p>
 	<ul>
 		<li>
 			<strong>U.S. Census Bureau — American Community Survey (ACS) 5-Year Estimates</strong> (annual,
 			latest 2024): demographics, economy, education, housing, transportation, health insurance,
-			disability, residential stability, and more — published at the tract level with margins of error.
+			disability, residential stability, and more, published at the tract level with margins of error.
 		</li>
 		<li>
 			<strong>CDC PLACES</strong>: 16 adult-health measures as <em>model-based</em> small-area estimates
-			with confidence intervals — chronic conditions (obesity, diabetes, high blood pressure, asthma,
+			with confidence intervals: chronic conditions (obesity, diabetes, high blood pressure, asthma,
 			depression), behaviors (smoking, inactivity), access (uninsured, routine checkup), and
 			health-related social needs (food and housing insecurity, transportation barriers, social support,
 			loneliness).
 		</li>
 		<li>
-			<strong>USGS National Land Cover Database (NLCD)</strong>: environment measures — forest,
+			<strong>USGS National Land Cover Database (NLCD)</strong>: environment measures: forest,
 			cropland/farmland, wetlands, developed land, impervious surface (annual land cover from 2001
 			onward), and continuous tree-canopy cover.
 		</li>
@@ -135,7 +135,7 @@
 		measures from CDC PLACES are <strong>model-based</strong>: they combine survey responses with
 		population data to estimate a rate for every tract, and are flagged <em>model-based</em> in the app
 		because that uncertainty is different in kind from a survey margin of error. Satellite measures
-		(land cover, tree canopy, night lights) are wall-to-wall <strong>measurements</strong>, not surveys.
+		(land cover, tree canopy, night lights) are wall-to-wall measurements, not surveys.
 	</p>
 
 	<h2 id="moe">Margins of error &amp; reliability</h2>
@@ -143,8 +143,8 @@
 		ACS figures are survey estimates, each with a 90% <strong>margin of error (MOE)</strong> that is
 		larger for small populations. Derived rates propagate the MOE using the Census Bureau's formulas
 		(when estimates are combined, their uncertainties add through squares and square roots, not simple
-		addition). From the MOE we compute a <strong>coefficient of variation (CV)</strong> — the typical
-		sampling error as a percentage of the estimate — and flag each value's reliability:
+		addition). From the MOE we compute a <strong>coefficient of variation (CV)</strong>, the typical
+		sampling error as a percentage of the estimate, and flag each value's reliability:
 	</p>
 	<p class="rel-key">
 		<span class="rel rel-ok">ok</span> CV ≤ 15% &nbsp;·&nbsp;
@@ -153,7 +153,7 @@
 	</p>
 	<p>
 		When you select a tract, its trend shows the estimate with a shaded <strong>± MOE band</strong>, the
-		reliability badge, and — for the survey-based ACS indicators — a significance-tested change (below).
+		reliability badge, and, for the survey-based ACS indicators, a significance-tested change (below).
 		On the map, unreliable tracts can be
 		drawn with a diagonal <strong>hatch</strong> (toggle under <em>Map settings → Flag unreliable
 		areas</em>). Satellite-derived measures carry no sampling MOE (they have classification accuracy
@@ -170,22 +170,22 @@
 	<h2 id="time">Comparing over time</h2>
 	<p>
 		ACS 5-year estimates <strong>overlap</strong> from one year to the next (adjacent vintages share
-		four years of sample), so the annual series (2014–2024) is best read as a <strong>rolling</strong>
-		estimate. Valid change comparisons therefore use only <strong>non-overlapping</strong> periods. For a
+		four years of sample), so the annual series (2014–2024) is best read as a rolling
+		estimate. Valid change comparisons therefore use only non-overlapping periods. For a
 		selected tract the explorer reports two changes — the <strong>5-year</strong> (e.g. 2019→2024) and the
 		<strong>10-year</strong> (e.g. 2014→2024) — each tested for <strong>statistical significance</strong>
 		at 90% confidence with the Census difference test, which guards against reading sampling noise as real
 		change. These periods advance automatically as new years are released.
 	</p>
 	<p>
-		<strong>CDC PLACES health measures are different.</strong> Each annual PLACES release is a separate
-		model fit, so the multi-year series shown here is <strong>stitched across releases</strong> rather than
+		CDC PLACES health measures are different. Each annual PLACES release is a separate
+		model fit, so the multi-year series shown here is stitched across releases rather than
 		one consistent time series. CDC states the estimates <strong>do not support tracking change over
 		time</strong>: sub-county models hold the population distribution fixed, time is not a model variable
 		even at county level, and apparent movement can reflect questionnaire changes or the pandemic-affected
 		2020 survey. The app therefore shows each year's estimate with its model uncertainty band but reports
-		<strong>no change figure at all</strong> for these measures — no significance-tested change markers, no
-		change column in reports, no county-card delta. Read them as <strong>levels in each year</strong>, not
+		no change figure at all for these measures: no significance-tested change markers, no
+		change column in reports, no county-card delta. Read them as levels in each year, not
 		as a trend.
 	</p>
 
@@ -195,7 +195,7 @@
 		onward use 2020 tracts. Comparing an older value to a newer one therefore means comparing two
 		different maps. To put the whole series on one 2020 geography, pre-2020 years are
 		<strong>harmonized</strong>. We split each old tract's value across the new tracts that absorbed it,
-		weighting by <strong>population</strong> (using 2020 Census block populations) rather than by land
+		weighting by population (using 2020 Census block populations) rather than by land
 		area — because people are not spread evenly within a tract, and a small, dense piece can hold far more
 		residents than its area suggests. Counts are summed, margins of error are propagated, and the
 		factors for each old tract add to one.
@@ -211,7 +211,7 @@
 	<h2 id="environment">Environment measures (satellite rasters)</h2>
 	<p>
 		Environment indicators are computed from 30-meter satellite rasters using <strong>area-weighted
-		zonal statistics</strong> — the exact fraction of each pixel inside a tract is used, not just whether
+		zonal statistics</strong>: the exact fraction of each pixel inside a tract is used, not just whether
 		the pixel's center falls inside. Land-cover shares (forest, farmland, wetlands, developed) are the
 		share of a tract's land in the relevant classes; impervious surface, tree canopy, and night-light
 		radiance are area-weighted averages.
@@ -219,8 +219,8 @@
 
 	<h2 id="classification">Classification &amp; color</h2>
 	<p>
-		Choropleth maps use quantile class breaks held <strong>consistent across years</strong> for each
-		indicator, so a given color always means the same value range — which is what makes year-to-year
+		Choropleth maps use quantile class breaks held consistent across years for each
+		indicator, so a given color always means the same value range, which is what makes year-to-year
 		change on the map legible rather than misleading. Color ramps are perceptually ordered; for
 		indicators where higher values signal greater need, read darker shades as more need.
 	</p>
@@ -231,7 +231,7 @@
 		high) and the two combine into nine colors, so darker cells mark tracts that are high on both. A
 		companion <strong>correlation scatter</strong> plots the two indicators' standardized (z-score)
 		values — one dot per tract, colored by its grid class — with the distribution of each variable along
-		the axes, a trend line, and <strong>both the Pearson and Spearman correlations</strong>. These are
+		the axes, a trend line, and both the Pearson and Spearman correlations. These are
 		<strong>descriptive only</strong>: because nearby tracts tend to be similar, an ordinary significance
 		test would overstate confidence, so we report the relationship without a p-value. Hovering a dot or a
 		tract links the two and names the neighborhood.
@@ -266,9 +266,9 @@
 		<a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>,
 		which records them as points. We approximate each neighborhood's extent with a <strong>Voronoi area</strong>
 		(every location belongs to its nearest named point), measure how much of each tract falls in each
-		neighborhood's area, and label the tract with the neighborhood(s) covering the largest share — up to
+		neighborhood's area, and label the tract with the neighborhood(s) covering the largest share, up to
 		three. A tract with no nearby named neighborhood (none within about 8 km) falls back to its city or
-		county. These labels are <strong>approximate and for orientation only</strong>: neighborhood
+		county. These labels are approximate and for orientation only: neighborhood
 		boundaries are informal and contested, and OpenStreetMap coverage varies. Neighborhood names ©
 		<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).
 	</p>
