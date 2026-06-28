@@ -44,16 +44,16 @@ It also signals change. The U.S. median age has risen for decades as people live
 		]
 	},
 	'white-residents': {
-		why: `**This measure shows the share of residents who are non-Hispanic White** — people who identify as White and not Hispanic or Latino. Like all race and ethnicity counts, it reflects how people describe themselves on the census, not a biological category. It is one piece of a community's overall makeup.
+		why: `**Non-Hispanic White residents** are people who identify as White and not Hispanic or Latino. Like all race and ethnicity counts, it reflects how people describe themselves on the census, not a biological category. It is one piece of a community's overall makeup.
 
 Tracking this share helps communities understand diversity and how it is changing. Nationally, the non-Hispanic White share has been gradually declining as other groups grow, and that pattern looks different from place to place.
 
 The figure matters most alongside the others. Comparing group shares over time is how researchers study segregation, fair access to housing and services, and whether public institutions reflect the people they serve. No share is good or bad on its own — it is context for equity and planning.
 
-In Charlotte, the same geography reads from the other side: an affluent, predominantly White "wedge" fanning southeast from uptown sits beside a "crescent" of lower-income, majority-Black, Latino, and immigrant neighborhoods to the north, west, and east — the legacy of redlining, exclusionary zoning, and interstate routing. The point is not that any group's share is a problem, but that the region's institutions sorted opportunity along these lines.`,
+In Charlotte, this share traces the well-known "crescent vs. wedge" geography from the affluent side — the higher-income, predominantly White wedge that fans southeast from uptown. No share is good or bad on its own; the point is that the region's institutions sorted opportunity along these lines.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — Why We Ask: Race', url: 'https://www.census.gov/acs/www/about/why-we-ask-each-question/race/', note: 'Explains how race is self-reported and how the data support civil rights and planning.' },
-				{ title: 'Leading on Opportunity — The Impact of Segregation', url: 'https://www.leadingonopportunity.org/the-impact-of-segregation/', note: 'How Charlotte’s crescent/wedge segregation shapes opportunity and mobility.' },
+			{ title: 'Leading on Opportunity — The Impact of Segregation', url: 'https://www.leadingonopportunity.org/the-impact-of-segregation/', note: 'How Charlotte’s crescent/wedge segregation shapes opportunity and mobility.' },
 			{ title: 'Brookings — The nation is diversifying even faster than predicted', url: 'https://www.brookings.edu/articles/new-census-data-shows-the-nation-is-diversifying-even-faster-than-predicted/', note: 'Analysis of long-run trends in the White population share and growing U.S. diversity.' }
 		]
 	},
@@ -64,11 +64,11 @@ This share matters for understanding a community's history and present. In the C
 
 The data also support fairness. They are used to enforce voting rights and fair-housing laws, to plan services, and to study segregation and equity.
 
-In Charlotte, segregation has a specific, mappable shape often called the "crescent vs. wedge": an affluent, predominantly White wedge fanning southeast from uptown holds more than 75% of the city's wealth on under a quarter of its land, while a crescent of lower-income, majority-Black, Latino, and immigrant neighborhoods wraps the north, west, and east — a legacy of redlining, exclusionary single-family zoning, and interstate routing. Researchers identify segregation as one of the strongest correlates of low upward mobility, so a race-composition map here doubles as a map of where opportunity and investment have or haven't reached. No share is good or bad on its own; the point is that the region's institutions sorted opportunity along these lines.`,
+In Charlotte, segregation has a specific, mappable shape often called the "crescent vs. wedge": an affluent, predominantly White wedge fanning southeast from uptown holds a large majority of the city's wealth on under a quarter of its land, while a crescent of lower-income, majority-Black, Latino, and immigrant neighborhoods wraps the north, west, and east — a legacy of redlining, exclusionary single-family zoning, and interstate routing. Researchers identify segregation as one of the strongest correlates of low upward mobility, so a race-composition map here doubles as a map of where opportunity and investment have or haven't reached. No share is good or bad on its own; the point is that the region's institutions sorted opportunity along these lines.`,
 		resources: [
 			{ title: 'Pew Research Center — Facts about the U.S. Black population', url: 'https://www.pewresearch.org/race-and-ethnicity/fact-sheet/facts-about-the-us-black-population/', note: 'Demographic profile covering size, growth, geography, and diversity within the population.' },
 			{ title: 'U.S. Census Bureau — Why We Ask: Race', url: 'https://www.census.gov/acs/www/about/why-we-ask-each-question/race/', note: 'How race data are collected and used to enforce civil rights and allocate services.' },
-				{ title: 'Leading on Opportunity — The Impact of Segregation', url: 'https://www.leadingonopportunity.org/the-impact-of-segregation/', note: 'How Charlotte’s crescent/wedge segregation shapes opportunity and mobility.' }
+			{ title: 'Leading on Opportunity — The Impact of Segregation', url: 'https://www.leadingonopportunity.org/the-impact-of-segregation/', note: 'How Charlotte’s crescent/wedge segregation shapes opportunity and mobility.' }
 		]
 	},
 	'hispanic-residents': {
@@ -83,7 +83,7 @@ The data also support fair treatment — upholding voting rights, including lang
 		]
 	},
 	'asian-residents': {
-		why: `**This measure shows the share of residents who are Asian** — a broad, self-identified category spanning more than two dozen origin groups with roots in East, South, Southeast, and Central Asia, each with its own language, culture, and history. A single number summarizes a very diverse population.
+		why: `**Asian residents** form a broad, self-identified category spanning more than two dozen origin groups with roots in East, South, Southeast, and Central Asia, each with its own language, culture, and history. A single number summarizes a very diverse population.
 
 This share helps communities plan inclusively. It can inform language access, cultural programming, small-business support, and health outreach. The Asian population is among the fastest-growing in the country, and in fast-growing metros like Charlotte that growth can reshape neighborhoods and schools.
 
@@ -195,7 +195,7 @@ Income tells only part of the story; whether children can climb beyond their par
 		resources: [
 			{ title: 'U.S. Census Bureau — Income in the United States: 2024', url: 'https://www.census.gov/library/publications/2025/demo/p60-286.html', note: 'The latest national report on household income, with the official median and trends.' },
 			{ title: 'U.S. Census Bureau — About Income', url: 'https://www.census.gov/topics/income-poverty/income/about.html', note: 'Explains how the Census defines and measures money income.' },
-				{ title: 'The Opportunity Atlas', url: 'https://www.opportunityatlas.org/', note: 'Interactive maps of children’s adult earnings by the neighborhood where they grew up.' }
+			{ title: 'The Opportunity Atlas', url: 'https://www.opportunityatlas.org/', note: 'Interactive maps of children’s adult earnings by the neighborhood where they grew up.' }
 		]
 	},
 	'poverty-rate': {
@@ -208,7 +208,7 @@ Tracking the poverty rate shows how many neighbors are struggling to afford basi
 In the Charlotte region, poverty maps are inseparable from the area's defining civic challenge: economic mobility. The 2014 finding that Charlotte ranked last of the 50 largest U.S. metros for a poor child's odds of reaching the top income fifth launched the Charlotte-Mecklenburg Opportunity Task Force and the Leading on Opportunity initiative, which targets early care and education, child and family stability, and college and career readiness — alongside segregation and social capital.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — How Poverty Is Measured', url: 'https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html', note: 'Plain explanation of poverty thresholds and the income used to decide who is in poverty.' },
-				{ title: 'Leading on Opportunity', url: 'https://www.leadingonopportunity.org/', note: 'The local initiative born from Charlotte’s 50-of-50 mobility ranking, with its priorities and progress.' },
+			{ title: 'Leading on Opportunity', url: 'https://www.leadingonopportunity.org/', note: 'The local initiative born from Charlotte’s 50-of-50 mobility ranking, with its priorities and progress.' },
 			{ title: 'U.S. Census Bureau — About Poverty', url: 'https://www.census.gov/topics/income-poverty/poverty/about.html', note: 'Overview of the official poverty measure, its history, and data sources.' }
 		]
 	},
@@ -220,7 +220,7 @@ Growing up in poverty can leave lasting marks. Research links it to worse health
 Because early circumstances shape long-term opportunity, child poverty is one of the strongest signals of a community's future. That link is the heart of Charlotte's defining civic question. In a landmark study, economists Raj Chetty, Nathaniel Hendren and colleagues (2014) found a Charlotte child raised in the bottom income fifth had just a **4.4% chance of reaching the top fifth — last of the 50 largest U.S. metros** (versus 12.9% in San Jose and 10.8% in Salt Lake City). That finding launched the Charlotte-Mecklenburg Opportunity Task Force and the Leading on Opportunity initiative; an updated 2024 analysis shows the region has since improved to about 38th of 50.`,
 		resources: [
 			{ title: 'County Health Rankings — Children in Poverty', url: 'https://www.countyhealthrankings.org/health-data/health-factors/social-economic-factors/income/children-in-poverty', note: 'Research-backed explainer on how child poverty affects health and long-term outcomes.' },
-				{ title: 'The Opportunity Atlas', url: 'https://www.opportunityatlas.org/', note: 'Maps children’s adult outcomes by the neighborhood where they grew up, the data behind Charlotte’s mobility ranking.' },
+			{ title: 'The Opportunity Atlas', url: 'https://www.opportunityatlas.org/', note: 'Maps children’s adult outcomes by the neighborhood where they grew up, the data behind Charlotte’s mobility ranking.' },
 			{ title: 'U.S. Census Bureau — How Poverty Is Measured', url: 'https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html', note: 'Describes the thresholds used to determine whether children and families are in poverty.' }
 		]
 	},
@@ -303,7 +303,7 @@ In Charlotte, "college and career readiness" was one of the three determinants t
 		resources: [
 			{ title: 'U.S. Census Bureau — Educational Attainment', url: 'https://www.census.gov/topics/education/educational-attainment.html', note: 'National, state, and county data on degrees held by adults, with historical trends.' },
 			{ title: 'NCES — Annual Earnings by Educational Attainment', url: 'https://nces.ed.gov/programs/coe/indicator/cba/annual-earnings', note: 'Federal data showing how median earnings rise with each level of education.' },
-				{ title: 'Leading on Opportunity', url: 'https://www.leadingonopportunity.org/', note: 'Charlotte’s mobility initiative, which names college and career readiness a core determinant.' }
+			{ title: 'Leading on Opportunity', url: 'https://www.leadingonopportunity.org/', note: 'Charlotte’s mobility initiative, which names college and career readiness a core determinant.' }
 		]
 	},
 	'high-school-diploma': {
@@ -328,7 +328,7 @@ In the Charlotte region, enrollment patterns also reflect a longer story: after 
 		resources: [
 			{ title: 'U.S. Census Bureau — School Enrollment', url: 'https://www.census.gov/topics/education/school-enrollment.html', note: 'Data on enrollment from preschool through college, including public and private.' },
 			{ title: 'U.S. Census Bureau — Why We Ask: School Enrollment', url: 'https://www.census.gov/acs/www/about/why-we-ask-each-question/school/', note: 'How enrollment data is collected and used to plan schools and services.' },
-				{ title: 'EdNC — Charlotte, the Swann decision, and resegregation', url: 'https://www.ednc.org/45-years-after-the-swann-decision-charlotte-continues-to-debate-race-poverty-and-education/', note: 'Background on CMS desegregation history and its echoes in today’s enrollment.' }
+			{ title: 'EdNC — Charlotte, the Swann decision, and resegregation', url: 'https://www.ednc.org/45-years-after-the-swann-decision-charlotte-continues-to-debate-race-poverty-and-education/', note: 'Background on CMS desegregation history and its echoes in today’s enrollment.' }
 		]
 	},
 	'private-school': {
@@ -342,7 +342,7 @@ In Charlotte, these patterns sit on a notable history. Charlotte-Mecklenburg Sch
 		resources: [
 			{ title: 'NCES — Private School Enrollment', url: 'https://nces.ed.gov/programs/coe/indicator/cgc/private-school-enrollment', note: 'Federal data on private K–12 enrollment, including how the share varies by state.' },
 			{ title: 'NCES — Public vs. private schools (Fast Facts)', url: 'https://nces.ed.gov/fastfacts/display.asp?id=55', note: 'Quick comparison of enrollment and student characteristics across school types.' },
-				{ title: 'EdNC — Charlotte, the Swann decision, and resegregation', url: 'https://www.ednc.org/45-years-after-the-swann-decision-charlotte-continues-to-debate-race-poverty-and-education/', note: 'How CMS moved from busing-based integration to neighborhood schools, and what followed.' }
+			{ title: 'EdNC — Charlotte, the Swann decision, and resegregation', url: 'https://www.ednc.org/45-years-after-the-swann-decision-charlotte-continues-to-debate-race-poverty-and-education/', note: 'How CMS moved from busing-based integration to neighborhood schools, and what followed.' }
 		]
 	},
 
@@ -359,7 +359,7 @@ In Mecklenburg County this is literal: canopy covers roughly half the county (ab
 			{ title: 'American Forests — Tree Equity Score', url: 'https://www.treeequityscore.org/', note: 'Interactive map scoring how fairly tree canopy is shared across neighborhoods.' },
 			{ title: 'U.S. EPA — Benefits of Trees and Vegetation', url: 'https://www.epa.gov/heatislands/benefits-trees-and-vegetation', note: 'How trees cool cities, clean the air, and ease the urban heat island.' },
 			{ title: 'USDA Forest Service — i-Tree', url: 'https://www.itreetools.org/', note: 'Free tools that estimate the dollar value of benefits trees provide.' },
-				{ title: 'TreesCharlotte', url: 'https://treescharlotte.org/', note: 'Local nonprofit tracking and restoring Mecklenburg’s declining tree canopy.' }
+			{ title: 'TreesCharlotte', url: 'https://treescharlotte.org/', note: 'Local nonprofit tracking and restoring Mecklenburg’s declining tree canopy.' }
 		]
 	},
 	'impervious-surface': {
@@ -442,7 +442,7 @@ Many causes are about access and environment, not personal willpower: the price 
 			{ title: 'CDC — Adult Obesity Facts', url: 'https://www.cdc.gov/obesity/adult-obesity-facts/index.html', note: 'How common adult obesity is, related health conditions, and medical costs.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
 			{ title: 'County Health Rankings — Adult Obesity', url: 'https://www.countyhealthrankings.org/health-data/population-health-and-well-being/quality-of-life/physical-health/adult-obesity', note: 'The measure, why it matters, and the community conditions that shape it.' },
-				{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
 		]
 	},
 	diabetes: {
@@ -455,7 +455,7 @@ These numbers reflect diagnosed cases, so they can undercount people who have di
 			{ title: 'CDC — Diabetes Basics', url: 'https://www.cdc.gov/diabetes/about/index.html', note: 'What diabetes is, the main types, warning signs, and prevention.' },
 			{ title: 'CDC PLACES — Compare counties', url: 'https://places.cdc.gov/', note: 'Interactive tool for model-based local estimates of diabetes and other measures.' },
 			{ title: 'County Health Rankings — Diabetes Prevalence', url: 'https://www.countyhealthrankings.org/health-data/population-health-and-well-being/quality-of-life/physical-health/diabetes-prevalence', note: 'The diagnosed-diabetes measure, why it matters, and its limits.' },
-				{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
 		]
 	},
 	'frequent-mental-distress': {
@@ -468,7 +468,7 @@ Because few surveys reach every neighborhood, these are modeled estimates — be
 			{ title: 'CDC PLACES — Health Status measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-status.html', note: 'CDC’s official definition of frequent mental distress and how it is estimated.' },
 			{ title: 'SAMHSA — Find Help and Treatment', url: 'https://www.samhsa.gov/find-help', note: 'Federal hub for the 988 crisis line and free, confidential treatment locators.' },
 			{ title: 'County Health Rankings — Frequent Mental Distress', url: 'https://www.countyhealthrankings.org/health-data/population-health-and-well-being/quality-of-life/mental-health/frequent-mental-distress', note: 'Overview of the measure, its data source, and limitations.' },
-				{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' }
 		]
 	},
 	'no-health-insurance': {
@@ -490,10 +490,10 @@ People with coverage are more likely to see a doctor, fill prescriptions, and ca
 
 Coverage is not spread evenly — cost is the biggest barrier, and residents with lower incomes and some communities of color are more likely to be uninsured. Tracking coverage helps a community see who is being left out.
 
-A major recent shift shapes how to read this map. North Carolina expanded Medicaid on December 1, 2023, making roughly 600,000 adults newly eligible (about 450,000 enrolled by mid-2024). The three South Carolina counties in this region — Chester, Lancaster, and York — are not covered, because South Carolina has not expanded Medicaid. Comparing coverage on either side of the state line is a contrast this two-state tool is uniquely able to show.`,
+A major recent shift shapes how to read this map. North Carolina expanded Medicaid on December 1, 2023, making roughly 600,000 adults newly eligible, with hundreds of thousands enrolling in the first year. The three South Carolina counties in this region — Chester, Lancaster, and York — are not covered, because South Carolina has not expanded Medicaid. Comparing coverage on either side of the state line is a contrast this two-state tool is uniquely able to show.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — Health Insurance', url: 'https://www.census.gov/topics/health/health-insurance.html', note: 'The Census Bureau’s main hub for coverage data, tables, and reports.' },
-				{ title: 'NC Medicaid — North Carolina Expands Medicaid', url: 'https://medicaid.ncdhhs.gov/north-carolina-expands-medicaid', note: 'Official details on the December 2023 expansion and who became newly eligible (NC only; SC has not expanded).' },
+			{ title: 'NC Medicaid — North Carolina Expands Medicaid', url: 'https://medicaid.ncdhhs.gov/north-carolina-expands-medicaid', note: 'Official details on the December 2023 expansion and who became newly eligible (NC only; SC has not expanded).' },
 			{ title: 'U.S. Census Bureau — Small Area Health Insurance Estimates', url: 'https://www.census.gov/programs-surveys/sahie.html', note: 'Single-year uninsured estimates for every U.S. county.' },
 			{ title: 'County Health Rankings — Access to Care', url: 'https://www.countyhealthrankings.org/health-data/health-factors/clinical-care/access-to-care', note: 'How insurance and provider access shape a community’s health.' }
 		]
@@ -534,8 +534,8 @@ In recent years, rent burden has climbed to record levels nationwide, reaching w
 Charlotte makes the stakes concrete. Mecklenburg County faces a shortfall of roughly 36,000 affordable units (about 23,000 for households at or below 30% of area median income), and its eviction caseload is among the nation's highest — around 46,000 cases filed in 2024, roughly double the 2020 level. The city's voter-approved Housing Trust Fund (a $100 million bond in 2024) is the main local tool for adding affordable homes.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — Nearly half of renters are cost-burdened', url: 'https://www.census.gov/newsroom/press-releases/2024/renter-households-cost-burdened-race.html', note: 'About half of U.S. renters pay 30%+ of income on housing, with breakdowns.' },
-				{ title: 'Princeton Eviction Lab', url: 'https://evictionlab.org/', note: 'National eviction data and rankings; Charlotte ranks among the highest-filing large cities.' },
-				{ title: 'Mecklenburg Housing Data', url: 'https://mecklenburghousingdata.org/', note: 'Local dashboard tracking eviction filings, the affordable-housing gap, and instability.' },
+			{ title: 'Princeton Eviction Lab', url: 'https://evictionlab.org/', note: 'National eviction data and rankings; Charlotte ranks among the highest-filing large cities.' },
+			{ title: 'Mecklenburg Housing Data', url: 'https://mecklenburghousingdata.org/', note: 'Local dashboard tracking eviction filings, the affordable-housing gap, and instability.' },
 			{ title: 'U.S. Census Bureau — Housing data hub', url: 'https://www.census.gov/topics/housing.html', note: 'Central portal for rent, home value, and housing cost data.' }
 		]
 	},
@@ -582,7 +582,7 @@ A low share is not a problem by itself; many established, desirable areas have o
 In Charlotte, where new housing has gone is as telling as how much. The LYNX Blue Line light-rail corridor catalyzed an estimated $1 billion-plus and roughly 10 million square feet of development, adding homes near transit but also raising concerns about displacing longtime, lower-income residents.`,
 		resources: [
 			{ title: 'U.S. Census Bureau — Why We Ask: Year Built', url: 'https://www.census.gov/acs/www/about/why-we-ask-each-question/year-built/', note: 'The year-built question used to gauge housing age and where newer homes are.' },
-				{ title: 'UNC Charlotte Urban Institute — How the Blue Line Extension changed development', url: 'https://ui.charlotte.edu/story/part-1-how-blue-line-extension-changed-charlotte-development/', note: 'Documents the investment and displacement pressures along the light-rail corridor.' },
+			{ title: 'UNC Charlotte Urban Institute — How the Blue Line Extension changed development', url: 'https://ui.charlotte.edu/story/part-1-how-blue-line-extension-changed-charlotte-development/', note: 'Documents the investment and displacement pressures along the light-rail corridor.' },
 			{ title: 'U.S. Census Bureau — Characteristics of New Housing', url: 'https://www.census.gov/construction/chars/', note: 'National data on newly built homes, including size, features, and prices.' }
 		]
 	},
@@ -644,7 +644,7 @@ For a fast-growing region, this number is an early warning light. In Charlotte, 
 			{ title: 'Urban Institute — Transportation Access and Upward Mobility', url: 'https://upward-mobility.urban.org/framework/neighborhoods/transportation', note: 'Connects commute times and transit access to reaching opportunity.' }
 		]
 	},
-	// ---------------- Health & social determinants (CDC PLACES) ----------------
+	// ---------------- Health (continued) — CDC PLACES chronic, behavioral & social-needs measures ----------------
 	asthma: {
 		why: `**Current asthma in adults** measures the share of adults who currently have asthma — a chronic condition that inflames and narrows the airways, causing wheezing, coughing, and trouble breathing. On this platform these are modeled estimates that blend survey and population data, so they are best read as the level in each year, not as year-to-year change (the CDC does not support using them as a trend).
 
@@ -654,8 +654,8 @@ Where rates are high, communities can target healthier housing, cleaner air, and
 		resources: [
 			{ title: 'CDC PLACES — Health Outcomes measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-outcomes.html', note: 'Official definitions for chronic-disease measures like current asthma, and how they are estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	depression: {
@@ -667,8 +667,8 @@ Because this counts diagnosed cases, it can miss people who are struggling but h
 		resources: [
 			{ title: 'CDC PLACES — Health Outcomes measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-outcomes.html', note: 'Official definition of the diagnosed-depression measure and how it is estimated.' },
 			{ title: 'SAMHSA — Find Help and Treatment', url: 'https://www.samhsa.gov/find-help', note: 'Federal hub for the 988 crisis line and free, confidential treatment locators.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'high-blood-pressure': {
@@ -680,8 +680,8 @@ High rates often track other community conditions — limited access to care, he
 		resources: [
 			{ title: 'CDC PLACES — Health Outcomes measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-outcomes.html', note: 'Official definition of the high-blood-pressure measure and how it is estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	smoking: {
@@ -693,8 +693,8 @@ High rates point to where tobacco prevention, quit support, and smoke-free housi
 		resources: [
 			{ title: 'CDC PLACES — Health Risk Behaviors measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-risk-behaviors.html', note: 'Official definition of the current-smoking measure and how it is estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'physical-inactivity': {
@@ -706,8 +706,8 @@ Where inactivity is high, investments in parks, greenways, safe streets, and rec
 		resources: [
 			{ title: 'CDC PLACES — Health Risk Behaviors measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-risk-behaviors.html', note: 'Official definition of the no-leisure-time-physical-activity measure and how it is estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'fair-poor-health': {
@@ -719,8 +719,8 @@ High rates flag communities carrying a heavy health burden, and they often map o
 		resources: [
 			{ title: 'CDC PLACES — Health Status measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-status.html', note: 'CDC’s definition of self-rated fair-or-poor health and how it is estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'routine-checkup': {
@@ -732,8 +732,8 @@ Reading this alongside insurance coverage and transportation barriers helps show
 		resources: [
 			{ title: 'CDC PLACES — Prevention measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/prevention.html', note: 'Official definition of the routine-checkup measure and how it is estimated.' },
 			{ title: 'CDC — About PLACES', url: 'https://www.cdc.gov/places/about/index.html', note: 'Explains the model-based small-area method behind the local estimates.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood health disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'food-insecurity': {
@@ -745,8 +745,8 @@ In Charlotte, food insecurity overlaps with food deserts: roughly 15% of Mecklen
 		resources: [
 			{ title: 'CDC PLACES — Health-Related Social Needs measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-related-social-needs.html', note: 'Official definition of the food-insecurity measure and how it is estimated.' },
 			{ title: 'WFAE — How Charlotte is trying to address food deserts', url: 'https://www.wfae.org/race-equity/2023-11-09/fried-processed-everything-but-healthy-how-charlotte-is-trying-to-address-food-deserts', note: 'Local reporting on food deserts along the West Boulevard, Beatties Ford, and Freedom Drive corridors.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data, including food access and neighborhood disparities.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data, including food access and neighborhood disparities.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'housing-insecurity': {
@@ -759,7 +759,7 @@ Charlotte is a national example of this strain. Mecklenburg's eviction caseload 
 			{ title: 'CDC PLACES — Health-Related Social Needs measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-related-social-needs.html', note: 'Official definition of the housing-insecurity measure and how it is estimated.' },
 			{ title: 'Princeton Eviction Lab', url: 'https://evictionlab.org/', note: 'National eviction data and rankings; Charlotte ranks among the highest-filing large cities.' },
 			{ title: 'Mecklenburg Housing Data', url: 'https://mecklenburghousingdata.org/', note: 'Local dashboards on eviction filings, the affordable-housing gap, and housing instability.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'transportation-barriers': {
@@ -771,8 +771,8 @@ In Charlotte, this is the practical question behind the mobility story: can a fa
 		resources: [
 			{ title: 'CDC PLACES — Health-Related Social Needs measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-related-social-needs.html', note: 'Official definition of the lack-of-reliable-transportation measure and how it is estimated.' },
 			{ title: 'Urban Institute — Transportation Access and Upward Mobility', url: 'https://upward-mobility.urban.org/framework/neighborhoods/transportation', note: 'How transportation access shapes reaching jobs, schools, and health care.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	'social-emotional-support': {
@@ -784,8 +784,8 @@ High rates can signal social isolation and weaker community ties, pointing to wh
 		resources: [
 			{ title: 'CDC PLACES — Health-Related Social Needs measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-related-social-needs.html', note: 'Official definition of the lack-of-social-and-emotional-support measure and how it is estimated.' },
 			{ title: 'U.S. Surgeon General — Our Epidemic of Loneliness and Isolation', url: 'https://www.hhs.gov/surgeongeneral/priorities/connection/index.html', note: 'Federal advisory on social connection as a public-health priority.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 	loneliness: {
@@ -797,10 +797,11 @@ Tracking loneliness alongside the lack-of-support measure helps communities see 
 		resources: [
 			{ title: 'CDC PLACES — Health-Related Social Needs measure definitions', url: 'https://www.cdc.gov/places/measure-definitions/health-related-social-needs.html', note: 'Official definition of the loneliness measure and how it is estimated.' },
 			{ title: 'U.S. Surgeon General — Our Epidemic of Loneliness and Isolation', url: 'https://www.hhs.gov/surgeongeneral/priorities/connection/index.html', note: 'Federal advisory on the health risks of loneliness and how to rebuild connection.' },
-			{ title: 'Mecklenburg Community Health Assessment', url: 'https://schs.dph.ncdhhs.gov/units/ldas/cha2019/Mecklenburg%20CHA%202019.pdf', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Mecklenburg Community Health Assessment', url: 'https://health.mecknc.gov/population-health/cha', note: 'Local public-health data and neighborhood disparities for Mecklenburg County.' },
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
+	// ---------------- Engagement ----------------
 	'residential-stability': {
 		why: `**Residential stability** measures the share of residents who lived in the same home one year ago. It is a widely used proxy for rootedness — conditions associated with stronger social ties, local knowledge, and civic participation.
 
@@ -810,7 +811,7 @@ Read in context, this number helps show where neighborhoods are settled and wher
 		resources: [
 			{ title: 'U.S. Census Bureau — Why We Ask: Migration', url: 'https://www.census.gov/acs/www/about/why-we-ask-each-question/migration/', note: 'How the "residence one year ago" question is collected and used.' },
 			{ title: 'U.S. Census Bureau — Geographic Mobility / Migration', url: 'https://www.census.gov/topics/population/migration.html', note: 'Data on how often Americans move and the reasons they give.' },
-			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'The region’s 400-plus neighborhood indicator system (City, County, and UNC Charlotte Urban Institute).' }
+			{ title: 'Charlotte-Mecklenburg Quality of Life Explorer', url: 'https://ui.charlotte.edu/our-work/quality-life-explorer/', note: 'Mecklenburg County’s neighborhood indicator system — 462 Neighborhood Profile Areas (a City of Charlotte, Mecklenburg County, and UNC Charlotte Urban Institute partnership).' }
 		]
 	},
 };

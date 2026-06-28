@@ -288,6 +288,11 @@
 		data. Cadence varies by source — ACS is annual (rolling), CDC PLACES and the satellite layers update
 		on their own schedules — and indicators update as new source data is released.
 	</p>
+
+	<p class="see-also">
+		See also the full <a href="{base}/indicators/">indicator list</a> and
+		<a href="{base}/about/">About the Explorer</a>.
+	</p>
 </div>
 
 <nav class="toc no-print" class:open bind:this={navEl} aria-label="Sections on this page">
@@ -340,6 +345,13 @@
 	.lede {
 		font-size: var(--t-lg);
 		color: var(--c-text-2);
+	}
+	.see-also {
+		margin-top: var(--sp-7);
+		border-top: 1px solid var(--c-border);
+		padding-top: var(--sp-4);
+		font-size: var(--t-sm);
+		color: var(--c-text-3);
 	}
 	.prose-page h2 {
 		margin-top: var(--sp-7);
