@@ -47,7 +47,7 @@
 	let flyBbox = $state(null);
 	let booted = $state(false);
 	// Mobile collapse state for the controls panel + map floats. These default collapsed, which only
-	// affects small screens — on desktop the panel/legend/trend bodies are shown by CSS regardless, so
+	// affects small screens; on desktop the panel/legend/trend bodies are shown by CSS regardless, so
 	// there is no hydration flash and the desktop layout is unchanged.
 	let controlsOpen = $state(false);
 	let legendOpen = $state(false);
@@ -57,7 +57,7 @@
 	let basemap = $state('light');
 	let overlayOpacity = $state(0.82);
 	let overlayOn = $state(true);
-	let reliabilityOn = $state(false); // hatch high-uncertainty (unreliable) tracts — off by default
+	let reliabilityOn = $state(false); // hatch high-uncertainty (unreliable) tracts, off by default
 
 	// hovered bivariate matrix cell {a,b} (filters the map)
 	let bivarCell = $state(null);
@@ -74,7 +74,7 @@
 	// (often decadal) extents. The slider domain adapts to the data extent of the current indicator(s) rather
 	// than a global union, so an ACS variable's slider doesn't stretch back to the NLCD 2001 floor.
 	const isSurvey = (ind) => /american community survey|cdc places/i.test(ind?.source ?? '');
-	// the survey timeline (contiguous min..max of ACS/CDC years) — used as the fallback domain for a
+	// the survey timeline (contiguous min..max of ACS/CDC years): used as the fallback domain for a
 	// single-year survey indicator (e.g. a lone CDC PLACES measure) so its slider is still usable.
 	let surveyYears = $derived.by(() => {
 		const ys = (manifest?.indicators ?? []).filter(isSurvey).flatMap((i) => i.years ?? []);
@@ -112,7 +112,7 @@
 		return a.years ?? [];
 	}
 	let ctxYears = $derived(availableYearsFor(explorer.indicatorId, analysis.biB, analysis.mode));
-	// Snap the year to the latest one WITH data for the current context — called only on context change
+	// Snap the year to the latest one WITH data for the current context, called only on context change
 	// (indicator / 2nd variable / mode), never on manual scrub, so the user can still land on empty years.
 	function snapYear(aId = explorer.indicatorId, bId = analysis.biB, mode = analysis.mode) {
 		const ys = availableYearsFor(aId, bId, mode);
@@ -174,7 +174,7 @@
 			if (!agg) return null;
 			const yi = agg.years.indexOf(explorer.year);
 			const valuesByGeoid = {};
-			// yi < 0 → the selected year has no county data: render an EMPTY choropleth (clears the map)
+			// yi < 0: the selected year has no county data; render an EMPTY choropleth (clears the map)
 			if (yi >= 0) for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
 			const breaks = agg.breaks ?? [];
 			const colors = themeRamp(accent, breaks.length + 1);
@@ -255,7 +255,7 @@
 		return () => (cancelled = true);
 	});
 
-	// map display settings → controller
+	// map display settings -> controller
 	$effect(() => {
 		if (map) map.setBasemap(basemap);
 	});
@@ -344,7 +344,7 @@
 			color: BIVARIATE_MATRIX[ca[g] ?? 0][cb[g] ?? 0]
 		}));
 		// descriptive correlation: Pearson (linear) + Spearman (rank, robust + consistent with terciles).
-		// Both are DESCRIPTIVE only — spatial autocorrelation inflates any inferential reading.
+		// Both are DESCRIPTIVE only: spatial autocorrelation inflates any inferential reading.
 		const r = pearson(av, bv);
 		const rho = spearman(av, bv);
 		return { points, r, rho, labelA: indicator?.label ?? 'A', labelB: indicatorById(analysis.biB)?.label ?? 'B' };
@@ -438,7 +438,7 @@
 </script>
 
 <svelte:head>
-	<title>Explore — Carolinas Regional Explorer</title>
+	<title>Explore | Carolinas Regional Explorer</title>
 </svelte:head>
 
 <div class="explore">
@@ -470,7 +470,7 @@
 					</button>
 					{#if showAbout}
 						<MetricInfoPanel {indicator} meta={metaText} brief={indicatorBrief} compact />
-						<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page →</a>
+						<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full indicator page</a>
 					{/if}
 				</div>
 			{/if}
@@ -559,19 +559,19 @@
 				{#if provenanceFlags}
 					<div class="prov-flags">
 						{#if provenanceFlags.vintage}<span class="prov">{provenanceFlags.vintage}</span>{/if}
-						{#if provenanceFlags.modelBased}<span class="prov prov-model" title="Model-based small-area estimates (CDC PLACES, multilevel regression & poststratification) — not a direct count">model-based</span>{/if}
+						{#if provenanceFlags.modelBased}<span class="prov prov-model" title="Model-based small-area estimates (CDC PLACES, multilevel regression & poststratification), not a direct count">model-based</span>{/if}
 						{#if provenanceFlags.harmonized}<span class="prov prov-harm" title="Pre-2020 years are reallocated from 2010 to 2020 census tracts (population-weighted); read pre/post-2020 change with extra caution">pre-2020 harmonized</span>{/if}
 					</div>
 				{/if}
 				<!-- Comparable-period change + significance is an ACS rolling-vintage concept. CDC PLACES
 				     series are stitched across separate annual model releases, so a "significant change"
-				     badge would conflate real change with model revisions — suppress it for those. -->
+				     badge would conflate real change with model revisions: suppress it for those. -->
 				{#if !indicator.crossReleaseTrend}
 					{#each trendChanges as c (c.span)}
 						{@const up = c.delta > 0}
 						{@const flat = c.delta === 0}
 						<div class="change-marker" class:sig={c.significant === true}>
-							<span class="chg-label">{c.y1}→{c.y2}</span>
+							<span class="chg-label">{c.y1} to {c.y2}</span>
 							<span class="chg-val">{flat ? '▬' : up ? '▲' : '▼'} {up ? '+' : ''}{formatValue(c.delta, indicator.format, indicator.decimals ?? 1)}</span>
 							<span class="chg-sig">{c.significant === true ? 'significant' : c.significant === false ? 'not significant' : '—'}{c.significant != null ? ' (90%)' : ''}</span>
 						</div>
@@ -589,7 +589,7 @@
 				{#if selection.selectedIds.length}
 					<div class="sel-actions">
 						<button class="link" onclick={clearTracts}>Clear selection</button>
-						<button class="btn-report" onclick={openReport}>Generate report →</button>
+						<button class="btn-report" onclick={openReport}>Generate report</button>
 					</div>
 				{/if}
 				</div>
@@ -907,7 +907,7 @@
 			left: auto;
 		}
 
-		/* Trend / scatter: a collapsible card under the search bar — collapsed shows only its header */
+		/* Trend / scatter: a collapsible card under the search bar, collapsed shows only its header */
 		.float-toggle {
 			display: inline-flex;
 			align-items: center;

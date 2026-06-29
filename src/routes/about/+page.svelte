@@ -3,8 +3,8 @@
 </script>
 
 <svelte:head>
-	<title>About — Carolinas Regional Explorer</title>
-	<meta name="description" content="About the Carolinas Regional Explorer — an open, neighborhood-scale community-data platform for the 14-county, two-state Charlotte region." />
+	<title>About | Carolinas Regional Explorer</title>
+	<meta name="description" content="About the Carolinas Regional Explorer: an open, neighborhood-scale community-data platform for the 14-county, two-state Charlotte region." />
 </svelte:head>
 
 <div class="container prose-page">
@@ -30,8 +30,8 @@
 
 	<h2>What you can explore</h2>
 	<p>
-		The platform carries dozens of indicators across themes — demographics, economy, education, housing,
-		transportation, health, environment, and civic engagement — for every tract in the region. You can
+		The platform carries dozens of indicators across themes: demographics, economy, education, housing,
+		transportation, health, environment, and civic engagement, for every tract in the region. You can
 		map any indicator, watch it change over time, compare neighborhoods and counties, and look at how two
 		measures relate or where values cluster in space. Every indicator has a plain-language
 		<a href="{base}/indicators/">"why it matters" page</a> with sources, and the full dataset is free to
@@ -52,7 +52,7 @@
 	<p>
 		Many of these indicators connect to the region's defining civic question: economic mobility. A
 		landmark study once ranked Charlotte last among the 50 largest U.S. metros for a poor child's odds of
-		reaching the top — a finding that reshaped a decade of local policy, and one the region has since
+		reaching the top, a finding that reshaped a decade of local policy, and one the region has since
 		begun to improve on. Poverty, schooling, housing cost, transportation, segregation, and health all
 		feed that story, and this tool is built to help a community see where opportunity is concentrated and
 		where it is not.

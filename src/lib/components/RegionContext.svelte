@@ -10,7 +10,7 @@
 		<p>
 			This explorer covers the <strong>14-county, two-state Charlotte region</strong> (11 North Carolina
 			and 3 South Carolina counties). Many of these indicators connect to a defining regional story: a
-			landmark Harvard study ranked Charlotte <strong>last — 50th of the 50 largest U.S. metros</strong>
+			landmark Harvard study ranked Charlotte <strong>last, 50th of the 50 largest U.S. metros</strong>
 			for economic mobility (a child raised in the poorest fifth had about a 4.4% chance of reaching the
 			top fifth), a finding that launched the region's <em>Leading on Opportunity</em> agenda. Updated
 			2024 data show Charlotte has since climbed to <strong>38th</strong>.
@@ -18,7 +18,7 @@
 		<p>
 			Opportunity here is also unevenly mapped. An affluent <strong>“wedge”</strong> fanning southeast
 			from uptown holds a large majority of the city's wealth on under a quarter of its land, while a
-			<strong>“crescent”</strong> to the north, west, and east carries higher poverty — a legacy of
+			<strong>”crescent”</strong> to the north, west, and east carries higher poverty, a legacy of
 			redlining, exclusionary zoning, and highway routing that recurs across the race, income, health,
 			tree-canopy, and school maps in this tool. No single indicator is good or bad on its own; together
 			they describe how the region sorted opportunity.

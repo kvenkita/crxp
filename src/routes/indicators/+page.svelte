@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Indicators — Carolinas Regional Explorer</title>
+	<title>Indicators | Carolinas Regional Explorer</title>
 	<meta name="description" content="Browse all quality-of-life indicators in the Carolinas Regional Explorer." />
 </svelte:head>
 

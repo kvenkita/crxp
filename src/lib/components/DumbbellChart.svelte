@@ -1,6 +1,6 @@
 <script>
 	import { formatValue } from '$lib/map/colorScale.js';
-	/** Shows first→last change of a value within the regional [min,max] domain. */
+	/** Shows first-to-last change of a value within the regional [min,max] domain. */
 	let { values = [], min = 0, max = 100, color = 'var(--c-plum)', format = 'number', decimals = 1 } = $props();
 
 	let finite = $derived(values.map((v, i) => ({ v, i })).filter((p) => p.v != null && Number.isFinite(p.v)));

@@ -17,7 +17,7 @@
 </script>
 
 <Seo
-	title="{county.name} — Carolinas Regional Explorer"
+	title="{county.name} | Carolinas Regional Explorer"
 	description={lead}
 	url="{base}/county/{county.fips}/"
 	image="{base}/og/county/{county.fips}.png"
@@ -36,8 +36,8 @@
 	</ProfileHero>
 
 	<div class="actions no-print">
-		<a class="btn btn-primary" href="{base}/explore/?geo=county">Open in the explorer →</a>
-		<ShareButtons url="{base}/county/{county.fips}/" title="{county.name} profile — Carolinas Regional Explorer" />
+		<a class="btn btn-primary" href="{base}/explore/?geo=county">Open in the explorer</a>
+		<ShareButtons url="{base}/county/{county.fips}/" title="{county.name} profile | Carolinas Regional Explorer" />
 	</div>
 
 	<MetricCardGrid items={indicators} {categories} />
@@ -46,7 +46,7 @@
 		<h2>About this profile</h2>
 		<p>
 			Values are authoritative county-level estimates from the source (U.S. Census ACS county tables,
-			CDC PLACES county model, or county zonal statistics) — not an average of tracts. Each card links
+			CDC PLACES county model, or county zonal statistics), not an average of tracts. Each card links
 			to the full indicator definition. See <a href="{base}/methods/">Methods</a> for details and limitations.
 		</p>
 	</section>

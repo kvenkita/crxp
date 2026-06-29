@@ -56,8 +56,8 @@
 </script>
 
 <svelte:head>
-	<title>Methods — Carolinas Regional Explorer</title>
-	<meta name="description" content="How the Carolinas Regional Explorer sources, computes, harmonizes, classifies, and analyzes its indicators — margins of error and reliability, comparability over time, boundary harmonization, spatial clusters, and neighborhood naming." />
+	<title>Methods | Carolinas Regional Explorer</title>
+	<meta name="description" content="How the Carolinas Regional Explorer sources, computes, harmonizes, classifies, and analyzes its indicators: margins of error and reliability, comparability over time, boundary harmonization, spatial clusters, and neighborhood naming." />
 </svelte:head>
 
 <div class="container prose-page">
@@ -101,7 +101,7 @@
 		ten themes (Safety and Arts &amp; Culture are still being populated):</p>
 	<ul>
 		<li>
-			<strong>U.S. Census Bureau — American Community Survey (ACS) 5-Year Estimates</strong> (annual,
+			<strong>U.S. Census Bureau, American Community Survey (ACS) 5-Year Estimates</strong> (annual,
 			latest 2024): demographics, economy, education, housing, transportation, health insurance,
 			disability, residential stability, and more, published at the tract level with margins of error.
 		</li>
@@ -172,8 +172,8 @@
 		ACS 5-year estimates <strong>overlap</strong> from one year to the next (adjacent vintages share
 		four years of sample), so the annual series (2014–2024) is best read as a rolling
 		estimate. Valid change comparisons therefore use only non-overlapping periods. For a
-		selected tract the explorer reports two changes — the <strong>5-year</strong> (e.g. 2019→2024) and the
-		<strong>10-year</strong> (e.g. 2014→2024) — each tested for <strong>statistical significance</strong>
+		selected tract the explorer reports two changes, the <strong>5-year</strong> (e.g. 2019 to 2024) and the
+		<strong>10-year</strong> (e.g. 2014 to 2024), each tested for <strong>statistical significance</strong>
 		at 90% confidence with the Census difference test, which guards against reading sampling noise as real
 		change. These periods advance automatically as new years are released.
 	</p>
@@ -196,7 +196,7 @@
 		different maps. To put the whole series on one 2020 geography, pre-2020 years are
 		<strong>harmonized</strong>. We split each old tract's value across the new tracts that absorbed it,
 		weighting by population (using 2020 Census block populations) rather than by land
-		area — because people are not spread evenly within a tract, and a small, dense piece can hold far more
+		area, because people are not spread evenly within a tract, and a small, dense piece can hold far more
 		residents than its area suggests. Counts are summed, margins of error are propagated, and the
 		factors for each old tract add to one.
 	</p>
@@ -230,7 +230,7 @@
 		The bivariate map crosses two indicators on a 3×3 grid: each is split into thirds (low / middle /
 		high) and the two combine into nine colors, so darker cells mark tracts that are high on both. A
 		companion <strong>correlation scatter</strong> plots the two indicators' standardized (z-score)
-		values — one dot per tract, colored by its grid class — with the distribution of each variable along
+		values, one dot per tract colored by its grid class, with the distribution of each variable along
 		the axes, a trend line, and both the Pearson and Spearman correlations. These are
 		<strong>descriptive only</strong>: because nearby tracts tend to be similar, an ordinary significance
 		test would overstate confidence, so we report the relationship without a p-value. Hovering a dot or a
@@ -285,8 +285,8 @@
 	<h2 id="availability">Data availability</h2>
 	<p>
 		Each indicator carries its own available years and cadence; the year slider only offers years with
-		data. Cadence varies by source — ACS is annual (rolling), CDC PLACES and the satellite layers update
-		on their own schedules — and indicators update as new source data is released.
+		data. Cadence varies by source: ACS is annual (rolling), CDC PLACES and the satellite layers update
+		on their own schedules, and indicators update as new source data is released.
 	</p>
 
 	<p class="see-also">

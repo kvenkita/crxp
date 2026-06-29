@@ -11,7 +11,7 @@
 		}
 	};
 
-	// In compact mode (explore sidebar) show only the lead paragraph — keep it brief; the full brief
+	// In compact mode (explore sidebar) show only the lead paragraph. The full brief
 	// and cited resources live on the indicator page.
 	let whyShown = $derived(
 		brief?.why ? (compact ? brief.why.split(/\n\s*\n/)[0] : brief.why) : ''
@@ -47,7 +47,7 @@
 				</div>
 			{/if}
 			{#if indicator.slug}
-				<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full details &amp; sources →</a>
+				<a class="full-link" href="{base}/indicators/{indicator.slug}/">Full details &amp; sources</a>
 			{/if}
 		{:else if meta}
 			<MarkdownBlock source={meta} />

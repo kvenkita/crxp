@@ -1,6 +1,6 @@
 <script>
 	/**
-	 * A <select> of indicators grouped into theme <optgroup>s — alphabetical within each theme and
+	 * A <select> of indicators grouped into theme <optgroup>s, alphabetical within each theme and
 	 * color-coded by theme, so a long indicator list is easy to scan. Theme order + colors come from
 	 * the manifest categories.
 	 */

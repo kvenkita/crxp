@@ -17,8 +17,8 @@
 </script>
 
 <svelte:head>
-	<title>{indicator.label} — Carolinas Regional Explorer</title>
-	<meta name="description" content="Why {indicator.label.toLowerCase()} matters, with sources — {indicator.source}, {indicator.vintage}." />
+	<title>{indicator.label} | Carolinas Regional Explorer</title>
+	<meta name="description" content="Why {indicator.label.toLowerCase()} matters, with sources: {indicator.source}, {indicator.vintage}." />
 </svelte:head>
 
 <article class="container indicator-page">
@@ -33,7 +33,7 @@
 			{#if indicator.higherIsBetter === true}<span class="chip good">Higher is better</span>{/if}
 			{#if indicator.higherIsBetter === false}<span class="chip need">Higher = more need</span>{/if}
 		</div>
-		<a class="btn btn-primary" href="{base}/explore/?i={indicator.slug}">View on the map →</a>
+		<a class="btn btn-primary" href="{base}/explore/?i={indicator.slug}">View on the map</a>
 	</header>
 
 	{#if brief?.why}

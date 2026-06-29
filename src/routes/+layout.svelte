@@ -41,7 +41,7 @@
 	<footer class="site-footer no-print">
 		<div class="container footer-inner">
 			<p>
-				Carolinas Regional Explorer — a project of the UNC Charlotte Urban Institute and partners.
+				Carolinas Regional Explorer, a project of the UNC Charlotte Urban Institute and partners.
 				Census-tract indicators for the Charlotte region.
 			</p>
 			<p class="footer-links">

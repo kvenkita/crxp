@@ -48,7 +48,7 @@
 			const selectedFirst = valAt(first);
 			const region = regionAvgAt(aggregates, ind.id, last);
 			// CDC PLACES series are stitched across separate annual model releases, so a change figure
-			// would conflate real change with model revisions — omit change for them (matches the explorer).
+			// would conflate real change with model revisions: omit change for them (matches the explorer).
 			const crossReleaseTrend = !!ind.crossReleaseTrend;
 			const hasSpan = first != null && last != null && first !== last;
 			const item = {
@@ -90,7 +90,7 @@
 </script>
 
 <svelte:head>
-	<title>Neighborhood Report — Carolinas Regional Explorer</title>
+	<title>Neighborhood Report | Carolinas Regional Explorer</title>
 </svelte:head>
 
 <div class="report">
@@ -98,7 +98,7 @@
 		<a href="{base}/explore/">← Back to explorer</a>
 		<div class="controls-right">
 			{#if ready && geoids.length}
-				<ShareButtons title="Carolinas Regional Explorer — custom area report" />
+				<ShareButtons title="Carolinas Regional Explorer: custom area report" />
 			{/if}
 			<button class="btn btn-primary" onclick={() => window.print()}>Print / Save as PDF</button>
 		</div>
@@ -145,7 +145,7 @@
 								<td class="num">{fmt(it.region, it)}</td>
 								<td class="num">{vsRegion(it)}</td>
 								<td class="num">
-									{#if it.delta == null}—{:else}{it.delta > 0 ? '▲ ' : it.delta < 0 ? '▼ ' : ''}{formatValue(Math.abs(it.delta), it.format, it.decimals)} <span class="yr">{it.firstYear}→{it.lastYear}</span>{/if}
+									{#if it.delta == null}—{:else}{it.delta > 0 ? '▲ ' : it.delta < 0 ? '▼ ' : ''}{formatValue(Math.abs(it.delta), it.format, it.decimals)} <span class="yr">{it.firstYear} to {it.lastYear}</span>{/if}
 								</td>
 							</tr>
 						{/each}

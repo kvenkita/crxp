@@ -1,19 +1,24 @@
 <script>
-	const features = [
+	const start = [
 		{
 			title: 'Explore the map',
 			body: 'See how dozens of quality-of-life indicators vary across every Census tract in the 14-county region.',
 			href: '/explore'
 		},
 		{
-			title: 'Understand the data',
-			body: 'Each indicator explains what it measures, how it is calculated, why it matters, and where it comes from.',
+			title: 'Browse the indicators',
+			body: "What each measure means, how it's calculated, why it matters, and where it comes from.",
 			href: '/indicators'
 		},
 		{
-			title: 'Build a profile',
+			title: 'County and city profiles',
 			body: 'Open a ready-made profile for any county or city, or compare neighborhoods side by side.',
 			href: '/county/37119'
+		},
+		{
+			title: 'How the data is made',
+			body: 'The sources behind each number, the uncertainty in every estimate, and the methods that produce them.',
+			href: '/methods'
 		}
 	];
 </script>
@@ -31,8 +36,8 @@
 		<p class="eyebrow">Charlotte 14-county region</p>
 		<h1>Explore your community, tract by tract.</h1>
 		<p class="lede">
-			The Carolinas Regional Explorer brings quality-of-life data to residents, researchers,
-			planners, and policymakers across the Charlotte region — one neighborhood at a time.
+			The Carolinas Regional Explorer maps quality-of-life indicators for every Census tract in the
+			14-county Charlotte region, built for residents, researchers, planners, and policymakers.
 		</p>
 		<div class="hero-cta">
 			<a class="btn btn-primary" href="/explore">Open the explorer</a>
@@ -41,14 +46,16 @@
 	</div>
 </section>
 
-<section class="container feature-grid">
-	{#each features as f (f.href)}
-		<a class="card feature" href={f.href}>
-			<h3>{f.title}</h3>
-			<p>{f.body}</p>
-			<span class="feature-go" aria-hidden="true">→</span>
-		</a>
-	{/each}
+<section class="container start">
+	<h2 class="start-title">Where to start</h2>
+	<div class="start-list">
+		{#each start as s (s.href)}
+			<a class="start-item" href={s.href}>
+				<h3>{s.title}</h3>
+				<p>{s.body}</p>
+			</a>
+		{/each}
+	</div>
 </section>
 
 <style>
@@ -63,7 +70,7 @@
 	.lede {
 		font-size: var(--t-lg);
 		color: var(--c-text-2);
-		max-width: 44ch;
+		max-width: 48ch;
 	}
 	h1 {
 		font-size: var(--t-4xl);
@@ -75,34 +82,56 @@
 		margin-top: var(--sp-5);
 		flex-wrap: wrap;
 	}
-	.feature-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-		gap: var(--sp-4);
+
+	.start {
 		padding-top: var(--sp-7);
 		padding-bottom: var(--sp-8);
 	}
-	.feature {
-		position: relative;
-		padding: var(--sp-5);
-		color: var(--c-text);
+	.start-title {
+		font-size: var(--t-sm);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--c-text-3);
+		margin-bottom: var(--sp-4);
+	}
+	.start-list {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--sp-3);
+	}
+	@media (min-width: 720px) {
+		.start-list {
+			grid-template-columns: repeat(2, 1fr);
+			gap: var(--sp-4);
+		}
+	}
+	.start-item {
+		display: block;
+		padding: var(--sp-4) var(--sp-5);
+		background: var(--c-surface);
+		border: 1px solid var(--c-border);
 		border-left: 4px solid var(--c-teal);
-		transition: box-shadow 0.15s ease, transform 0.15s ease;
+		border-radius: var(--r-md);
+		color: var(--c-text);
+		transition: background 0.15s ease, border-color 0.15s ease;
 	}
-	.feature:hover {
+	.start-item:hover {
 		text-decoration: none;
-		box-shadow: var(--shadow-md);
-		transform: translateY(-2px);
+		background: var(--c-surface-2);
+		border-color: var(--c-border-strong);
+		border-left-color: var(--c-accent-strong);
 	}
-	.feature p {
-		color: var(--c-text-2);
-		margin-bottom: 0;
+	.start-item h3 {
+		font-size: var(--t-lg);
+		margin: 0 0 var(--sp-1);
 	}
-	.feature-go {
-		position: absolute;
-		top: var(--sp-5);
-		right: var(--sp-5);
+	.start-item:hover h3 {
 		color: var(--c-teal);
-		font-size: var(--t-xl);
+	}
+	.start-item p {
+		color: var(--c-text-2);
+		font-size: var(--t-sm);
+		margin: 0;
 	}
 </style>

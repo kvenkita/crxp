@@ -7,7 +7,7 @@
 		active = null,
 		onCellHover = () => {}
 	} = $props();
-	// rows top→bottom should be high→low A, so reverse for display
+	// rows top-to-bottom should be high-to-low A, so reverse for display
 	let rows = $derived([...matrix].map((r, i) => ({ a: i, cells: r })).reverse());
 	const isActive = (a, b) => active && active.a === a && active.b === b;
 	const LO_MID_HI = ['low', 'middle', 'high'];

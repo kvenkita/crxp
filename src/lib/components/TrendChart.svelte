@@ -9,7 +9,7 @@
 		decimals = 1,
 		animKey = '',
 		// When true, the active indicator is a CDC PLACES model-based series stitched across
-		// annual releases — the band note must describe a model interval and warn against
+		// annual releases; the band note must describe a model interval and warn against
 		// reading year-to-year change (rather than the ACS rolling-5-year caption).
 		crossReleaseTrend = false
 	} = $props();
@@ -217,7 +217,7 @@
 	</ul>
 	{#if hasBand}
 		{#if crossReleaseTrend}
-			<p class="moe-note">Shaded band = 90% uncertainty interval (model-based). Estimates are stitched across annual CDC PLACES releases, so year-to-year movement may reflect model revisions — read each year's level, not the change between years.</p>
+			<p class="moe-note">Shaded band = 90% uncertainty interval (model-based). Estimates are stitched across annual CDC PLACES releases, so year-to-year movement may reflect model revisions. Read each year's level, not the change between years.</p>
 		{:else}
 			<p class="moe-note">Shaded band = 90% margin of error. ACS 5-year estimates are rolling; compare only non-overlapping periods.</p>
 		{/if}

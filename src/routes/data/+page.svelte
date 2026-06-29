@@ -16,7 +16,7 @@
 	// Character = general demographics; the rest are Quality-of-Life dimensions.
 	let qolStartKey = $derived(groups.find((g) => g.key !== 'character')?.key ?? null);
 
-	// collapsible accordion — dimensions start collapsed
+	// collapsible accordion: dimensions start collapsed
 	let openKeys = $state(new Set());
 	function toggle(key) {
 		const s = new Set(openKeys);
@@ -33,8 +33,8 @@
 </script>
 
 <svelte:head>
-	<title>Data — Carolinas Regional Explorer</title>
-	<meta name="description" content="Download the Carolinas Regional Explorer data — every indicator as CSV or JSON, or the complete dataset as a single archive." />
+	<title>Data | Carolinas Regional Explorer</title>
+	<meta name="description" content="Download the Carolinas Regional Explorer data: every indicator as CSV or JSON, or the complete dataset as a single archive." />
 </svelte:head>
 
 <div class="container data-page">
@@ -90,7 +90,7 @@
 	<section class="download-all">
 		<h2>Download all data</h2>
 		<p class="hint">
-			The complete dataset — every indicator as a long-format CSV, plus a data dictionary — in a single
+			The complete dataset (every indicator as a long-format CSV, plus a data dictionary) in a single
 			<code>.zip</code> archive, rebuilt with every data update.
 		</p>
 		<a class="btn btn-primary" href={zipUrl} download="crxp-data.zip">Download all (.zip)</a>

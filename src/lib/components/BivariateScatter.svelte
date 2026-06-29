@@ -124,7 +124,7 @@
 			</strong>
 		</div>
 		<p class="axes">x: {labelA} · y: {labelB} <span class="z">(standardized, z-scores)</span></p>
-		<p class="caveat">Descriptive only — tracts are spatially autocorrelated, so this is not a significance test.</p>
+		<p class="caveat">Descriptive only: tracts are spatially autocorrelated, so this is not a significance test.</p>
 	</div>
 </figure>
 
