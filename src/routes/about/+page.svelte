@@ -4,7 +4,7 @@
 
 <svelte:head>
 	<title>About | Carolinas Regional Explorer</title>
-	<meta name="description" content="About the Carolinas Regional Explorer: an open, neighborhood-scale community-data platform for the 14-county, two-state Charlotte region." />
+	<meta name="description" content="About the Carolinas Regional Explorer, a community-data platform from the UNC Charlotte Urban Institute covering the 14-county region around Charlotte." />
 </svelte:head>
 
 <div class="container prose-page">
@@ -12,20 +12,10 @@
 	<h1>About the Explorer</h1>
 
 	<p class="lead">
-		The Carolinas Regional Explorer is an open, neighborhood-scale community-data platform for the
-		14-county region around Charlotte. It lets residents, journalists, advocates, planners, and
-		policymakers see how quality-of-life indicators vary from one neighborhood to the next, and how
-		their own community compares.
-	</p>
-
-	<h2>A regional, two-state view</h2>
-	<p>
-		The Explorer builds on the Charlotte-Mecklenburg Quality of Life Explorer, a longstanding
-		collaboration of the UNC Charlotte Urban Institute, the City of Charlotte, and Mecklenburg County
-		that reports on 462 Neighborhood Profile Areas <em>within Mecklenburg</em>. This tool extends that
-		idea across the whole region (11 North Carolina counties and 3 in South Carolina) using U.S.
-		Census tracts as a common neighborhood unit. The two-state frame is its distinct value: it can put a
-		county in York or Lancaster, S.C. next to one in Mecklenburg or Gaston, N.C. on the same map.
+		The Carolinas Regional Explorer is a community-data analytical platform developed by the UNC
+		Charlotte Urban Institute. With roots in the Institute's longstanding collaboration with the City
+		of Charlotte and Mecklenburg County on the Quality of Life Explorer, the Regional Explorer expands
+		that footprint to the 14-county region surrounding Charlotte.
 	</p>
 
 	<h2>What you can explore</h2>
@@ -38,7 +28,6 @@
 		<a href="{base}/data/">download</a>.
 	</p>
 
-	<h2>Built on open, honest data</h2>
 	<p>
 		The application and its data pipeline are open source and use no proprietary GIS. We treat
 		statistical uncertainty as a first-class concern: survey estimates carry their margins of error,
@@ -46,16 +35,6 @@
 		shown as levels rather than trends where the source does not support comparison over time. How every
 		number is produced, and its limits, is documented on the <a href="{base}/methods/">Methods</a>
 		page.
-	</p>
-
-	<h2>The question underneath the map</h2>
-	<p>
-		Many of these indicators connect to the region's defining civic question: economic mobility. A
-		landmark study once ranked Charlotte last among the 50 largest U.S. metros for a poor child's odds of
-		reaching the top, a finding that reshaped a decade of local policy, and one the region has since
-		begun to improve on. Poverty, schooling, housing cost, transportation, segregation, and health all
-		feed that story, and this tool is built to help a community see where opportunity is concentrated and
-		where it is not.
 	</p>
 
 	<h2>Get involved</h2>
