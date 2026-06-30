@@ -32,7 +32,9 @@ shareable printable reports, and open-data downloads (CSV/JSON per indicator + a
 
 The app is a **static site**: all data is precomputed by the data pipeline (`crxp-data/`) into a
 documented JSON **data contract** under `static/data/`, and the app is prerendered to static HTML +
-assets. There is no runtime backend or database.
+assets. There is no runtime backend or database. The one exception is **address search**, which calls a
+single stateless serverless function to proxy a geocoder; every other feature, including the
+browser-side "use my location" lookup, runs without a server (see @sec-address).
 
 ## Tech stack
 
@@ -41,9 +43,10 @@ assets. There is no runtime backend or database.
 | Framework | **SvelteKit** with **Svelte 5 runes** (`$state`, `$derived`, `$effect`, `$props`) |
 | Mapping | **MapLibre GL JS** (vector tiles + GeoJSON sources, feature-state value join) |
 | Build / dev | **Vite**; **`@sveltejs/adapter-static`** (full prerender) |
-| Search | **Fuse.js** (fuzzy area search) |
+| Search | **Fuse.js** (fuzzy area search) + address geocoding (typeahead and "use my location") |
+| Geocoding | **Geoapify** autocomplete + **U.S. Census** geocoder, via one **Netlify function**; client-side point-in-polygon for geolocation |
 | Charts | Hand-rolled inline **SVG** (no chart library) |
-| Hosting | **Netlify** (static) |
+| Hosting | **Netlify** (static site + one function) |
 | Tests | **Vitest** (unit tests co-located as `*.test.js`) |
 
 # High-level architecture
@@ -255,6 +258,28 @@ File-based routes under `src/routes/`:
 All pages are prerendered by adapter-static; `/indicators/[slug]` and `/county/[fips]` enumerate their
 entries from the manifest/areas at build time.
 
+# Address and location search {#sec-address}
+
+The explore page lets a resident find their neighborhood by **typed address** or by **current location**.
+Both resolve to a 2020 census tract and reuse the normal tract selection (`pickArea`), dropping a map
+marker at the point and flying to it.
+
+- **Typeahead (`AddressSearch.svelte`)** — as the user types (debounced, 3+ characters), the field
+  requests region-filtered suggestions and shows a keyboard-navigable dropdown. Picking a suggestion
+  resolves its coordinates to a tract by **point-in-polygon** (`lib/geo/locate.js`) against the loaded
+  tract geometry, so no second geocoder call is needed. Clearing the field removes the marker.
+- **"Find" (Enter) fallback** — resolves the typed text precisely through the U.S. Census geocoder, which
+  returns the tract GEOID directly.
+- **"Use my location"** — browser geolocation, then the same client-side point-in-polygon. The coordinate
+  never leaves the browser.
+- **Geocoding function (`netlify/functions/geocode.mjs`)** — a single stateless serverless function
+  proxies two geocoders: **Geoapify** autocomplete (`?suggest=`, constrained to the 14-county bounding
+  box) for typeahead, and the keyless **U.S. Census** geocoder (`?address=`) for the precise fallback.
+  The Geoapify key is read from the `GEOAPIFY_API_KEY` environment variable and never reaches the
+  browser. Addresses outside the region resolve to no tract and surface an "outside the region" message.
+  Locally the function runs only under `netlify dev`; "use my location" works in any dev mode because it
+  is purely client-side.
+
 # Build, dev & deploy
 
 ```bash
@@ -277,7 +302,8 @@ npm test             # vitest
 - **Deploy (docs):** this documentation is rendered from Quarto and published to **GitHub Pages** by
   `.github/workflows/deploy-docs.yml` on push (repo Settings → Pages → Source: GitHub Actions).
 - **Adapter:** `adapter-static` with full prerender (`fallback: '404.html'`); the app must remain
-  prerenderable (no server-only endpoints).
+  prerenderable. The only server-side code is the standalone geocoding function in `netlify/functions/`
+  (outside the SvelteKit app), so the static contract is unaffected (see @sec-address).
 
 # Updating the DATA shown in the app
 
