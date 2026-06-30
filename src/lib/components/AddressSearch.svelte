@@ -2,7 +2,7 @@
 	import { suggestAddresses, geocodeAddress } from '$lib/geo/geocode.js';
 	import { loadTractIndex, inRegion, tractAtPoint } from '$lib/geo/locate.js';
 
-	let { onLocate = () => {}, basePath = '' } = $props();
+	let { onLocate = () => {}, onClear = () => {}, basePath = '' } = $props();
 
 	let query = $state('');
 	let suggestions = $state([]);
@@ -27,6 +27,7 @@
 		if (q.length < 3) {
 			suggestions = [];
 			open = false;
+			if (q.length === 0) onClear(); // field emptied -> remove the located marker
 			return;
 		}
 		timer = setTimeout(async () => {

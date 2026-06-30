@@ -515,7 +515,11 @@
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
-			<AddressSearch onLocate={locateAddress} basePath={base} />
+			<AddressSearch
+				onLocate={locateAddress}
+				onClear={() => map?.clearLocationMarker?.()}
+				basePath={base}
+			/>
 
 			<div class="settings-float">
 				<MapSettings
