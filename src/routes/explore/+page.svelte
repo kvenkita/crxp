@@ -14,6 +14,7 @@
 	import MetricInfoPanel from '$lib/components/MetricInfoPanel.svelte';
 	import TrendChart from '$lib/components/TrendChart.svelte';
 	import AreaSearch from '$lib/components/AreaSearch.svelte';
+	import AddressSearch from '$lib/components/AddressSearch.svelte';
 	import AnalysisModeBar from '$lib/components/AnalysisModeBar.svelte';
 	import MapSettings from '$lib/components/MapSettings.svelte';
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
@@ -418,6 +419,15 @@
 			map?.showBoundary(area.level, area.geoid);
 		}
 	}
+	function locateAddress({ geoid, lat, lon }) {
+		// select the tract containing the address/location, drop a marker, and fly to it
+		setGeoLevel('tract');
+		addTract(geoid);
+		map?.clearBoundary?.();
+		map?.setLocationMarker?.(lon, lat);
+		map?.flyToPoint?.(lon, lat);
+	}
+
 	function openReport() {
 		if (!selection.selectedIds.length) return;
 		const q = new URLSearchParams({ tracts: selection.selectedIds.join(','), geo: explorer.geoLevel }).toString();
@@ -505,6 +515,7 @@
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
+			<AddressSearch onLocate={locateAddress} basePath={base} />
 		</div>
 
 		<div class="settings-float no-print">
@@ -805,6 +816,9 @@
 		left: var(--sp-4);
 		width: min(22rem, calc(100% - 2rem));
 		z-index: 20;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
 	}
 	.settings-float {
 		position: absolute;

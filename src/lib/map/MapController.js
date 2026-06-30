@@ -493,6 +493,25 @@ export class MapController {
 		);
 	}
 
+	flyToPoint(lng, lat, opts = {}) {
+		if (!this.ready) return;
+		this.map.flyTo({ center: [lng, lat], zoom: 13, duration: 900, ...opts });
+	}
+
+	// A single marker for a geocoded address / "use my location" point.
+	setLocationMarker(lng, lat) {
+		if (!this.ready || !this._maplibre) return;
+		this._locMarker?.remove();
+		this._locMarker = new this._maplibre.Marker({ color: '#9e3b2f' })
+			.setLngLat([lng, lat])
+			.addTo(this.map);
+	}
+
+	clearLocationMarker() {
+		this._locMarker?.remove();
+		this._locMarker = null;
+	}
+
 	resize() {
 		this.map?.resize();
 	}
