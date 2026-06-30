@@ -1,17 +1,49 @@
-// Server-side proxy to the U.S. Census geocoder (keyless). Avoids the geocoder's
-// missing CORS headers and keeps the front end static. Given ?address=, returns
-// { ok, matchedAddress, lat, lon, geoid } where geoid is the 2020 census tract.
+// Server-side geocoding proxy. Two modes:
+//   ?suggest=<text>  -> Geoapify autocomplete, constrained to the 14-county region.
+//                       Returns { ok, suggestions:[{label,lat,lon}] }. Needs GEOAPIFY_API_KEY.
+//   ?address=<text>  -> U.S. Census geocoder (keyless), returns the 2020 tract directly:
+//                       { ok, matchedAddress, lat, lon, geoid }. Used as the Enter fallback.
+// The Geoapify key is read from the environment and never sent to the browser.
+const GEOAPIFY = 'https://api.geoapify.com/v1/geocode/autocomplete';
+const REGION_RECT = '-81.8181,34.4078,-79.7987,36.1088'; // 14-county bbox: lon1,lat1,lon2,lat2
+
+const CENSUS = 'https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress';
 const BENCHMARK = 'Public_AR_Current';
 const VINTAGE = 'Census2020_Current';
 
 export default async (req) => {
-	const address = new URL(req.url).searchParams.get('address');
+	const params = new URL(req.url).searchParams;
+	const suggest = params.get('suggest');
+	const address = params.get('address');
+
+	// ---- autocomplete suggestions (Geoapify) ----
+	if (suggest != null) {
+		const text = suggest.trim();
+		if (text.length < 3) return Response.json({ ok: true, suggestions: [] });
+		const key = process.env.GEOAPIFY_API_KEY;
+		if (!key) return Response.json({ ok: false, reason: 'no_key' });
+		const url =
+			`${GEOAPIFY}?text=${encodeURIComponent(text)}` +
+			`&filter=rect:${REGION_RECT}&format=json&limit=6&apiKey=${key}`;
+		try {
+			const r = await fetch(url);
+			if (!r.ok) return Response.json({ ok: false, reason: 'geocoder_error' });
+			const d = await r.json();
+			const suggestions = (d.results ?? [])
+				.filter((x) => x.lat != null && x.lon != null)
+				.map((x) => ({ label: x.formatted, lat: x.lat, lon: x.lon }));
+			return Response.json({ ok: true, suggestions });
+		} catch {
+			return Response.json({ ok: false, reason: 'error' });
+		}
+	}
+
+	// ---- full-address resolve (Census, returns the tract) ----
 	if (!address || !address.trim()) {
 		return Response.json({ ok: false, reason: 'no_address' }, { status: 400 });
 	}
 	const api =
-		'https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress' +
-		`?address=${encodeURIComponent(address)}` +
+		`${CENSUS}?address=${encodeURIComponent(address)}` +
 		`&benchmark=${BENCHMARK}&vintage=${VINTAGE}&layers=Census Tracts&format=json`;
 	try {
 		const r = await fetch(api, { headers: { 'User-Agent': 'CarolinasRegionalExplorer/1.0' } });

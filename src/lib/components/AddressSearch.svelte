@@ -1,12 +1,16 @@
 <script>
-	import { geocodeAddress } from '$lib/geo/geocode.js';
+	import { suggestAddresses, geocodeAddress } from '$lib/geo/geocode.js';
 	import { loadTractIndex, inRegion, tractAtPoint } from '$lib/geo/locate.js';
 
 	let { onLocate = () => {}, basePath = '' } = $props();
 
 	let query = $state('');
+	let suggestions = $state([]);
+	let open = $state(false);
+	let active = $state(-1);
 	let status = $state('idle'); // idle | loading | no_match | out_region | geo_denied | error
 	let geoSupported = typeof navigator !== 'undefined' && 'geolocation' in navigator;
+	let timer;
 
 	const MESSAGES = {
 		no_match: "We couldn't find that address. Try adding the city and ZIP code.",
@@ -15,7 +19,51 @@
 		error: 'Address lookup is unavailable right now. Please try again.'
 	};
 
-	async function submitAddress() {
+	function onInput() {
+		status = 'idle';
+		active = -1;
+		const q = query.trim();
+		clearTimeout(timer);
+		if (q.length < 3) {
+			suggestions = [];
+			open = false;
+			return;
+		}
+		timer = setTimeout(async () => {
+			const d = await suggestAddresses(q);
+			suggestions = d?.ok ? d.suggestions : [];
+			open = suggestions.length > 0;
+		}, 250);
+	}
+
+	async function resolvePoint(lat, lon, label) {
+		status = 'loading';
+		try {
+			const idx = await loadTractIndex(basePath);
+			const geoid = tractAtPoint(idx, lon, lat);
+			if (!geoid) {
+				status = 'out_region';
+				return;
+			}
+			status = 'idle';
+			onLocate({ geoid, lat, lon, label });
+		} catch {
+			status = 'error';
+		}
+	}
+
+	function pick(s) {
+		query = s.label;
+		suggestions = [];
+		open = false;
+		active = -1;
+		resolvePoint(s.lat, s.lon, s.label);
+	}
+
+	async function submit() {
+		if (active >= 0 && suggestions[active]) return pick(suggestions[active]);
+		if (suggestions.length) return pick(suggestions[0]);
+		// Fallback: resolve the typed text precisely via the Census geocoder.
 		const q = query.trim();
 		if (!q || status === 'loading') return;
 		status = 'loading';
@@ -37,8 +85,22 @@
 		}
 	}
 
+	function onKey(e) {
+		if (!open || !suggestions.length) return;
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			active = (active + 1) % suggestions.length;
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			active = (active - 1 + suggestions.length) % suggestions.length;
+		} else if (e.key === 'Escape') {
+			open = false;
+		}
+	}
+
 	async function useMyLocation() {
 		if (!geoSupported || status === 'loading') return;
+		open = false;
 		status = 'loading';
 		let idx;
 		try {
@@ -65,14 +127,39 @@
 </script>
 
 <div class="addr">
-	<form class="addr-row" onsubmit={(e) => (e.preventDefault(), submitAddress())}>
-		<input
-			type="search"
-			bind:value={query}
-			oninput={() => status !== 'loading' && (status = 'idle')}
-			placeholder="Find your address (street, city, ZIP)"
-			aria-label="Find your address"
-		/>
+	<form class="addr-row" onsubmit={(e) => (e.preventDefault(), submit())}>
+		<div class="addr-input">
+			<input
+				type="search"
+				role="combobox"
+				aria-expanded={open && suggestions.length > 0}
+				aria-controls="addr-results"
+				aria-autocomplete="list"
+				bind:value={query}
+				oninput={onInput}
+				onkeydown={onKey}
+				onfocus={() => (open = suggestions.length > 0)}
+				onblur={() => (open = false)}
+				placeholder="Find your address (street, city, ZIP)"
+				aria-label="Find your address"
+			/>
+			{#if open && suggestions.length}
+				<ul class="results card" id="addr-results" role="listbox">
+					{#each suggestions as s, i (s.label + i)}
+						<li role="option" aria-selected={i === active}>
+							<button
+								type="button"
+								class="result"
+								class:active={i === active}
+								onmousedown={(e) => (e.preventDefault(), pick(s))}
+							>
+								{s.label}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
 		<button type="submit" class="btn btn-primary go" disabled={status === 'loading' || !query.trim()}>
 			{status === 'loading' ? 'Locating' : 'Find'}
 		</button>
@@ -97,14 +184,45 @@
 		display: flex;
 		gap: var(--sp-2);
 	}
-	input {
+	.addr-input {
+		position: relative;
 		flex: 1;
 		min-width: 0;
+	}
+	input {
+		width: 100%;
 		padding: var(--sp-2) var(--sp-3);
 		border: 1px solid var(--c-border-strong);
 		border-radius: var(--r-pill);
 		font: inherit;
 		background: var(--c-surface);
+	}
+	.results {
+		position: absolute;
+		z-index: 30;
+		top: calc(100% + 4px);
+		left: 0;
+		right: 0;
+		max-height: 15rem;
+		overflow-y: auto;
+		list-style: none;
+		margin: 0;
+		padding: var(--sp-1);
+	}
+	.result {
+		display: block;
+		width: 100%;
+		border: 0;
+		background: transparent;
+		padding: var(--sp-2) var(--sp-3);
+		border-radius: var(--r-sm);
+		text-align: left;
+		font-size: var(--t-sm);
+		color: var(--c-text);
+	}
+	.result:hover,
+	.result.active {
+		background: var(--c-surface-2);
 	}
 	.go {
 		flex-shrink: 0;
