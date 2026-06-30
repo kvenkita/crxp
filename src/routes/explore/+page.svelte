@@ -516,19 +516,19 @@
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
 			<AddressSearch onLocate={locateAddress} basePath={base} />
-		</div>
 
-		<div class="settings-float no-print">
-			<MapSettings
-				{basemap}
-				opacity={overlayOpacity}
-				overlayVisible={overlayOn}
-				reliabilityVisible={reliabilityOn}
-				onBasemap={(b) => (basemap = b)}
-				onOpacity={(o) => (overlayOpacity = o)}
-				onToggleOverlay={(v) => (overlayOn = v)}
-				onToggleReliability={(v) => (reliabilityOn = v)}
-			/>
+			<div class="settings-float">
+				<MapSettings
+					{basemap}
+					opacity={overlayOpacity}
+					overlayVisible={overlayOn}
+					reliabilityVisible={reliabilityOn}
+					onBasemap={(b) => (basemap = b)}
+					onOpacity={(o) => (overlayOpacity = o)}
+					onToggleOverlay={(v) => (overlayOn = v)}
+					onToggleReliability={(v) => (reliabilityOn = v)}
+				/>
+			</div>
 		</div>
 
 		{#if analysis.mode === 'bivariate' && bivariateScatter}
@@ -821,10 +821,7 @@
 		gap: var(--sp-2);
 	}
 	.settings-float {
-		position: absolute;
-		top: calc(var(--sp-4) + 3rem);
-		left: var(--sp-4);
-		z-index: 19;
+		align-self: flex-start;
 	}
 	.sel-actions {
 		display: flex;
@@ -908,17 +905,12 @@
 			display: none;
 		}
 
-		/* Search fills the top; settings gear tucks to the top-right corner */
+		/* Search, address, and settings stack down the top-left */
 		.search-float {
 			top: var(--sp-2);
 			left: var(--sp-2);
-			right: 3.4rem;
-			width: auto;
-		}
-		.settings-float {
-			top: var(--sp-2);
 			right: var(--sp-2);
-			left: auto;
+			width: auto;
 		}
 
 		/* Trend / scatter: a collapsible card under the search bar, collapsed shows only its header */
