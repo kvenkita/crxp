@@ -229,8 +229,6 @@ We use a **tiered** approach:
 - **Direct tract estimates (current):** ACS published tract tables, the great majority of indicators.
 - **Model-based small-area estimates (current):** **CDC PLACES** health measures use multilevel
   regression and poststratification (MRP) on BRFSS data, published per tract with confidence intervals.
-- **Planned (PUMS-SAE):** for cross-tabs ACS does not publish at tract level, model-based estimation
-  from PUMS with apportionment/SDR standard errors (seeded by `clt-region-puma`).
 
 ## Spatial statistics {#sec-spatial}
 

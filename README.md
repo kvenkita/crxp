@@ -41,7 +41,7 @@ data contract.
 ## Indicators
 
 65 indicators across **8 active themes** — Character, Economy, Education, Engagement, Environment, Health,
-Housing, Transportation (Safety and Arts & Culture are planned). Data come from the U.S. Census
+Housing, Transportation (Safety and Arts & Culture are not yet populated). Data come from the U.S. Census
 **ACS 5-Year** estimates (annual 2014–2024, 42 indicators), **CDC PLACES** (16 model-based health measures,
 including health-related social needs), the USGS **National Land Cover Database** (incl. Tree Canopy Cover),
 and **EOG VIIRS** nighttime lights.
@@ -113,12 +113,6 @@ The app consumes static files validated by `scripts/build-data.mjs` (the build f
 
 `vitest` covers the analytics helpers (z-scores, quantile breaks, Pearson/Spearman), the trend-series
 builder, and the data-contract gate. Run `npm run test`.
-
-## Roadmap
-
-Broaden data breadth (jobs/LODES, housing affordability/CHAS, life expectancy, air quality, food access);
-populate the remaining Safety and Arts & Culture themes; add a composite equity index, demographic
-disaggregation, data export, and accessibility improvements.
 
 ## License, attribution & citation
 
