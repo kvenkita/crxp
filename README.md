@@ -25,10 +25,13 @@ data contract.
   **Benjamini–Hochberg FDR** control (computed in the data pipeline, shipped precomputed).
 - **Researched briefs** — every indicator has a plain-language, cited *"why this matters"* brief with
   verified "Learn more" resources, plus an "About the data" provenance note.
-- **County profiles** — one per county, with a real-polygon **inset/locator map**, a seamless **14-county
+- **County profiles** — one per county, with a real-polygon **inset/locator map**, a **14-county
   switcher**, metric cards, social sharing, and a standard attribution footer.
 - **Custom reports** — a printable multi-tract report, **shareable on social media** (selection encoded in
   the URL), with the same attribution footer. Approximate OpenStreetMap neighborhood names aid orientation.
+- **Find your neighborhood** — search by **street address** (region-filtered typeahead) or **use your
+  current location** to jump straight to your tract. Address lookup goes through a small serverless
+  geocoding function; geolocation is resolved in the browser by point-in-polygon.
 - **Open-data downloads** — per-indicator **CSV** and **JSON**, or the complete dataset as a prebuilt
   **`.zip`** (refreshed on every build).
 - **Navigation** — indicators are listed **alphabetically within each theme** (Character separated from the
@@ -71,9 +74,14 @@ No server or database at runtime. Non-prerendered routes fall back to `404.html`
 
 ## Documentation
 
-Architecture and maintenance details live in `docs/app-technical-documentation.qmd` (Quarto). On push,
-a GitHub Actions workflow renders it and publishes it to **GitHub Pages** (Settings → Pages → Source:
-"GitHub Actions").
+Two Quarto documents are rendered and published to **GitHub Pages** by a GitHub Actions workflow on push:
+
+- **Application technical documentation** (`docs/app-technical-documentation.qmd`) — architecture,
+  components, routes, the data contract, and maintenance.
+- **Methodology guide** (`docs/methodology-guide.qmd`) — how each indicator is computed, uncertainty
+  handling, boundary harmonization, and the spatial methods (kept in sync with the `crxp-data` pipeline).
+
+(Enable once in Settings → Pages → Source: "GitHub Actions".)
 
 ## Architecture
 
@@ -112,8 +120,20 @@ Broaden data breadth (jobs/LODES, housing affordability/CHAS, life expectancy, a
 populate the remaining Safety and Arts & Culture themes; add a composite equity index, demographic
 disaggregation, data export, and accessibility improvements.
 
+## License, attribution & citation
+
+- **Code:** MIT (`LICENSE`). Copyright (c) 2026 Kailas Venkitasubramanian.
+- **Data:** the produced dataset (`static/data/` and the downloads) is **CC BY 4.0** (`LICENSE-data.md`);
+  please credit *"Carolinas Regional Explorer, UNC Charlotte Urban Institute."*
+- **Trademarks:** "UNC Charlotte" and the crown logo are marks of The University of North Carolina at
+  Charlotte and are **not** licensed for reuse; remove or replace them in derivatives.
+- **Citation:** please cite the working paper — see `CITATION.cff`, which powers GitHub's
+  "Cite this repository."
+
+Upstream data are public-domain (U.S. Census / ACS, CDC PLACES, USGS NLCD, EOG VIIRS); neighborhood names
+are © OpenStreetMap contributors (ODbL).
+
 ---
 
-*A research project in the UNC Charlotte Urban Institute lineage (Charlotte-Mecklenburg Quality of Life
-Explorer). Indicator data is public-domain (U.S. Census, CDC, USGS, EOG); neighborhood names © OpenStreetMap
-contributors (ODbL). Application license to be finalized.*
+*A research project of the UNC Charlotte Urban Institute, in the lineage of the Charlotte-Mecklenburg
+Quality of Life Explorer.*

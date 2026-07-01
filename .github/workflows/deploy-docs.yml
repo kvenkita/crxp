@@ -1,8 +1,7 @@
 name: Deploy documentation to GitHub Pages
 
-# Renders the application technical documentation (Quarto) and publishes it to GitHub Pages.
-# Enable in repo Settings → Pages → Source: "GitHub Actions".
-# (Note: GitHub Pages on a private repo requires a paid GitHub plan.)
+# Renders the technical documentation (app + methodology guide, Quarto) and publishes it to GitHub Pages
+# with a small landing page. Enable once in repo Settings → Pages → Source: "GitHub Actions".
 
 on:
   push:
@@ -27,11 +26,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: quarto-dev/quarto-actions/setup@v2
-      - name: Render application technical documentation
+      - name: Render documentation
         run: |
           quarto render docs/app-technical-documentation.qmd
+          quarto render docs/methodology-guide.qmd
           mkdir -p _site
-          cp docs/app-technical-documentation.html _site/index.html
+          cp docs/app-technical-documentation.html _site/app-technical-documentation.html
+          cp docs/methodology-guide.html _site/methodology-guide.html
+          cp docs/pages-landing.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
