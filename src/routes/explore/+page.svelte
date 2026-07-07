@@ -40,6 +40,17 @@
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
 	let map = $state(null); // MapController, set on ready
+	// Camera restore is parsed at init (not onMount) because MapView mounts — and creates the
+	// controller — before this page's onMount runs; prerender has no query string, hence the guard.
+	const initialCamera = browser ? paramsToState(page.url.searchParams) : {};
+	// current camera, synced into the URL; null at the default region view so links stay clean
+	let camera = $state(
+		initialCamera.z != null ? { z: initialCamera.z, lat: initialCamera.lat, lng: initialCamera.lng } : null
+	);
+	/** @param {{lng:number,lat:number}} center @param {number} zoom @param {boolean} isDefaultView */
+	function onMapMove(center, zoom, isDefaultView) {
+		camera = isDefaultView ? null : { z: zoom, lat: center.lat, lng: center.lng };
+	}
 	let valueFile = $state(null);
 	let aggregates = $state(null);
 	let areas = $state(null);
@@ -287,7 +298,10 @@
 			geo: explorer.geoLevel,
 			mode: analysis.mode,
 			biB: indicatorById(analysis.biB)?.slug,
-			q: analysis.lisaQuadrants.map(String)
+			q: analysis.lisaQuadrants.map(String),
+			z: camera?.z,
+			lat: camera?.lat,
+			lng: camera?.lng
 		});
 		const qs = new URLSearchParams(params).toString();
 		replaceState(qs ? `?${qs}` : page.url.pathname, {});
@@ -511,7 +525,14 @@
 	</aside>
 
 	<div class="map-wrap">
-		<MapView onReady={(c) => (map = c)} onHover={(id) => (selection.hover = id ?? null)} {onSelect} />
+		<MapView
+			center={camera ? [camera.lng, camera.lat] : null}
+			zoom={camera?.z ?? null}
+			onReady={(c) => (map = c)}
+			onHover={(id) => (selection.hover = id ?? null)}
+			{onSelect}
+			onMoveEnd={onMapMove}
+		/>
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
