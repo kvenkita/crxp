@@ -27,9 +27,9 @@
 	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
 
-	import { loadValueFile, valuesForYear, reliabilityForYear, breaksAndColors } from '$lib/data/values.js';
+	import { loadValueFile, valuesForYear } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
-	import { themeRamp } from '$lib/map/colorScale.js';
+	import { buildChoropleth } from '$lib/map/choropleth.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
@@ -179,30 +179,16 @@
 		return () => (cancelled = true);
 	});
 
-	let choropleth = $derived.by(() => {
-		if (!indicator || explorer.year == null) return null;
-		if (explorer.geoLevel === 'county') {
-			const agg = aggregates?.[indicator.id];
-			if (!agg) return null;
-			const yi = agg.years.indexOf(explorer.year);
-			const valuesByGeoid = {};
-			// yi < 0: the selected year has no county data; render an EMPTY choropleth (clears the map)
-			if (yi >= 0) for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
-			const breaks = agg.breaks ?? [];
-			const colors = themeRamp(accent, breaks.length + 1);
-			const stats = { min: agg.domain?.min ?? 0, max: agg.domain?.max ?? 0, breaks };
-			return { valuesByGeoid, breaks, colors, stats };
-		}
-		if (!valueFile || valueFile.indicatorId !== indicator.id) return null;
-		const { breaks, colors, stats } = breaksAndColors(valueFile, accent);
-		return {
-			valuesByGeoid: valuesForYear(valueFile, explorer.year),
-			reliabilityByGeoid: reliabilityForYear(valueFile, explorer.year),
-			breaks,
-			colors,
-			stats
-		};
-	});
+	let choropleth = $derived(
+		buildChoropleth({
+			indicator,
+			year: explorer.year,
+			geoLevel: explorer.geoLevel,
+			aggregates,
+			valueFile,
+			accent
+		})
+	);
 
 	let classes = $derived(
 		choropleth

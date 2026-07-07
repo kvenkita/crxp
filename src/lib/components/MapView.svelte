@@ -4,8 +4,21 @@
 	import { base } from '$app/paths';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
-	/** `center` ([lng,lat]) + `zoom` set the initial camera (e.g. restored from a shared URL); when absent the map fits the region. */
-	let { onReady = () => {}, onHover = () => {}, onSelect = () => {}, onMoveEnd = () => {}, center = null, zoom = null } = $props();
+	/**
+	 * `center` ([lng,lat]) + `zoom` set the initial camera (e.g. restored from a shared URL);
+	 * when absent the map fits the region. `interactive={false}` locks the view (embeds);
+	 * `cooperativeGestures` requires ctrl/⌘+scroll to zoom so embeds don't hijack page scroll.
+	 */
+	let {
+		onReady = () => {},
+		onHover = () => {},
+		onSelect = () => {},
+		onMoveEnd = () => {},
+		center = null,
+		zoom = null,
+		interactive = true,
+		cooperativeGestures = false
+	} = $props();
 
 	let container;
 	let controller = null;
@@ -21,6 +34,8 @@
 				basePath: base,
 				center: center ?? undefined,
 				zoom: zoom ?? undefined,
+				interactive,
+				cooperativeGestures,
 				callbacks: { onHover: (...a) => onHover(...a), onSelect: (...a) => onSelect(...a), onMoveEnd: (...a) => onMoveEnd(...a) }
 			});
 			await controller.init();

@@ -88,7 +88,7 @@ function fcBounds(fc) {
 export class MapController {
 	/**
 	 * @param {HTMLElement} container
-	 * @param {{center?:[number,number], zoom?:number, callbacks?:object, basePath?:string}} opts
+	 * @param {{center?:[number,number], zoom?:number, callbacks?:object, basePath?:string, interactive?:boolean, cooperativeGestures?:boolean}} opts
 	 */
 	constructor(container, opts = {}) {
 		this.container = container;
@@ -96,6 +96,10 @@ export class MapController {
 		this.zoom = opts.zoom ?? 7.2;
 		/** an explicit camera (e.g. restored from a shared URL) replaces the initial region fit */
 		this.hasExplicitCamera = opts.center != null && opts.zoom != null;
+		/** false = locked view (embeds with interactive=0): no pan/zoom, no nav/recenter controls */
+		this.interactive = opts.interactive ?? true;
+		/** embeds set this so scrolling a host page over the map doesn't zoom it */
+		this.cooperativeGestures = opts.cooperativeGestures ?? false;
 		this.basePath = opts.basePath ?? '';
 		/** updated imperatively by MapView so handlers never go stale */
 		this.callbacks = opts.callbacks ?? {};
@@ -123,14 +127,16 @@ export class MapController {
 			zoom: this.zoom,
 			minZoom: 5,
 			maxZoom: 14,
+			interactive: this.interactive,
+			cooperativeGestures: this.cooperativeGestures,
 			attributionControl: { compact: true }
 		});
-		this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'bottom-right');
+		if (this.interactive) this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'bottom-right');
 
 		await new Promise((resolve) => this.map.on('load', resolve));
 		await this._loadData();
 		this._addLayers();
-		this._addRecenterControl(maplibre);
+		if (this.interactive) this._addRecenterControl(maplibre);
 		this._wireEvents();
 		if (!this.hasExplicitCamera) this.recenter(0); // default view: region fits the viewport
 		this.ready = true;
