@@ -16,15 +16,13 @@ export const EMBED_SIZES = [
  * @param {string} origin e.g. location.origin
  * @param {string} basePath SvelteKit base ('' or '/subpath')
  * @param {string} qs current explorer query string, without '?'
- * @param {{staticView?: boolean, nav?: boolean, topnav?: boolean}} [opts] embed-URL-only flags:
- *   staticView appends interactive=0; nav appends nav=1 (indicator side navigation);
- *   topnav appends topnav=1 (site top-nav links, no logo/name)
+ * @param {{staticView?: boolean, nav?: boolean}} [opts] embed-URL-only flags:
+ *   staticView appends interactive=0; nav appends nav=1 (indicator side navigation)
  */
 export function shareUrls(origin, basePath, qs, opts = {}) {
 	const extras = [];
 	if (opts.staticView) extras.push('interactive=0');
 	if (opts.nav) extras.push('nav=1');
-	if (opts.topnav) extras.push('topnav=1');
 	const embedQs = [qs, ...extras].filter(Boolean).join('&');
 	return {
 		explore: `${origin}${basePath}/explore/${qs ? `?${qs}` : ''}`,

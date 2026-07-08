@@ -302,7 +302,7 @@
 	});
 	// ?topnav=1 (brand-less embed view) is layout state, not explorer state — carry it
 	// through URL syncs so it survives the rewrite. urlQs itself stays clean for the
-	// Share/embed dialog, where the checkbox controls it.
+	// Share/embed dialog.
 	const keepTopnav = browser && page.url.searchParams.get('topnav') === '1';
 	$effect(() => {
 		if (!browser || !booted || !indicator) return;

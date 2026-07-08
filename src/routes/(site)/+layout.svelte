@@ -5,9 +5,9 @@
 
 	let { children } = $props();
 
-	// Brand-less "embed view" of any site page: inside an iframe (e.g. navigated to
-	// from /embed?topnav=1) or with an explicit ?topnav=1 the site drops its brand
-	// logo + title — the host page carries the branding, the frame keeps the nav.
+	// Brand-less "embed view" of any site page: inside an iframe or with an explicit
+	// ?topnav=1 the site drops its brand logo + title — the host page carries the
+	// branding, the frame keeps the nav.
 	const framed = browser && window.self !== window.top;
 	// browser guard: searchParams may not be read while prerendering
 	let brandless = $derived(framed || (browser && page.url.searchParams.get('topnav') === '1'));
@@ -97,6 +97,14 @@
 		gap: var(--sp-4);
 	}
 	.header-inner.no-brand {
+		justify-content: flex-end;
+	}
+	/* pre-hydration cover for the brand flash: app.html tags <html> with .brandless
+	   before first paint; once hydrated, the {#if !brandless} above takes over */
+	:global(html.brandless) .brand {
+		display: none;
+	}
+	:global(html.brandless) .header-inner {
 		justify-content: flex-end;
 	}
 	.brand {
