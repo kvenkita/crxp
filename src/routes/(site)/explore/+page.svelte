@@ -20,6 +20,7 @@
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
 	import BivariateScatter from '$lib/components/BivariateScatter.svelte';
 	import LisaPanel from '$lib/components/LisaPanel.svelte';
+	import EmbedDialog from '$lib/components/EmbedDialog.svelte';
 
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { indicatorBriefs } from '$lib/content/indicatorBriefs.js';
@@ -64,6 +65,11 @@
 	let controlsOpen = $state(false);
 	let legendOpen = $state(false);
 	let trendOpen = $state(false);
+
+	// Share/Embed dialog (embed roadmap Phase 3) + stale-shared-link notice
+	let shareOpen = $state(false);
+	/** @type {string | null} */
+	let staleSlug = $state(null);
 
 	// map display settings
 	let basemap = $state('light');
@@ -145,6 +151,8 @@
 		loadAreas().then((a) => (areas = a));
 		const u = paramsToState(page.url.searchParams);
 		const ind = (u.i && indicatorBySlug(u.i)) || manifest.indicators[0];
+		// surface stale shared links instead of degrading silently (embed Phase 3)
+		if (u.i && !indicatorBySlug(u.i)) staleSlug = u.i;
 		setIndicator(ind?.id ?? null);
 		setGeoLevel(u.geo === 'county' ? 'county' : 'tract');
 		setYear(u.y && ind?.years.includes(u.y) ? u.y : ind?.years.at(-1) ?? null);
@@ -276,8 +284,9 @@
 	});
 
 	// ---- URL sync ----
-	$effect(() => {
-		if (!browser || !booted || !indicator) return;
+	// One query string for the URL bar, the share link, and the embed snippet.
+	let urlQs = $derived.by(() => {
+		if (!indicator) return '';
 		const params = stateToParams({
 			i: indicator.slug,
 			y: explorer.year,
@@ -289,8 +298,11 @@
 			lat: camera?.lat,
 			lng: camera?.lng
 		});
-		const qs = new URLSearchParams(params).toString();
-		replaceState(qs ? `?${qs}` : page.url.pathname, {});
+		return new URLSearchParams(params).toString();
+	});
+	$effect(() => {
+		if (!browser || !booted || !indicator) return;
+		replaceState(urlQs ? `?${urlQs}` : page.url.pathname, {});
 	});
 
 	// ---- derivations for panels ----
@@ -507,6 +519,9 @@
 				/>
 			</div>
 		{/if}
+		<div class="panel-section no-print">
+			<button class="btn share-open" onclick={() => (shareOpen = true)}>Share / embed</button>
+		</div>
 		</div>
 	</aside>
 
@@ -519,6 +534,14 @@
 			{onSelect}
 			onMoveEnd={onMapMove}
 		/>
+
+		{#if staleSlug}
+			<div class="stale-notice card no-print" role="status">
+				Indicator “{staleSlug}” wasn't found — showing {indicator?.label ?? 'the default indicator'} instead.
+				This link may be out of date.
+				<button class="stale-close" aria-label="Dismiss" onclick={() => (staleSlug = null)}>✕</button>
+			</div>
+		{/if}
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
@@ -665,6 +688,8 @@
 	</div>
 </div>
 
+<EmbedDialog bind:open={shareOpen} qs={urlQs} title={indicator ? `${indicator.label} — Carolinas Regional Explorer` : 'Carolinas Regional Explorer'} />
+
 <style>
 	.explore {
 		flex: 1;
@@ -732,6 +757,33 @@
 	.map-wrap {
 		position: relative;
 		min-height: 0;
+	}
+	.share-open {
+		justify-content: center;
+		font-size: var(--t-sm);
+	}
+	.stale-notice {
+		position: absolute;
+		top: var(--sp-3);
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 30;
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		padding: var(--sp-2) var(--sp-4);
+		font-size: var(--t-sm);
+		color: var(--c-text-2);
+		max-width: min(40rem, calc(100% - 2rem));
+	}
+	.stale-close {
+		border: none;
+		background: none;
+		color: var(--c-text-3);
+		padding: 0 var(--sp-1);
+	}
+	.stale-close:hover {
+		color: var(--c-text);
 	}
 	.legend-float {
 		position: absolute;
