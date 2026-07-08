@@ -38,6 +38,36 @@ data contract.
   Quality-of-Life dimensions); dropdowns are grouped into **theme-colored** sections.
 - **Provenance in context** — source vintage plus *model-based* and *pre-2020 harmonized* badges.
 
+## Embedding
+
+`/embed` is a chrome-less, iframe-able choropleth page (no site header, nav, or footer),
+driven by the same query params as `/explore`:
+
+| Param | Meaning |
+|---|---|
+| `i` | indicator slug (unknown/absent falls back to the first indicator) |
+| `y` | year (snaps to the latest year with data) |
+| `geo` | `tract` or `county` |
+| `z`, `lat`, `lng` | restored camera (malformed values are ignored → region fit) |
+| `interactive=0` | locks the view: no pan/zoom handlers, no nav/recenter controls |
+
+The page shows the map, a top bar with the indicator + year and a **"View full map ↗"**
+link (opens `/explore/` with the embed's full query string), and the interactive legend
+(hidden below 380 px viewport height). **Cooperative gestures** are on by default —
+scrolling a host article over the map does not zoom it (Ctrl/⌘ + scroll zooms; drag pans).
+Prerendered like the rest of the site; sets `noindex`.
+
+```html
+<iframe
+  src="https://<host>/embed/?i=household-income&y=2020&z=9.5&lat=35.2271&lng=-80.8431"
+  width="800" height="450" style="border:0"
+  title="Carolinas Regional Explorer embed"></iframe>
+```
+
+Embed URLs are constructed by hand for now — the "Share / Embed" dialog is planned
+(Phase 3). Design and implementation notes: [EMBED_1.md](EMBED_1.md) (camera-in-URL),
+[EMBED_2.md](EMBED_2.md) (the `/embed` route), [EMBED_PHASES.md](EMBED_PHASES.md) (roadmap).
+
 ## Indicators
 
 65 indicators across **8 active themes** — Character, Economy, Education, Engagement, Environment, Health,
