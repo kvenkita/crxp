@@ -50,6 +50,7 @@ driven by the same query params as `/explore`:
 | `geo` | `tract` or `county` |
 | `z`, `lat`, `lng` | restored camera (malformed values are ignored → region fit) |
 | `interactive=0` | locks the view: no pan/zoom handlers, no nav/recenter controls |
+| `nav=1` | keeps the indicator side navigation (themes + indicators) inside the embed |
 
 The page shows the map, a top bar with the indicator + year and a **"View full map ↗"**
 link (opens `/explore/` with the embed's full query string), and the interactive legend
@@ -64,9 +65,12 @@ Prerendered like the rest of the site; sets `noindex`.
   title="Carolinas Regional Explorer embed"></iframe>
 ```
 
-Embed URLs are constructed by hand for now — the "Share / Embed" dialog is planned
-(Phase 3). Design and implementation notes: [EMBED_1.md](EMBED_1.md) (camera-in-URL),
-[EMBED_2.md](EMBED_2.md) (the `/embed` route), [EMBED_PHASES.md](EMBED_PHASES.md) (roadmap).
+You don't need to hand-build these URLs: the **Share / embed** button on `/explore`
+opens a dialog with the shareable link and a copy-able iframe snippet
+(size presets + a static/no-interaction toggle). A user-facing how-to covering this app
+and the well-being dashboard is in [EMBEDDING.md](EMBEDDING.md). Design and implementation notes:
+[EMBED_1.md](EMBED_1.md) (camera-in-URL), [EMBED_2.md](EMBED_2.md) (the `/embed` route),
+[EMBED_3.md](EMBED_3.md) (the Share/Embed dialog), [EMBED_PHASES.md](EMBED_PHASES.md) (roadmap).
 
 ## Indicators
 

@@ -27,6 +27,16 @@ describe('shareUrls', () => {
 		const bare = shareUrls('https://example.org', '', '', { staticView: true });
 		expect(bare.embed).toBe('https://example.org/embed/?interactive=0');
 	});
+
+	it('nav appends nav=1 to the embed URL only, composing with staticView', () => {
+		const u = shareUrls('https://example.org', '', 'i=employment', { nav: true });
+		expect(u.embed).toBe('https://example.org/embed/?i=employment&nav=1');
+		expect(u.explore).toBe('https://example.org/explore/?i=employment');
+		const both = shareUrls('https://example.org', '', 'i=employment', { staticView: true, nav: true });
+		expect(both.embed).toBe('https://example.org/embed/?i=employment&interactive=0&nav=1');
+		const bare = shareUrls('https://example.org', '', '', { nav: true });
+		expect(bare.embed).toBe('https://example.org/embed/?nav=1');
+	});
 });
 
 describe('iframeSnippet', () => {
