@@ -122,7 +122,8 @@
 
 			<div class="embed-bar">
 				<span class="embed-title">
-					{indicator?.label ?? 'Carolinas Regional Explorer'}{year != null ? ` · ${year}` : ''}
+					<a class="embed-brand" href="{base}/" target="_blank" rel="noopener noreferrer">UNCC Urban Institute - Carolinas Regional Explorer</a>
+					{#if indicator}- {indicator.label}{year != null ? ` · ${year}` : ''}{/if}
 				</span>
 				<a class="embed-link" href={exploreUrl} target="_blank" rel="noopener noreferrer">View full map ↗</a>
 			</div>
@@ -196,6 +197,12 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+	.embed-brand {
+		color: inherit;
+	}
+	.embed-brand:hover {
+		color: var(--c-link);
 	}
 	.embed-link {
 		font-size: var(--t-xs);

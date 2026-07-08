@@ -64,7 +64,7 @@
 >
 	<div class="body">
 		<div class="head">
-			<h3>Share / embed</h3>
+			<h3>Share</h3>
 			<button class="close" aria-label="Close" onclick={() => (open = false)}>✕</button>
 		</div>
 
@@ -83,6 +83,8 @@
 					<button class="opt" class:active={size.id === p.id} aria-pressed={size.id === p.id}
 						onclick={() => (size = p)}>{p.label}</button>
 				{/each}
+			</div>
+			<div class="row">
 				<label class="static">
 					<input type="checkbox" bind:checked={staticView} />
 					static (no pan/zoom)
@@ -119,7 +121,7 @@
 		padding: var(--sp-5);
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-4);
+		gap: var(--sp-5);
 	}
 	.head {
 		display: flex;
@@ -144,7 +146,12 @@
 	section {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2);
+		gap: var(--sp-3);
+	}
+	/* divider between the link and embed sections */
+	section + section {
+		border-top: 1px solid var(--c-border);
+		padding-top: var(--sp-5);
 	}
 	.field-label {
 		font-size: var(--t-xs);
@@ -197,8 +204,8 @@
 		font-size: var(--t-xs);
 		color: var(--c-text-2);
 	}
-	.static:first-of-type {
-		margin-left: auto;
+	.static + .static {
+		margin-left: var(--sp-3);
 	}
 	.copy {
 		font-size: var(--t-sm);

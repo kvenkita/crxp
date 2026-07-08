@@ -525,7 +525,7 @@
 			</div>
 		{/if}
 		<div class="panel-section no-print">
-			<button class="btn share-open" onclick={() => (shareOpen = true)}>Share / embed</button>
+			<button class="btn btn-primary share-open" onclick={() => (shareOpen = true)}>Share ↗</button>
 		</div>
 		</div>
 	</aside>
