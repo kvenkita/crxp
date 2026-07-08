@@ -51,6 +51,11 @@ driven by the same query params as `/explore`:
 | `z`, `lat`, `lng` | restored camera (malformed values are ignored → region fit) |
 | `interactive=0` | locks the view: no pan/zoom handlers, no nav/recenter controls |
 | `nav=1` | keeps the indicator side navigation (themes + indicators) inside the embed |
+| `topnav=1` | adds the site's top-nav bar (Explore/Indicators/Reports/Methods/About) without the logo or site name; links navigate inside the iframe, and the site keeps its brand hidden while framed |
+
+`?topnav=1` also works on every site page (`/explore/`, `/indicators/`, `/county/<fips>/`,
+`/methods/`, `/about/`): the page renders with its normal top navigation but no logo or
+site name, and nav links carry the flag forward — a brand-less embed view of the whole site.
 
 The page shows the map, a top bar with the indicator + year and a **"View full map ↗"**
 link (opens `/explore/` with the embed's full query string), and the interactive legend

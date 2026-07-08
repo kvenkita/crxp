@@ -24,6 +24,11 @@
 	// nav=1 keeps the explore page's indicator side navigation (themes + indicators)
 	// inside the embed, so readers can switch indicators without leaving the host page.
 	const nav = browser ? page.url.searchParams.get('nav') === '1' : false;
+	// topnav=1 shows the site's top navigation as its own bar — without the logo and
+	// site name. Links navigate IN the iframe (the whole app becomes usable inside it);
+	// the (site) layout hides its brand whenever it runs framed, so the brand stays
+	// hidden after navigating away from /embed.
+	const topnav = browser ? page.url.searchParams.get('topnav') === '1' : false;
 	const initialCamera = u.z != null ? { center: [u.lng, u.lat], zoom: u.z } : null;
 	const geoLevel = u.geo === 'county' ? 'county' : 'tract';
 
@@ -86,11 +91,12 @@
 	}
 
 	// the embed's escape hatch: the full explorer with the exact same view state
-	// (i/y follow nav switches; the embed-only nav param is dropped)
+	// (i/y follow nav switches; the embed-only nav/topnav params are dropped)
 	let exploreUrl = $derived.by(() => {
 		if (!browser) return `${base}/explore/`;
 		const sp = new URLSearchParams(page.url.searchParams);
 		sp.delete('nav');
+		sp.delete('topnav');
 		if (indicator) sp.set('i', indicator.slug);
 		if (year != null) sp.set('y', String(year));
 		const qs = sp.toString();
@@ -104,39 +110,56 @@
 </svelte:head>
 
 <div class="embed">
-	{#if nav}
-		<aside class="embed-panel no-print" aria-label="Indicators">
-			<IndicatorBrowser variant="panel" selectedId={indicator?.id ?? null} onSelect={pickIndicator} />
-		</aside>
+	{#if topnav}
+		<!-- the site header's nav bar, minus brand logo + name; navigates in-frame.
+		     Links carry ?topnav=1 so the brand-less view survives navigation even when
+		     previewed outside an iframe (framed detection covers the iframe case). -->
+		<header class="embed-topnav no-print">
+			<nav aria-label="Primary">
+				<a href="{exploreUrl}{exploreUrl.includes('?') ? '&' : '?'}topnav=1">Explore</a>
+				<a href="{base}/indicators/?topnav=1">Indicators</a>
+				<a href="{base}/county/37119/?topnav=1">Reports</a>
+				<a href="{base}/methods/?topnav=1">Methods</a>
+				<a href="{base}/about/?topnav=1">About</a>
+			</nav>
+		</header>
 	{/if}
 
-	<div class="map-area">
-		<MapView
-			center={initialCamera?.center}
-			zoom={initialCamera?.zoom}
-			{interactive}
-			cooperativeGestures={interactive}
-			onReady={(c) => (map = c)}
-		/>
-
-		<div class="embed-bar">
-			<span class="embed-title">
-				{indicator?.label ?? 'Carolinas Regional Explorer'}{year != null ? ` · ${year}` : ''}
-			</span>
-			<a class="embed-link" href={exploreUrl} target="_blank" rel="noopener noreferrer">View full map ↗</a>
-		</div>
-
-		{#if classes.length}
-			<div class="embed-legend">
-				<Legend
-					{classes}
-					title={indicator?.label}
-					{accent}
-					{onClassHover}
-					onInfo={() => indicator && window.open(`${base}/indicators/${indicator.slug}/`, '_blank', 'noopener')}
-				/>
-			</div>
+	<div class="embed-row">
+		{#if nav}
+			<aside class="embed-panel no-print" aria-label="Indicators">
+				<IndicatorBrowser variant="panel" selectedId={indicator?.id ?? null} onSelect={pickIndicator} />
+			</aside>
 		{/if}
+
+		<div class="map-area">
+			<MapView
+				center={initialCamera?.center}
+				zoom={initialCamera?.zoom}
+				{interactive}
+				cooperativeGestures={interactive}
+				onReady={(c) => (map = c)}
+			/>
+
+			<div class="embed-bar">
+				<span class="embed-title">
+					{indicator?.label ?? 'Carolinas Regional Explorer'}{year != null ? ` · ${year}` : ''}
+				</span>
+				<a class="embed-link" href={exploreUrl} target="_blank" rel="noopener noreferrer">View full map ↗</a>
+			</div>
+
+			{#if classes.length}
+				<div class="embed-legend">
+					<Legend
+						{classes}
+						title={indicator?.label}
+						{accent}
+						{onClassHover}
+						onInfo={() => indicator && window.open(`${base}/indicators/${indicator.slug}/`, '_blank', 'noopener')}
+					/>
+				</div>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -147,6 +170,45 @@
 		overflow: hidden;
 		background: var(--c-surface-2);
 		display: flex;
+		flex-direction: column;
+	}
+	.embed-topnav {
+		flex: 0 0 auto;
+		display: flex;
+		justify-content: flex-end;
+		background: var(--c-surface);
+		border-bottom: 1px solid var(--c-border);
+		padding: var(--sp-1) var(--sp-3);
+	}
+	.embed-topnav nav {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+	.embed-topnav nav::-webkit-scrollbar {
+		display: none;
+	}
+	.embed-topnav a {
+		flex-shrink: 0;
+		color: var(--c-text-2);
+		padding: var(--sp-1) var(--sp-3);
+		border-radius: var(--r-pill);
+		font-weight: 600;
+		font-size: var(--t-sm);
+		white-space: nowrap;
+	}
+	.embed-topnav a:hover {
+		background: var(--c-surface-2);
+		text-decoration: none;
+	}
+	.embed-row {
+		display: flex;
+		flex: 1;
+		min-height: 0;
 	}
 	.embed-panel {
 		flex: 0 0 16rem;

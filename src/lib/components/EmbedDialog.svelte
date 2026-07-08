@@ -13,11 +13,12 @@
 	let size = $state(EMBED_SIZES[1]); // Medium
 	let staticView = $state(false);
 	let withNav = $state(false);
+	let withTopnav = $state(false);
 	let copiedCode = $state(false);
 	let copiedLink = $state(false);
 
 	const origin = typeof window !== 'undefined' ? window.location.origin : '';
-	let urls = $derived(shareUrls(origin, base, qs, { staticView, nav: withNav }));
+	let urls = $derived(shareUrls(origin, base, qs, { staticView, nav: withNav, topnav: withTopnav }));
 	let snippet = $derived(
 		iframeSnippet(urls.embed, { width: size.width, height: size.height, title: title || undefined })
 	);
@@ -90,6 +91,10 @@
 				<label class="static">
 					<input type="checkbox" bind:checked={withNav} />
 					indicator navigation
+				</label>
+				<label class="static">
+					<input type="checkbox" bind:checked={withTopnav} />
+					site navigation
 				</label>
 			</div>
 			<textarea class="code" readonly rows="4" value={snippet} onfocus={(e) => e.currentTarget.select()}

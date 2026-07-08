@@ -37,6 +37,18 @@ describe('shareUrls', () => {
 		const bare = shareUrls('https://example.org', '', '', { nav: true });
 		expect(bare.embed).toBe('https://example.org/embed/?nav=1');
 	});
+
+	it('topnav appends topnav=1 to the embed URL only, composing with the other flags', () => {
+		const u = shareUrls('https://example.org', '', 'i=employment', { topnav: true });
+		expect(u.embed).toBe('https://example.org/embed/?i=employment&topnav=1');
+		expect(u.explore).toBe('https://example.org/explore/?i=employment');
+		const all = shareUrls('https://example.org', '', 'i=employment', {
+			staticView: true,
+			nav: true,
+			topnav: true
+		});
+		expect(all.embed).toBe('https://example.org/embed/?i=employment&interactive=0&nav=1&topnav=1');
+	});
 });
 
 describe('iframeSnippet', () => {

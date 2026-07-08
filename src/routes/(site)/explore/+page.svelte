@@ -300,9 +300,14 @@
 		});
 		return new URLSearchParams(params).toString();
 	});
+	// ?topnav=1 (brand-less embed view) is layout state, not explorer state — carry it
+	// through URL syncs so it survives the rewrite. urlQs itself stays clean for the
+	// Share/embed dialog, where the checkbox controls it.
+	const keepTopnav = browser && page.url.searchParams.get('topnav') === '1';
 	$effect(() => {
 		if (!browser || !booted || !indicator) return;
-		replaceState(urlQs ? `?${urlQs}` : page.url.pathname, {});
+		const qs = keepTopnav ? (urlQs ? `${urlQs}&topnav=1` : 'topnav=1') : urlQs;
+		replaceState(qs ? `?${qs}` : page.url.pathname, {});
 	});
 
 	// ---- derivations for panels ----
