@@ -12,11 +12,12 @@
 	let dlg = $state(null);
 	let size = $state(EMBED_SIZES[1]); // Medium
 	let staticView = $state(false);
+	let withNav = $state(false);
 	let copiedCode = $state(false);
 	let copiedLink = $state(false);
 
 	const origin = typeof window !== 'undefined' ? window.location.origin : '';
-	let urls = $derived(shareUrls(origin, base, qs, { staticView }));
+	let urls = $derived(shareUrls(origin, base, qs, { staticView, nav: withNav }));
 	let snippet = $derived(
 		iframeSnippet(urls.embed, { width: size.width, height: size.height, title: title || undefined })
 	);
@@ -63,7 +64,7 @@
 >
 	<div class="body">
 		<div class="head">
-			<h3>Share / embed</h3>
+			<h3>Share</h3>
 			<button class="close" aria-label="Close" onclick={() => (open = false)}>✕</button>
 		</div>
 
@@ -82,9 +83,15 @@
 					<button class="opt" class:active={size.id === p.id} aria-pressed={size.id === p.id}
 						onclick={() => (size = p)}>{p.label}</button>
 				{/each}
+			</div>
+			<div class="row">
 				<label class="static">
 					<input type="checkbox" bind:checked={staticView} />
 					static (no pan/zoom)
+				</label>
+				<label class="static">
+					<input type="checkbox" bind:checked={withNav} />
+					indicator navigation
 				</label>
 			</div>
 			<textarea class="code" readonly rows="4" value={snippet} onfocus={(e) => e.currentTarget.select()}
@@ -114,7 +121,7 @@
 		padding: var(--sp-5);
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-4);
+		gap: var(--sp-5);
 	}
 	.head {
 		display: flex;
@@ -139,7 +146,12 @@
 	section {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2);
+		gap: var(--sp-3);
+	}
+	/* divider between the link and embed sections */
+	section + section {
+		border-top: 1px solid var(--c-border);
+		padding-top: var(--sp-5);
 	}
 	.field-label {
 		font-size: var(--t-xs);
@@ -191,7 +203,9 @@
 		gap: var(--sp-1);
 		font-size: var(--t-xs);
 		color: var(--c-text-2);
-		margin-left: auto;
+	}
+	.static + .static {
+		margin-left: var(--sp-3);
 	}
 	.copy {
 		font-size: var(--t-sm);

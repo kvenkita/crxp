@@ -12,6 +12,17 @@
 			href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
 			rel="stylesheet"
 		/>
+		<script>
+			// Brand-less view detection before first paint: the prerendered HTML includes
+			// the brand logo + title, so waiting for hydration to hide it flashes the brand
+			// on reload. Must match the `brandless` condition in (site)/+layout.svelte.
+			if (
+				window.self !== window.top ||
+				new URLSearchParams(location.search).get('topnav') === '1'
+			) {
+				document.documentElement.classList.add('brandless');
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

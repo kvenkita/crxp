@@ -1,8 +1,16 @@
 <script>
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
+	import { browser } from '$app/environment';
 
 	let { children } = $props();
+
+	// Brand-less "embed view" of any site page: inside an iframe or with an explicit
+	// ?topnav=1 the site drops its brand logo + title — the host page carries the
+	// branding, the frame keeps the nav.
+	const framed = browser && window.self !== window.top;
+	// browser guard: searchParams may not be read while prerendering
+	let brandless = $derived(framed || (browser && page.url.searchParams.get('topnav') === '1'));
 
 	const nav = [
 		{ href: '/explore', label: 'Explore' },
@@ -12,6 +20,10 @@
 		{ href: '/about', label: 'About' }
 	];
 
+	// keep the brand-less view across navigation by carrying the param forward
+	/** @param {string} href */
+	const navUrl = (href) => (brandless ? `${href}?topnav=1` : href);
+
 	const isActive = (href) =>
 		href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href.split('/')[1] ? `/${href.split('/')[1]}` : href);
 </script>
@@ -20,14 +32,16 @@
 
 <div class="app-shell">
 	<header class="site-header no-print">
-		<div class="header-inner">
-			<a class="brand" href="/">
-				<img class="brand-logo" src="{base}/uncc-logo.png" alt="UNC Charlotte" />
-				<span class="brand-title">Carolinas Regional Explorer</span>
-			</a>
+		<div class="header-inner" class:no-brand={brandless}>
+			{#if !brandless}
+				<a class="brand" href="/">
+					<img class="brand-logo" src="{base}/uncc-logo.png" alt="UNC Charlotte" />
+					<span class="brand-title">Carolinas Regional Explorer</span>
+				</a>
+			{/if}
 			<nav class="site-nav" aria-label="Primary">
 				{#each nav as item (item.href)}
-					<a href={item.href} class="nav-link" class:active={isActive(item.href)}>{item.label}</a>
+					<a href={navUrl(item.href)} class="nav-link" class:active={isActive(item.href)}>{item.label}</a>
 				{/each}
 			</nav>
 		</div>
@@ -81,6 +95,17 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--sp-4);
+	}
+	.header-inner.no-brand {
+		justify-content: flex-end;
+	}
+	/* pre-hydration cover for the brand flash: app.html tags <html> with .brandless
+	   before first paint; once hydrated, the {#if !brandless} above takes over */
+	:global(html.brandless) .brand {
+		display: none;
+	}
+	:global(html.brandless) .header-inner {
+		justify-content: flex-end;
 	}
 	.brand {
 		display: flex;

@@ -300,9 +300,14 @@
 		});
 		return new URLSearchParams(params).toString();
 	});
+	// ?topnav=1 (brand-less embed view) is layout state, not explorer state — carry it
+	// through URL syncs so it survives the rewrite. urlQs itself stays clean for the
+	// Share/embed dialog.
+	const keepTopnav = browser && page.url.searchParams.get('topnav') === '1';
 	$effect(() => {
 		if (!browser || !booted || !indicator) return;
-		replaceState(urlQs ? `?${urlQs}` : page.url.pathname, {});
+		const qs = keepTopnav ? (urlQs ? `${urlQs}&topnav=1` : 'topnav=1') : urlQs;
+		replaceState(qs ? `?${qs}` : page.url.pathname, {});
 	});
 
 	// ---- derivations for panels ----
@@ -520,7 +525,7 @@
 			</div>
 		{/if}
 		<div class="panel-section no-print">
-			<button class="btn share-open" onclick={() => (shareOpen = true)}>Share / embed</button>
+			<button class="btn btn-primary share-open" onclick={() => (shareOpen = true)}>Share ↗</button>
 		</div>
 		</div>
 	</aside>

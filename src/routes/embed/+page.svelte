@@ -6,8 +6,9 @@
 
 	import MapView from '$lib/components/MapView.svelte';
 	import Legend from '$lib/components/Legend.svelte';
+	import IndicatorBrowser from '$lib/components/IndicatorBrowser.svelte';
 
-	import { manifest, loadManifest, indicatorBySlug } from '$lib/state/manifest.svelte.js';
+	import { manifest, loadManifest, indicatorBySlug, indicatorById } from '$lib/state/manifest.svelte.js';
 	import { loadValueFile } from '$lib/data/values.js';
 	import { loadAggregates } from '$lib/data/aggregates.js';
 	import { buildChoropleth } from '$lib/map/choropleth.js';
@@ -20,13 +21,21 @@
 	// "View full map" link carries the full params so the mode opens on /explore.
 	const u = browser ? paramsToState(page.url.searchParams) : {};
 	const interactive = browser ? page.url.searchParams.get('interactive') !== '0' : true;
+	// nav=1 keeps the explore page's indicator side navigation (themes + indicators)
+	// inside the embed, so readers can switch indicators without leaving the host page.
+	const nav = browser ? page.url.searchParams.get('nav') === '1' : false;
 	const initialCamera = u.z != null ? { center: [u.lng, u.lat], zoom: u.z } : null;
 	const geoLevel = u.geo === 'county' ? 'county' : 'tract';
 
+	/** @type {any} */
 	let map = $state(null);
+	/** @type {import('$lib/data/contract.js').Indicator | null} */
 	let indicator = $state(null);
+	/** @type {number | null} */
 	let year = $state(null);
+	/** @type {any} */
 	let valueFile = $state(null);
+	/** @type {any} */
 	let aggregates = $state(null);
 
 	onMount(async () => {
@@ -63,10 +72,30 @@
 		map?.setLegendFilter(range ?? null, choropleth?.valuesByGeoid ?? {});
 	}
 
+	// nav mode: switch the embedded map to another indicator (year snaps like /explore)
+	/** @param {number|string} id */
+	async function pickIndicator(id) {
+		const ind = indicatorById(id);
+		if (!ind || ind.id === indicator?.id) return;
+		indicator = ind;
+		if (year == null || !ind.years.includes(year)) year = ind.years.at(-1) ?? null;
+		if (geoLevel !== 'county') {
+			valueFile = null; // keep the previous paint until the new file arrives
+			valueFile = await loadValueFile(ind.id);
+		}
+	}
+
 	// the embed's escape hatch: the full explorer with the exact same view state
-	let exploreUrl = $derived(
-		browser ? `${base}/explore/?${page.url.searchParams.toString()}` : `${base}/explore/`
-	);
+	// (i/y follow nav switches; the embed-only nav param is dropped)
+	let exploreUrl = $derived.by(() => {
+		if (!browser) return `${base}/explore/`;
+		const sp = new URLSearchParams(page.url.searchParams);
+		sp.delete('nav');
+		if (indicator) sp.set('i', indicator.slug);
+		if (year != null) sp.set('y', String(year));
+		const qs = sp.toString();
+		return `${base}/explore/${qs ? `?${qs}` : ''}`;
+	});
 </script>
 
 <svelte:head>
@@ -75,32 +104,43 @@
 </svelte:head>
 
 <div class="embed">
-	<MapView
-		center={initialCamera?.center}
-		zoom={initialCamera?.zoom}
-		{interactive}
-		cooperativeGestures={interactive}
-		onReady={(c) => (map = c)}
-	/>
+	<div class="embed-row">
+		{#if nav}
+			<aside class="embed-panel no-print" aria-label="Indicators">
+				<IndicatorBrowser variant="panel" selectedId={indicator?.id ?? null} onSelect={pickIndicator} />
+			</aside>
+		{/if}
 
-	<div class="embed-bar">
-		<span class="embed-title">
-			{indicator?.label ?? 'Carolinas Regional Explorer'}{year != null ? ` · ${year}` : ''}
-		</span>
-		<a class="embed-link" href={exploreUrl} target="_blank" rel="noopener noreferrer">View full map ↗</a>
-	</div>
-
-	{#if classes.length}
-		<div class="embed-legend">
-			<Legend
-				{classes}
-				title={indicator?.label}
-				{accent}
-				{onClassHover}
-				onInfo={() => indicator && window.open(`${base}/indicators/${indicator.slug}/`, '_blank', 'noopener')}
+		<div class="map-area">
+			<MapView
+				center={initialCamera?.center}
+				zoom={initialCamera?.zoom}
+				{interactive}
+				cooperativeGestures={interactive}
+				onReady={(c) => (map = c)}
 			/>
+
+			<div class="embed-bar">
+				<span class="embed-title">
+					<a class="embed-brand" href="{base}/" target="_blank" rel="noopener noreferrer">UNCC Urban Institute - Carolinas Regional Explorer</a>
+					{#if indicator}- {indicator.label}{year != null ? ` · ${year}` : ''}{/if}
+				</span>
+				<a class="embed-link" href={exploreUrl} target="_blank" rel="noopener noreferrer">View full map ↗</a>
+			</div>
+
+			{#if classes.length}
+				<div class="embed-legend">
+					<Legend
+						{classes}
+						title={indicator?.label}
+						{accent}
+						{onClassHover}
+						onInfo={() => indicator && window.open(`${base}/indicators/${indicator.slug}/`, '_blank', 'noopener')}
+					/>
+				</div>
+			{/if}
 		</div>
-	{/if}
+	</div>
 </div>
 
 <style>
@@ -109,6 +149,31 @@
 		inset: 0;
 		overflow: hidden;
 		background: var(--c-surface-2);
+		display: flex;
+		flex-direction: column;
+	}
+	.embed-row {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+	.embed-panel {
+		flex: 0 0 16rem;
+		overflow-y: auto;
+		background: var(--c-surface);
+		border-right: 1px solid var(--c-border);
+		padding: var(--sp-3);
+	}
+	.map-area {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+	}
+	/* too narrow for a sidebar: degrade to the plain map embed */
+	@media (max-width: 520px) {
+		.embed-panel {
+			display: none;
+		}
 	}
 	.embed-bar {
 		position: absolute;
@@ -132,6 +197,12 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+	.embed-brand {
+		color: inherit;
+	}
+	.embed-brand:hover {
+		color: var(--c-link);
 	}
 	.embed-link {
 		font-size: var(--t-xs);
