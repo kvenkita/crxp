@@ -20,6 +20,7 @@
 	import BivariatePanel from '$lib/components/BivariatePanel.svelte';
 	import BivariateScatter from '$lib/components/BivariateScatter.svelte';
 	import LisaPanel from '$lib/components/LisaPanel.svelte';
+	import EmbedDialog from '$lib/components/EmbedDialog.svelte';
 
 	import { manifest, loadManifest, indicatorById, indicatorBySlug } from '$lib/state/manifest.svelte.js';
 	import { indicatorBriefs } from '$lib/content/indicatorBriefs.js';
@@ -27,9 +28,9 @@
 	import { selection, setHover, toggleTract, addTract, clearTracts, setLegendFilter } from '$lib/state/selection.svelte.js';
 	import { analysis, setMode, setBivariateB, toggleQuadrant } from '$lib/state/analysis.svelte.js';
 
-	import { loadValueFile, valuesForYear, reliabilityForYear, breaksAndColors } from '$lib/data/values.js';
+	import { loadValueFile, valuesForYear } from '$lib/data/values.js';
 	import { loadAggregates, regionAvgAt } from '$lib/data/aggregates.js';
-	import { themeRamp } from '$lib/map/colorScale.js';
+	import { buildChoropleth } from '$lib/map/choropleth.js';
 	import { loadAreas, areaName } from '$lib/data/areas.js';
 	import { loadMeta } from '$lib/data/meta.js';
 	import { loadLisa, quadForYear } from '$lib/data/analytics.js';
@@ -40,6 +41,17 @@
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
 
 	let map = $state(null); // MapController, set on ready
+	// Camera restore is parsed at init (not onMount) because MapView mounts — and creates the
+	// controller — before this page's onMount runs; prerender has no query string, hence the guard.
+	const initialCamera = browser ? paramsToState(page.url.searchParams) : {};
+	// current camera, synced into the URL; null at the default region view so links stay clean
+	let camera = $state(
+		initialCamera.z != null ? { z: initialCamera.z, lat: initialCamera.lat, lng: initialCamera.lng } : null
+	);
+	/** @param {{lng:number,lat:number}} center @param {number} zoom @param {boolean} isDefaultView */
+	function onMapMove(center, zoom, isDefaultView) {
+		camera = isDefaultView ? null : { z: zoom, lat: center.lat, lng: center.lng };
+	}
 	let valueFile = $state(null);
 	let aggregates = $state(null);
 	let areas = $state(null);
@@ -53,6 +65,11 @@
 	let controlsOpen = $state(false);
 	let legendOpen = $state(false);
 	let trendOpen = $state(false);
+
+	// Share/Embed dialog (embed roadmap Phase 3) + stale-shared-link notice
+	let shareOpen = $state(false);
+	/** @type {string | null} */
+	let staleSlug = $state(null);
 
 	// map display settings
 	let basemap = $state('light');
@@ -134,6 +151,8 @@
 		loadAreas().then((a) => (areas = a));
 		const u = paramsToState(page.url.searchParams);
 		const ind = (u.i && indicatorBySlug(u.i)) || manifest.indicators[0];
+		// surface stale shared links instead of degrading silently (embed Phase 3)
+		if (u.i && !indicatorBySlug(u.i)) staleSlug = u.i;
 		setIndicator(ind?.id ?? null);
 		setGeoLevel(u.geo === 'county' ? 'county' : 'tract');
 		setYear(u.y && ind?.years.includes(u.y) ? u.y : ind?.years.at(-1) ?? null);
@@ -168,30 +187,16 @@
 		return () => (cancelled = true);
 	});
 
-	let choropleth = $derived.by(() => {
-		if (!indicator || explorer.year == null) return null;
-		if (explorer.geoLevel === 'county') {
-			const agg = aggregates?.[indicator.id];
-			if (!agg) return null;
-			const yi = agg.years.indexOf(explorer.year);
-			const valuesByGeoid = {};
-			// yi < 0: the selected year has no county data; render an EMPTY choropleth (clears the map)
-			if (yi >= 0) for (const fips of Object.keys(agg.countyAvg)) valuesByGeoid[fips] = agg.countyAvg[fips][yi];
-			const breaks = agg.breaks ?? [];
-			const colors = themeRamp(accent, breaks.length + 1);
-			const stats = { min: agg.domain?.min ?? 0, max: agg.domain?.max ?? 0, breaks };
-			return { valuesByGeoid, breaks, colors, stats };
-		}
-		if (!valueFile || valueFile.indicatorId !== indicator.id) return null;
-		const { breaks, colors, stats } = breaksAndColors(valueFile, accent);
-		return {
-			valuesByGeoid: valuesForYear(valueFile, explorer.year),
-			reliabilityByGeoid: reliabilityForYear(valueFile, explorer.year),
-			breaks,
-			colors,
-			stats
-		};
-	});
+	let choropleth = $derived(
+		buildChoropleth({
+			indicator,
+			year: explorer.year,
+			geoLevel: explorer.geoLevel,
+			aggregates,
+			valueFile,
+			accent
+		})
+	);
 
 	let classes = $derived(
 		choropleth
@@ -279,18 +284,25 @@
 	});
 
 	// ---- URL sync ----
-	$effect(() => {
-		if (!browser || !booted || !indicator) return;
+	// One query string for the URL bar, the share link, and the embed snippet.
+	let urlQs = $derived.by(() => {
+		if (!indicator) return '';
 		const params = stateToParams({
 			i: indicator.slug,
 			y: explorer.year,
 			geo: explorer.geoLevel,
 			mode: analysis.mode,
 			biB: indicatorById(analysis.biB)?.slug,
-			q: analysis.lisaQuadrants.map(String)
+			q: analysis.lisaQuadrants.map(String),
+			z: camera?.z,
+			lat: camera?.lat,
+			lng: camera?.lng
 		});
-		const qs = new URLSearchParams(params).toString();
-		replaceState(qs ? `?${qs}` : page.url.pathname, {});
+		return new URLSearchParams(params).toString();
+	});
+	$effect(() => {
+		if (!browser || !booted || !indicator) return;
+		replaceState(urlQs ? `?${urlQs}` : page.url.pathname, {});
 	});
 
 	// ---- derivations for panels ----
@@ -507,11 +519,29 @@
 				/>
 			</div>
 		{/if}
+		<div class="panel-section no-print">
+			<button class="btn share-open" onclick={() => (shareOpen = true)}>Share / embed</button>
+		</div>
 		</div>
 	</aside>
 
 	<div class="map-wrap">
-		<MapView onReady={(c) => (map = c)} onHover={(id) => (selection.hover = id ?? null)} {onSelect} />
+		<MapView
+			center={camera ? [camera.lng, camera.lat] : null}
+			zoom={camera?.z ?? null}
+			onReady={(c) => (map = c)}
+			onHover={(id) => (selection.hover = id ?? null)}
+			{onSelect}
+			onMoveEnd={onMapMove}
+		/>
+
+		{#if staleSlug}
+			<div class="stale-notice card no-print" role="status">
+				Indicator “{staleSlug}” wasn't found — showing {indicator?.label ?? 'the default indicator'} instead.
+				This link may be out of date.
+				<button class="stale-close" aria-label="Dismiss" onclick={() => (staleSlug = null)}>✕</button>
+			</div>
+		{/if}
 
 		<div class="search-float no-print">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
@@ -658,6 +688,8 @@
 	</div>
 </div>
 
+<EmbedDialog bind:open={shareOpen} qs={urlQs} title={indicator ? `${indicator.label} — Carolinas Regional Explorer` : 'Carolinas Regional Explorer'} />
+
 <style>
 	.explore {
 		flex: 1;
@@ -725,6 +757,33 @@
 	.map-wrap {
 		position: relative;
 		min-height: 0;
+	}
+	.share-open {
+		justify-content: center;
+		font-size: var(--t-sm);
+	}
+	.stale-notice {
+		position: absolute;
+		top: var(--sp-3);
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 30;
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		padding: var(--sp-2) var(--sp-4);
+		font-size: var(--t-sm);
+		color: var(--c-text-2);
+		max-width: min(40rem, calc(100% - 2rem));
+	}
+	.stale-close {
+		border: none;
+		background: none;
+		color: var(--c-text-3);
+		padding: 0 var(--sp-1);
+	}
+	.stale-close:hover {
+		color: var(--c-text);
 	}
 	.legend-float {
 		position: absolute;

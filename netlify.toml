@@ -8,6 +8,10 @@
 [functions]
   directory = "netlify/functions"
 
+# NOTE: /embed is designed to be iframed by third-party sites. Netlify sends no
+# frame-blocking headers by default; if X-Frame-Options or a CSP is ever added here,
+# /embed/* must keep `frame-ancestors` open (and the rest of the site can deny).
+
 [[headers]]
   for = "/data/*"
   [headers.values]

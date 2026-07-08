@@ -13,9 +13,16 @@
  * @property {string[]} [q]  active LISA quadrant codes (1..4)
  * @property {string[]} [pins] pinned area geoids
  * @property {string} [sel]  selected geoid
+ * @property {number} [z]    map camera zoom
+ * @property {number} [lat]  map camera center latitude
+ * @property {number} [lng]  map camera center longitude
  */
 
 const DEFAULTS = { geo: 'tract', mode: 'explore' };
+
+// camera precision in the URL: zoom to 2 decimals, coords to 5 (~1 m)
+/** @param {number} v @param {number} decimals */
+const round = (v, decimals) => String(Number(v.toFixed(decimals)));
 
 /** @param {UrlState} state @returns {Record<string,string>} */
 export function stateToParams(state) {
@@ -34,6 +41,12 @@ export function stateToParams(state) {
 	}
 	if (state.pins && state.pins.length) p.pins = state.pins.join(',');
 	if (state.sel) p.sel = state.sel;
+	// camera is all-or-nothing: a partial camera can't be restored
+	if (state.z != null && state.lat != null && state.lng != null) {
+		p.z = round(state.z, 2);
+		p.lat = round(state.lat, 5);
+		p.lng = round(state.lng, 5);
+	}
 	return p;
 }
 
@@ -53,5 +66,20 @@ export function paramsToState(input) {
 	if (get('q')) s.q = get('q').split('').filter((c) => '1234'.includes(c));
 	if (get('pins')) s.pins = get('pins').split(',').filter(Boolean);
 	if (get('sel')) s.sel = get('sel');
+	if (get('z') && get('lat') && get('lng')) {
+		const z = Number(get('z'));
+		const lat = Number(get('lat'));
+		const lng = Number(get('lng'));
+		// accept only a full, sane camera — out-of-range coords would make MapLibre throw
+		if (
+			Number.isFinite(z) && z >= 0 && z <= 24 &&
+			Number.isFinite(lat) && Math.abs(lat) <= 90 &&
+			Number.isFinite(lng) && Math.abs(lng) <= 180
+		) {
+			s.z = z;
+			s.lat = lat;
+			s.lng = lng;
+		}
+	}
 	return s;
 }

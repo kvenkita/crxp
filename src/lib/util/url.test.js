@@ -37,4 +37,36 @@ describe('url state round-trip', () => {
 		expect(s.geo).toBe('tract');
 		expect(s.mode).toBe('explore');
 	});
+
+	it('serializes the camera with rounded precision', () => {
+		const p = stateToParams({ z: 9.4567, lat: 35.123456789, lng: -80.987654321 });
+		expect(p.z).toBe('9.46');
+		expect(p.lat).toBe('35.12346');
+		expect(p.lng).toBe('-80.98765');
+	});
+
+	it('omits a partial camera', () => {
+		expect(stateToParams({ z: 9 }).z).toBeUndefined();
+		expect(stateToParams({ lat: 35.1, lng: -80.9 }).lat).toBeUndefined();
+	});
+
+	it('round-trips the camera through URLSearchParams', () => {
+		const params = new URLSearchParams(stateToParams({ i: 'employment', z: 10.5, lat: 35.2271, lng: -80.8431 }));
+		const back = paramsToState(params);
+		expect(back.z).toBe(10.5);
+		expect(back.lat).toBe(35.2271);
+		expect(back.lng).toBe(-80.8431);
+	});
+
+	it('rejects an out-of-range or non-numeric camera', () => {
+		expect(paramsToState(new URLSearchParams('z=9&lat=999&lng=-80.9')).z).toBeUndefined();
+		expect(paramsToState(new URLSearchParams('z=abc&lat=35.2&lng=-80.9')).z).toBeUndefined();
+		expect(paramsToState(new URLSearchParams('z=9&lat=35.2&lng=181')).lng).toBeUndefined();
+	});
+
+	it('ignores the camera when a param is missing', () => {
+		const s = paramsToState(new URLSearchParams('z=9&lat=35.2'));
+		expect(s.z).toBeUndefined();
+		expect(s.lat).toBeUndefined();
+	});
 });

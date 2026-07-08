@@ -59,6 +59,9 @@ function baseStyle() {
 
 const FILL_OPACITY = 0.82;
 
+/** padding of the default region fit; shared by recenter() and isDefaultView() */
+const REGION_FIT_PADDING = { top: 16, bottom: 16, left: 24, right: 24 };
+
 /** Bounding box [[minLng,minLat],[maxLng,maxLat]] of a GeoJSON FeatureCollection. */
 function fcBounds(fc) {
 	let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -85,12 +88,18 @@ function fcBounds(fc) {
 export class MapController {
 	/**
 	 * @param {HTMLElement} container
-	 * @param {{center?:[number,number], zoom?:number, callbacks?:object, basePath?:string}} opts
+	 * @param {{center?:[number,number], zoom?:number, callbacks?:object, basePath?:string, interactive?:boolean, cooperativeGestures?:boolean}} opts
 	 */
 	constructor(container, opts = {}) {
 		this.container = container;
 		this.center = opts.center ?? [-80.9, 35.3];
 		this.zoom = opts.zoom ?? 7.2;
+		/** an explicit camera (e.g. restored from a shared URL) replaces the initial region fit */
+		this.hasExplicitCamera = opts.center != null && opts.zoom != null;
+		/** false = locked view (embeds with interactive=0): no pan/zoom, no nav/recenter controls */
+		this.interactive = opts.interactive ?? true;
+		/** embeds set this so scrolling a host page over the map doesn't zoom it */
+		this.cooperativeGestures = opts.cooperativeGestures ?? false;
 		this.basePath = opts.basePath ?? '';
 		/** updated imperatively by MapView so handlers never go stale */
 		this.callbacks = opts.callbacks ?? {};
@@ -118,16 +127,18 @@ export class MapController {
 			zoom: this.zoom,
 			minZoom: 5,
 			maxZoom: 14,
+			interactive: this.interactive,
+			cooperativeGestures: this.cooperativeGestures,
 			attributionControl: { compact: true }
 		});
-		this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'bottom-right');
+		if (this.interactive) this.map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'bottom-right');
 
 		await new Promise((resolve) => this.map.on('load', resolve));
 		await this._loadData();
 		this._addLayers();
-		this._addRecenterControl(maplibre);
+		if (this.interactive) this._addRecenterControl(maplibre);
 		this._wireEvents();
-		this.recenter(0); // default view: region fits the viewport
+		if (!this.hasExplicitCamera) this.recenter(0); // default view: region fits the viewport
 		this.ready = true;
 		return this;
 	}
@@ -171,7 +182,24 @@ export class MapController {
 	/** Fit the map to the region's bounds (the default view). */
 	recenter(duration = 600) {
 		if (!this.map || !this.regionBounds) return;
-		this.map.fitBounds(this.regionBounds, { padding: { top: 16, bottom: 16, left: 24, right: 24 }, duration });
+		this.map.fitBounds(this.regionBounds, { padding: REGION_FIT_PADDING, duration });
+	}
+
+	/**
+	 * Whether the camera (within rounding tolerance) matches the default region fit for the
+	 * current viewport — i.e. the view a fresh visitor would get, not worth encoding in a URL.
+	 */
+	isDefaultView() {
+		if (!this.map || !this.regionBounds || !this._maplibre) return false;
+		const def = this.map.cameraForBounds(this.regionBounds, { padding: REGION_FIT_PADDING });
+		if (!def || def.zoom == null || def.center == null) return false;
+		const dc = this._maplibre.LngLat.convert(def.center);
+		const c = this.map.getCenter();
+		return (
+			Math.abs(this.map.getZoom() - def.zoom) < 0.02 &&
+			Math.abs(c.lng - dc.lng) < 1e-4 &&
+			Math.abs(c.lat - dc.lat) < 1e-4
+		);
 	}
 
 	_opacityExpr() {
@@ -310,6 +338,15 @@ export class MapController {
 				this.callbacks.onSelect?.(String(e.features[0].id));
 			});
 		}
+		// camera changes, debounced: continuous scroll-zoom fires many moveends, and Safari
+		// throttles the history API the page syncs the camera into
+		this.map.on('moveend', () => {
+			clearTimeout(this._moveT);
+			this._moveT = setTimeout(() => {
+				if (!this.map) return;
+				this.callbacks.onMoveEnd?.(this.map.getCenter(), this.map.getZoom(), this.isDefaultView());
+			}, 250);
+		});
 	}
 
 	_setState(level, id, state) {
@@ -517,6 +554,7 @@ export class MapController {
 	}
 
 	destroy() {
+		clearTimeout(this._moveT);
 		this.map?.remove();
 		this.map = null;
 		this.ready = false;
