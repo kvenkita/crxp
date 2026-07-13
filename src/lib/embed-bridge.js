@@ -16,7 +16,8 @@ const EMBED_PARAMS = ['topnav'];
 // security boundary, so we only ever hand it an exact origin from this list
 // (or the '*' fallback below) — never an unverified parent origin.
 const ALLOWED_STATIC = new Set([
-	'https://carolinasregionalexplorer.com', // production container
+	'https://carolinasregionalexplorer.netlify.app', // production container (current)
+	'https://carolinasregionalexplorer.com', // production container (future custom domain)
 	'http://localhost:1111', // container dev server
 	'http://127.0.0.1:1111'
 ]);
