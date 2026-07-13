@@ -89,6 +89,13 @@ describe('hostShareUrl', () => {
 		);
 	});
 
+	it('preserves the container\'s trailing slash exactly (never inserts or strips one)', () => {
+		// The container announces origin + pathname verbatim, e.g. `…/map/`.
+		expect(
+			hostShareUrl('https://carolinasregionalexplorer.com/map/', 'i=household-income&z=11&topnav=1')
+		).toBe('https://carolinasregionalexplorer.com/map/?i=household-income&z=11');
+	});
+
 	it('drops the host URL\'s own query and hash', () => {
 		expect(hostShareUrl('https://carolinasregionalexplorer.com/map?old=1#frag', '?z=11')).toBe(
 			'https://carolinasregionalexplorer.com/map?z=11'
