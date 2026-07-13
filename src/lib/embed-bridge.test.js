@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { stripEmbedParams, resolveTarget, postState } from './embed-bridge.js';
+import { stripEmbedParams, resolveTarget, postState, listenHostUrl, hostShareUrl } from './embed-bridge.js';
 
 describe('stripEmbedParams', () => {
 	it('drops embed-only flags and keeps the leading ?', () => {
@@ -79,5 +79,73 @@ describe('postState', () => {
 			'https://carolinasregionalexplorer.com'
 		);
 		spy.mockRestore();
+	});
+});
+
+describe('hostShareUrl', () => {
+	it('combines the host origin + path with the stripped query string', () => {
+		expect(hostShareUrl('https://carolinasregionalexplorer.com/map', 'i=pov&topnav=1')).toBe(
+			'https://carolinasregionalexplorer.com/map?i=pov'
+		);
+	});
+
+	it('drops the host URL\'s own query and hash', () => {
+		expect(hostShareUrl('https://carolinasregionalexplorer.com/map?old=1#frag', '?z=11')).toBe(
+			'https://carolinasregionalexplorer.com/map?z=11'
+		);
+	});
+
+	it('yields a bare host URL when there is no explorer state', () => {
+		expect(hostShareUrl('https://carolinasregionalexplorer.com/map', '')).toBe(
+			'https://carolinasregionalexplorer.com/map'
+		);
+	});
+
+	it('falls back to the raw host URL when it cannot be parsed', () => {
+		expect(hostShareUrl('not a url', 'i=pov')).toBe('not a url');
+	});
+});
+
+describe('listenHostUrl', () => {
+	function emit(origin, data) {
+		window.dispatchEvent(new MessageEvent('message', { origin, data }));
+	}
+
+	it('reports host URLs from an allowlisted origin', () => {
+		const seen = [];
+		const off = listenHostUrl((url) => seen.push(url));
+		emit('https://carolinasregionalexplorer.com', {
+			type: 'crxp:host',
+			url: 'https://carolinasregionalexplorer.com/map'
+		});
+		expect(seen).toEqual(['https://carolinasregionalexplorer.com/map']);
+		off();
+	});
+
+	it('ignores messages from a non-allowlisted origin', () => {
+		const seen = [];
+		const off = listenHostUrl((url) => seen.push(url));
+		emit('https://evil.example', { type: 'crxp:host', url: 'https://evil.example/map' });
+		expect(seen).toEqual([]);
+		off();
+	});
+
+	it('ignores unrelated message types', () => {
+		const seen = [];
+		const off = listenHostUrl((url) => seen.push(url));
+		emit('https://carolinasregionalexplorer.com', { type: 'crxp:state', search: '?z=11' });
+		expect(seen).toEqual([]);
+		off();
+	});
+
+	it('stops reporting after unsubscribe', () => {
+		const seen = [];
+		const off = listenHostUrl((url) => seen.push(url));
+		off();
+		emit('https://carolinasregionalexplorer.com', {
+			type: 'crxp:host',
+			url: 'https://carolinasregionalexplorer.com/map'
+		});
+		expect(seen).toEqual([]);
 	});
 });

@@ -73,3 +73,44 @@ export function resolveTarget() {
 export function postState(search) {
 	window.parent.postMessage({ type: 'crxp:state', search }, resolveTarget());
 }
+
+/**
+ * Listen for the container's `crxp:host` message, which announces the canonical
+ * URL of the page embedding us (origin + path, e.g. https://…/map). We can't read
+ * the parent's URL directly across origins, so the container hands it to us — it
+ * should send this on load and after each `crxp:state` it receives. Only messages
+ * from an allowlisted origin are honored. Returns an unsubscribe function.
+ * @param {(url: string) => void} onUrl called with each announced host URL
+ * @returns {() => void}
+ */
+export function listenHostUrl(onUrl) {
+	/** @param {MessageEvent} e */
+	const handler = (e) => {
+		if (!isAllowedOrigin(e.origin)) return;
+		const data = e.data;
+		if (data && data.type === 'crxp:host' && typeof data.url === 'string') {
+			onUrl(data.url);
+		}
+	};
+	window.addEventListener('message', handler);
+	return () => window.removeEventListener('message', handler);
+}
+
+/**
+ * The shareable "link to this view" that matches the container's address bar:
+ * the host's origin + path with the explorer's query string appended. The host
+ * URL's own query/hash is dropped and embed-only flags are stripped from `qs`.
+ * Falls back to the raw host URL if it can't be parsed.
+ * @param {string} hostUrl absolute URL the container announced via `crxp:host`
+ * @param {string} qs explorer query string, with or without a leading '?'
+ * @returns {string}
+ */
+export function hostShareUrl(hostUrl, qs) {
+	const search = stripEmbedParams(new URLSearchParams(qs.replace(/^\?/, '')));
+	try {
+		const u = new URL(hostUrl);
+		return `${u.origin}${u.pathname}${search}`;
+	} catch {
+		return hostUrl;
+	}
+}

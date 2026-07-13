@@ -4,7 +4,7 @@
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
-	import { postState, stripEmbedParams } from '$lib/embed-bridge';
+	import { postState, stripEmbedParams, listenHostUrl } from '$lib/embed-bridge';
 
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
@@ -69,6 +69,11 @@
 
 	// Share/Embed dialog (embed roadmap Phase 3) + stale-shared-link notice
 	let shareOpen = $state(false);
+	// When embedded, the container announces its own address-bar URL (crxp:host) so
+	// the Share dialog's "link to this view" points at the parent /map page the user
+	// actually sees — not this iframe's /explore origin. Null until the host speaks.
+	/** @type {string | null} */
+	let hostUrl = $state(null);
 	/** @type {string | null} */
 	let staleSlug = $state(null);
 
@@ -327,6 +332,10 @@
 			lastPosted = search;
 			postState(search);
 		});
+
+		// Inbound half of the bridge: the container tells us its own /map URL so the
+		// Share dialog can link to the parent page instead of this iframe's origin.
+		$effect(() => listenHostUrl((url) => (hostUrl = url)));
 	}
 
 	// ---- derivations for panels ----
@@ -717,7 +726,7 @@
 	</div>
 </div>
 
-<EmbedDialog bind:open={shareOpen} qs={urlQs} title={indicator ? `${indicator.label} — Carolinas Regional Explorer` : 'Carolinas Regional Explorer'} />
+<EmbedDialog bind:open={shareOpen} qs={urlQs} {hostUrl} title={indicator ? `${indicator.label} — Carolinas Regional Explorer` : 'Carolinas Regional Explorer'} />
 
 <style>
 	.explore {

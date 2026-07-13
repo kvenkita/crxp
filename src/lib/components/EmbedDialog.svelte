@@ -1,12 +1,16 @@
 <script>
 	import { base } from '$app/paths';
 	import { shareUrls, iframeSnippet, EMBED_SIZES } from '$lib/util/embed.js';
+	import { hostShareUrl } from '$lib/embed-bridge.js';
 
 	/**
 	 * Share/Embed dialog (embed roadmap Phase 3). `qs` is the explorer's current
 	 * query string (the same one the URL bar carries), so both URLs stay exact.
+	 * `hostUrl` is the container's announced /map URL when we're embedded — when set,
+	 * "link to this view" points at the parent page the user sees rather than this
+	 * iframe's /explore origin.
 	 */
-	let { open = $bindable(false), qs = '', title = '' } = $props();
+	let { open = $bindable(false), qs = '', hostUrl = null, title = '' } = $props();
 
 	/** @type {HTMLDialogElement | null} */
 	let dlg = $state(null);
@@ -18,6 +22,8 @@
 
 	const origin = typeof window !== 'undefined' ? window.location.origin : '';
 	let urls = $derived(shareUrls(origin, base, qs, { staticView, nav: withNav }));
+	// Prefer the container's /map URL when embedded; else this app's own /explore URL.
+	let shareLink = $derived(hostUrl ? hostShareUrl(hostUrl, qs) : urls.explore);
 	let snippet = $derived(
 		iframeSnippet(urls.embed, { width: size.width, height: size.height, title: title || undefined })
 	);
@@ -40,7 +46,7 @@
 
 	async function copyLink() {
 		try {
-			await navigator.clipboard.writeText(urls.explore);
+			await navigator.clipboard.writeText(shareLink);
 			copiedLink = true;
 			setTimeout(() => (copiedLink = false), 1500);
 		} catch {
@@ -70,7 +76,7 @@
 
 		<section>
 			<span class="field-label">Link to this view</span>
-			<input class="url" type="text" readonly value={urls.explore} onfocus={(e) => e.currentTarget.select()} />
+			<input class="url" type="text" readonly value={shareLink} onfocus={(e) => e.currentTarget.select()} />
 			<div class="row">
 				<button class="btn copy" onclick={copyLink}>{copiedLink ? 'Copied!' : 'Copy link'}</button>
 			</div>
