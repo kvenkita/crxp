@@ -38,6 +38,12 @@
 					<img class="brand-logo" src="{base}/uncc-logo.png" alt="UNC Charlotte" />
 					<span class="brand-title">Carolinas Regional Explorer</span>
 				</a>
+			{:else}
+				<p class="brand-description">
+					The Carolinas Regional Explorer maps quality-of-life indicators for every Census tract
+					in the 14-county Charlotte region, built for residents, researchers, planners, and
+					policymakers.
+				</p>
 			{/if}
 			<nav class="site-nav" aria-label="Primary">
 				{#each nav as item (item.href)}
@@ -97,7 +103,14 @@
 		gap: var(--sp-4);
 	}
 	.header-inner.no-brand {
-		justify-content: flex-end;
+		justify-content: space-between;
+	}
+	.brand-description {
+		margin: 0;
+		max-width: 46ch;
+		color: var(--c-text-3);
+		font-size: var(--t-xs);
+		line-height: 1.3;
 	}
 	/* pre-hydration cover for the brand flash: app.html tags <html> with .brandless
 	   before first paint; once hydrated, the {#if !brandless} above takes over */
@@ -105,7 +118,7 @@
 		display: none;
 	}
 	:global(html.brandless) .header-inner {
-		justify-content: flex-end;
+		justify-content: space-between;
 	}
 	.brand {
 		display: flex;
@@ -179,6 +192,9 @@
 		}
 		.brand-logo {
 			height: 1.9rem;
+		}
+		.brand-description {
+			display: none;
 		}
 		.header-inner {
 			padding: 0 var(--sp-3);
