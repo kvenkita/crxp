@@ -12,13 +12,14 @@
 	// browser guard: searchParams may not be read while prerendering
 	let brandless = $derived(framed || (browser && page.url.searchParams.get('topnav') === '1'));
 
-	const nav = [
+	const allNav = [
 		{ href: '/explore', label: 'Explore' },
 		{ href: '/indicators', label: 'Indicators' },
 		{ href: '/county/37119', label: 'Reports' },
 		{ href: '/methods', label: 'Methods' },
 		{ href: '/about', label: 'About' }
 	];
+	let nav = $derived(brandless ? allNav.filter((item) => item.href !== '/about') : allNav);
 
 	// keep the brand-less view across navigation by carrying the param forward
 	/** @param {string} href */
