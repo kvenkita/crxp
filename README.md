@@ -57,6 +57,34 @@ driven by the same query params as `/explore`:
 `/methods/`, `/about/`): the page renders with its normal top navigation but no logo or
 site name, and nav links carry the flag forward — a brand-less embed view of the whole site.
 
+### Broadcasting map state to the parent window
+
+When `/explore/` runs inside a **cross-origin** iframe (e.g. the container site at
+`carolinasregionalexplorer.com/map` embeds it with `?topnav=1`), the container can't read the
+iframe's URL. So the app posts its state to the parent on every change, letting the container
+mirror it into its own address bar and keep `/map?…` URLs shareable and deep-linkable:
+
+```js
+window.parent.postMessage({ type: 'crxp:state', search: '?i=household-income&z=11' }, targetOrigin);
+```
+
+- **`search`** is the user-facing query string with the leading `?` (empty string when there
+  are no params). Embed-plumbing flags like `topnav` are stripped — only indicator + map-position
+  state reaches the container.
+- **Embedded-only.** Nothing is posted when `window.parent === window` (standalone), so there is
+  no behavioral or console change outside an iframe.
+- **One message per distinct state**, deduped, emitted whenever the selected indicator or the map
+  camera changes (it reacts to the same reactive source that writes the address bar, not
+  `page.url` — `replaceState` doesn't reactively update `page.url`).
+- **`targetOrigin`** is resolved from the parent origin (`ancestorOrigins`/`document.referrer`)
+  against an allowlist — `https://carolinasregionalexplorer.com`, Netlify deploy previews
+  (`https://<deploy>--<site>.netlify.app`), and `http://localhost:1111` / `http://127.0.0.1:1111`
+  (container dev server). A verified allowlisted origin is targeted exactly; otherwise it falls
+  back to `'*'` (the payload is non-sensitive). An unverified origin is never targeted directly.
+- **Emitter only.** The container deep-links *in* by appending the query string to the iframe
+  `src`, which the app already restores from its URL on load — there is no inbound message
+  listener. Contract and helpers live in [`src/lib/embed-bridge.js`](src/lib/embed-bridge.js).
+
 The page shows the map, a top bar with the indicator + year and a **"View full map ↗"**
 link (opens `/explore/` with the embed's full query string), and the interactive legend
 (hidden below 380 px viewport height). **Cooperative gestures** are on by default —

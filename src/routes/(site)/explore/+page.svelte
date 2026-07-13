@@ -4,6 +4,7 @@
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
+	import { postState, stripEmbedParams } from '$lib/embed-bridge';
 
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
@@ -309,6 +310,24 @@
 		const qs = keepTopnav ? (urlQs ? `${urlQs}&topnav=1` : 'topnav=1') : urlQs;
 		replaceState(qs ? `?${qs}` : page.url.pathname, {});
 	});
+
+	// When embedded cross-origin, mirror the user-facing query string to the
+	// container so its /map?... URLs stay shareable. We react to `urlQs` (the same
+	// reactive source the sync effect above writes to the address bar) rather than
+	// page.url, since replaceState doesn't reactively update page.url. Gated on the
+	// same booted/indicator condition so the broadcast matches what's actually in
+	// this iframe's URL. Emits once per distinct value.
+	if (browser && window.parent !== window) {
+		/** @type {string | undefined} */
+		let lastPosted;
+		$effect(() => {
+			if (!booted || !indicator) return;
+			const search = stripEmbedParams(new URLSearchParams(urlQs));
+			if (search === lastPosted) return; // dedupe rapid interactions
+			lastPosted = search;
+			postState(search);
+		});
+	}
 
 	// ---- derivations for panels ----
 	let regionAvg = $derived(aggregates && indicator ? regionAvgAt(aggregates, indicator.id, explorer.year) : null);
