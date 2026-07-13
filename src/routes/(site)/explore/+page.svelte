@@ -494,14 +494,17 @@
 			<span class="chev" class:open={controlsOpen}>▸</span>
 		</button>
 		<div class="panel-body">
-		<div class="panel-section">
-			<AnalysisModeBar mode={analysis.mode} onChange={changeMode} />
-		</div>
-		<div class="panel-section">
-			<span class="field-label">Geographic level</span>
-			<GeoLevelToggle value={explorer.geoLevel} onChange={changeGeoLevel} />
+		<div class="panel-header">
+			<div class="panel-section">
+				<AnalysisModeBar mode={analysis.mode} onChange={changeMode} />
+			</div>
+			<div class="panel-section">
+				<span class="field-label">Geographic level</span>
+				<GeoLevelToggle value={explorer.geoLevel} onChange={changeGeoLevel} />
+			</div>
 		</div>
 
+		<div class="panel-scroll">
 		{#if analysis.mode === 'explore'}
 			<div class="panel-section browser-section">
 				<span class="field-label">Indicator</span>
@@ -543,7 +546,9 @@
 				/>
 			</div>
 		{/if}
-		<div class="panel-section no-print">
+		</div>
+
+		<div class="panel-footer panel-section no-print">
 			<button class="btn btn-primary share-open" onclick={() => (shareOpen = true)}>Share ↗</button>
 		</div>
 		</div>
@@ -725,15 +730,36 @@
 		border-right: 1px solid var(--c-border);
 		background: var(--c-surface);
 		padding: var(--sp-4);
-		overflow-y: auto;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-4);
 	}
 	.panel-body {
+		flex: 1;
+		min-height: 0;
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-4);
+	}
+	/* Mode bar + geographic level stay pinned at the top */
+	.panel-header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-4);
+	}
+	/* Only the indicator list (and mode-specific panels) scrolls */
+	.panel-scroll {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-4);
+	}
+	/* Share button stays pinned at the bottom */
+	.panel-footer {
+		margin-top: auto;
 	}
 	.panel-section {
 		display: flex;
