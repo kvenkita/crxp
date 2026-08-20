@@ -1,4 +1,12 @@
 <script>
+	import { page } from '$app/state';
+	import { browser } from '$app/environment';
+
+	// Same brand-less "embed view" check as +layout.svelte: inside an iframe or
+	// with an explicit ?topnav=1, the host page carries the branding text.
+	const framed = browser && window.self !== window.top;
+	let brandless = $derived(framed || (browser && page.url.searchParams.get('topnav') === '1'));
+
 	const start = [
 		{
 			title: 'Explore the map',
@@ -35,10 +43,12 @@
 	<div class="container hero-inner">
 		<p class="eyebrow">Charlotte 14-county region</p>
 		<h1>Explore your community, tract by tract.</h1>
-		<p class="lede">
-			The Carolinas Regional Explorer maps quality-of-life indicators for every Census tract in the
-			14-county Charlotte region, built for residents, researchers, planners, and policymakers.
-		</p>
+		{#if brandless}
+			<p class="lede">
+				The Carolinas Regional Explorer maps quality-of-life indicators for every Census tract in the
+				14-county Charlotte region, built for residents, researchers, planners, and policymakers.
+			</p>
+		{/if}
 		<div class="hero-cta">
 			<a class="btn btn-primary" href="/explore">Open the explorer</a>
 			<a class="btn" href="/indicators">Browse indicators</a>
