@@ -14,6 +14,7 @@
 	import { buildChoropleth } from '$lib/map/choropleth.js';
 	import { legendClasses } from '$lib/map/colorScale.js';
 	import { paramsToState } from '$lib/util/url.js';
+	import { listenHostUrl, hostShareUrl } from '$lib/embed-bridge.js';
 
 	// Same query params as /explore (i, y, geo, z/lat/lng), read once at init — an embed is a
 	// snapshot, not a session, so nothing is written back to the URL. Analysis modes
@@ -37,6 +38,16 @@
 	let valueFile = $state(null);
 	/** @type {any} */
 	let aggregates = $state(null);
+
+	// When a container page frames this /embed directly (rather than /explore),
+	// it can announce its own URL the same way it does for /explore (see
+	// embed-bridge.js) — if it does, "View full map" should escape to that page's
+	// URL (with our state as its query string) instead of this app's own /explore.
+	/** @type {string | null} */
+	let hostUrl = $state(null);
+	if (browser && window.parent !== window) {
+		$effect(() => listenHostUrl((url) => (hostUrl = url)));
+	}
 
 	onMount(async () => {
 		await loadManifest();
@@ -86,7 +97,9 @@
 	}
 
 	// the embed's escape hatch: the full explorer with the exact same view state
-	// (i/y follow nav switches; the embed-only nav param is dropped)
+	// (i/y follow nav switches; embed-only params are dropped). When the container
+	// has announced its own URL (hostUrl), escape there instead — the page the
+	// reader actually sees — with our state as its query string.
 	let exploreUrl = $derived.by(() => {
 		if (!browser) return `${base}/explore/`;
 		const sp = new URLSearchParams(page.url.searchParams);
@@ -94,6 +107,7 @@
 		if (indicator) sp.set('i', indicator.slug);
 		if (year != null) sp.set('y', String(year));
 		const qs = sp.toString();
+		if (hostUrl) return hostShareUrl(hostUrl, qs);
 		return `${base}/explore/${qs ? `?${qs}` : ''}`;
 	});
 </script>
