@@ -18,6 +18,7 @@ const EMBED_PARAMS = ['topnav'];
 const ALLOWED_STATIC = new Set([
 	'https://carolinasregionalexplorer.netlify.app', // production container (current)
 	'https://carolinasregionalexplorer.com', // production container (future custom domain)
+	'https://review-container.netlify.app', // review container
 	'http://localhost:1111', // container dev server
 	'http://127.0.0.1:1111'
 ]);
