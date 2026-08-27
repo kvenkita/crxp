@@ -136,8 +136,12 @@
 		color: var(--c-text-3);
 		font-size: var(--t-xs);
 		line-height: 1.3;
-		/* Up to 3 lines, then ellipsis. */
-		display: -webkit-box;
+		/* Clamp to 3 lines, then ellipsis. NB: no `display` here — the embed-view
+		   rule below sets `display: -webkit-box` to switch this on. Declaring it
+		   here instead would override the `display: none` above (last declaration
+		   in a block wins), showing the description in the full-site view too,
+		   where it squeezes .brand-title into 3 lines that overflow the
+		   fixed-height header. */
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
