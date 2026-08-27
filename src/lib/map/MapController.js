@@ -20,26 +20,38 @@ function buildLisaPaint() {
 	];
 }
 
-const CARTO = (variant) =>
-	['a', 'b', 'c'].map((s) => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{r}.png`);
+// Esri tiles address rows before columns: /tile/{z}/{y}/{x}, not the usual {z}/{x}/{y}.
+const ESRI = (service) => [
+	`https://services.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`
+];
 
-const ATTRIB = '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>';
+// The light basemap was CARTO's `light_nolabels`/`light_only_labels` until CARTO
+// retired keyless access to basemaps.cartocdn.com. An unkeyed request still returns
+// HTTP 200, but with an "API KEY REQUIRED" watermark painted into the tile — nothing
+// throws, the map just renders defaced.
+//
+// CARTO's keyed tiles work (the parameter is `key`, not `api_key`), but this is a
+// static site with no server to proxy through, so the key would ship readable in the
+// client bundle and could be lifted to spend the 5M req/month quota. Esri's Light Gray
+// Canvas needs no key at all, matches the muted palette, and splits base/reference the
+// same way — and the app already depends on Esri for satellite imagery.
+const CANVAS_ATTRIB = '© <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const OSM_ATTRIB = '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const ESRI_ATTRIB = 'Imagery © <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics';
 
-/** base raster layers per basemap; `labels` (carto labels) is shown over light/satellite. */
+/** base raster layers per basemap; `labels` (the reference overlay) is shown over light/satellite. */
 const BASEMAPS = {
 	light: ['basemap-light'],
 	streets: ['basemap-osm'],
 	satellite: ['basemap-sat']
 };
 
-function baseStyle() {
+export function baseStyle() {
 	return {
 		version: 8,
 		sources: {
-			'carto-base': { type: 'raster', tiles: CARTO('light_nolabels'), tileSize: 256, attribution: ATTRIB },
-			'carto-labels': { type: 'raster', tiles: CARTO('light_only_labels'), tileSize: 256 },
+			'light-base': { type: 'raster', tiles: ESRI('Canvas/World_Light_Gray_Base'), tileSize: 256, attribution: CANVAS_ATTRIB },
+			'label-overlay': { type: 'raster', tiles: ESRI('Canvas/World_Light_Gray_Reference'), tileSize: 256, attribution: CANVAS_ATTRIB },
 			osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, attribution: OSM_ATTRIB, maxzoom: 19 },
 			'esri-sat': {
 				type: 'raster',
@@ -50,7 +62,7 @@ function baseStyle() {
 			}
 		},
 		layers: [
-			{ id: 'basemap-light', type: 'raster', source: 'carto-base' },
+			{ id: 'basemap-light', type: 'raster', source: 'light-base' },
 			{ id: 'basemap-osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
 			{ id: 'basemap-sat', type: 'raster', source: 'esri-sat', layout: { visibility: 'none' } }
 		]
@@ -290,7 +302,7 @@ export class MapController {
 			});
 		}
 		// labels above everything
-		this.map.addLayer({ id: 'labels', type: 'raster', source: 'carto-labels' });
+		this.map.addLayer({ id: 'labels', type: 'raster', source: 'label-overlay' });
 		// selected county/city boundary outline (top-most)
 		this.map.addLayer({
 			id: 'sel-boundary-line',
@@ -399,7 +411,7 @@ export class MapController {
 			const vis = key === name ? 'visible' : 'none';
 			for (const id of layers) this.map.setLayoutProperty(id, 'visibility', vis);
 		}
-		// carto labels read well over light & satellite, but OSM has its own labels
+		// the label overlay reads well over light & satellite, but OSM has its own labels
 		this.map.setLayoutProperty('labels', 'visibility', name === 'streets' ? 'none' : 'visible');
 	}
 
