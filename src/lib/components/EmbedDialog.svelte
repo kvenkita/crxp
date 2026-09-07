@@ -222,8 +222,8 @@
 		padding: var(--sp-1) var(--sp-4);
 	}
 	.copy:hover {
-		background: var(--c-accent-strong);
-		border-color: var(--c-accent-strong);
+		background: var(--c-teal-strong);
+		border-color: var(--c-teal-strong);
 	}
 	.preview {
 		font-size: var(--t-sm);

@@ -233,10 +233,13 @@
 	}
 	.site-footer {
 		border-top: 1px solid var(--c-border);
-		background: var(--c-surface);
-		color: var(--c-text-3);
+		background: var(--c-accent-darkest);
+		color: var(--c-surface);
 		font-size: var(--t-xs);
 		padding: var(--sp-2) 0;
+	}
+	.site-footer a {
+		color: var(--c-surface);
 	}
 	.footer-inner {
 		display: flex;

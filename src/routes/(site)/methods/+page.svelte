@@ -403,7 +403,7 @@
 	}
 	.rel-ok {
 		background: #e8f3ef;
-		color: var(--c-accent-strong, #1f6f63);
+		color: var(--c-teal-strong);
 	}
 	.rel-caution {
 		background: #fdecc8;

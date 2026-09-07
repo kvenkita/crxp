@@ -11,10 +11,13 @@
 	--c-sand-faint: #f3ead9;
 	--c-teal: #1f6f63;
 	--c-teal-soft: #3a8c7f;
+	--c-teal-strong: #155249;
 
-	/* Semantic accents */
-	--c-accent: var(--c-teal);
-	--c-accent-strong: #155249;
+	/* Semantic accents (shared with reg-explorer's $accent/$accent-strong) */
+	--c-accent: #e0ecad;
+	--c-accent-strong: #4c5d38;
+	--c-accent-light: #f3e5ab;
+	--c-accent-darkest: #101820;
 	--c-link: #1c5a78;
 	--c-warn: #b07a2a;
 	--c-danger: #9e3b2f;
@@ -191,8 +194,8 @@ button {
 	color: var(--c-text-inv);
 }
 .btn-primary:hover {
-	background: var(--c-accent-strong);
-	border-color: var(--c-accent-strong);
+	background: var(--c-teal-strong);
+	border-color: var(--c-teal-strong);
 }
 
 .card {

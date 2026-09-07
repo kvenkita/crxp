@@ -97,7 +97,7 @@
 		color: var(--c-text-3);
 	}
 	.m-delta.up {
-		color: var(--c-accent-strong);
+		color: var(--c-teal-strong);
 	}
 	.m-delta.down {
 		color: var(--c-danger);

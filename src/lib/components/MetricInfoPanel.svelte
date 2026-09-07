@@ -74,7 +74,7 @@
 	}
 	.chip.good {
 		background: #e8f3ef;
-		color: var(--c-accent-strong);
+		color: var(--c-teal-strong);
 		border-color: #cfe7df;
 	}
 	.chip.need {

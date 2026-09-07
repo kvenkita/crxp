@@ -130,7 +130,7 @@
 		text-decoration: none;
 		background: var(--c-surface-2);
 		border-color: var(--c-border-strong);
-		border-left-color: var(--c-accent-strong);
+		border-left-color: var(--c-teal-strong);
 	}
 	.start-item h3 {
 		font-size: var(--t-lg);
