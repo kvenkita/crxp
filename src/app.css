@@ -232,6 +232,6 @@ button {
 		display: none !important;
 	}
 	body {
-		background: #fff;
+		background: var(--c-surface);
 	}
 }

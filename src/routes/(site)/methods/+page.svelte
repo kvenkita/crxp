@@ -431,7 +431,7 @@
 		align-items: center;
 		gap: 0.45rem;
 		background: var(--c-accent-strong);
-		color: #fff;
+		color: var(--c-surface);
 		border: none;
 		border-radius: var(--r-pill);
 		padding: 0.55rem 0.95rem;
