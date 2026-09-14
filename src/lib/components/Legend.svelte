@@ -129,7 +129,7 @@
 		height: 1rem;
 		border-radius: 3px;
 		flex-shrink: 0;
-		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+		box-shadow: inset 0 0 0 1px rgba(var(--c-black-rgb), 0.12);
 	}
 	.hint {
 		margin: var(--sp-2) 0 0;

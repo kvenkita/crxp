@@ -26,7 +26,7 @@
 	@media print {
 		.crxp-attribution {
 			margin-top: var(--sp-4);
-			color: #000;
+			color: var(--c-black);
 		}
 	}
 </style>
