@@ -42,6 +42,65 @@
 	/* Map */
 	--c-nodata: #e6e2db;
 
+	/* Storytelling palette — data stories / dashboard charts.
+	   Fixed order, assigned in sequence, never cycled. */
+	--c-story-cat-1: #f3e5ab;
+	--c-story-cat-2: #4c5d38;
+	--c-story-cat-3: #101820;
+	--c-story-cat-4: #802f2d;
+	--c-story-cat-5: #007377;
+
+	/* Storytelling diverging ramps (5 stops each: pole, mid, neutral, mid, pole) */
+	--c-story-div-redgreen-0: #802f2d;
+	--c-story-div-redgreen-1: #c08a87;
+	--c-story-div-redgreen-2: #f3e5ab;
+	--c-story-div-redgreen-3: #8b9977;
+	--c-story-div-redgreen-4: #4c5d38;
+
+	--c-story-div-browngreen-0: #493843;
+	--c-story-div-browngreen-1: #9f8a95;
+	--c-story-div-browngreen-2: #f0f0f0;
+	--c-story-div-browngreen-3: #b9bfb1;
+	--c-story-div-browngreen-4: #505c41;
+
+	--c-story-div-tealbrown-0: #007377;
+	--c-story-div-tealbrown-1: #adc9ca;
+	--c-story-div-tealbrown-2: #f0f0f0;
+	--c-story-div-tealbrown-3: #c9b9c1;
+	--c-story-div-tealbrown-4: #493843;
+
+	/* Storytelling sequential ramps (5 stops, light → dark; intermediate
+	   stops may be interpolated between 0 and 4 when needed) */
+	--c-story-seq-green-0: #edeeec;
+	--c-story-seq-green-1: #b9bfb1;
+	--c-story-seq-green-2: #859472;
+	--c-story-seq-green-3: #505c41;
+	--c-story-seq-green-4: #1a1f14;
+
+	--c-story-seq-teal-0: #eef2f2;
+	--c-story-seq-teal-1: #adc9ca;
+	--c-story-seq-teal-2: #63a9ab;
+	--c-story-seq-teal-3: #337173;
+	--c-story-seq-teal-4: #102c2d;
+
+	--c-story-seq-earthpurple-0: #efe9ec;
+	--c-story-seq-earthpurple-1: #c9b9c1;
+	--c-story-seq-earthpurple-2: #9f8a95;
+	--c-story-seq-earthpurple-3: #6e5c68;
+	--c-story-seq-earthpurple-4: #493843;
+
+	--c-story-seq-red-0: #f2eeee;
+	--c-story-seq-red-1: #c9b0b0;
+	--c-story-seq-red-2: #a84c6a;
+	--c-story-seq-red-3: #733a39;
+	--c-story-seq-red-4: #311514;
+
+	--c-story-seq-gray-0: #f0f0f0;
+	--c-story-seq-gray-1: #bebdbc;
+	--c-story-seq-gray-2: #8c8b89;
+	--c-story-seq-gray-3: #595956;
+	--c-story-seq-gray-4: #262624;
+
 	/* Typography */
 	--font-display: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	--font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
