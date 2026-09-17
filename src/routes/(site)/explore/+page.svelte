@@ -962,7 +962,7 @@
 		font-weight: 600;
 	}
 	.btn-report:hover {
-		background: var(--c-accent-strong);
+		background: var(--c-teal-strong);
 	}
 	.strip-card {
 		padding: var(--sp-3);

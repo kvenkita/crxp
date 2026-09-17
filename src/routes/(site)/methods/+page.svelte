@@ -379,7 +379,7 @@
 		height: auto;
 		border: 1px solid var(--c-border);
 		border-radius: var(--r-md);
-		box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+		box-shadow: var(--shadow-sm);
 	}
 	figcaption {
 		margin-top: var(--sp-2);
@@ -403,7 +403,7 @@
 	}
 	.rel-ok {
 		background: #e8f3ef;
-		color: var(--c-accent-strong, #1f6f63);
+		color: var(--c-teal-strong);
 	}
 	.rel-caution {
 		background: #fdecc8;
@@ -431,7 +431,7 @@
 		align-items: center;
 		gap: 0.45rem;
 		background: var(--c-accent-strong);
-		color: #fff;
+		color: var(--c-surface);
 		border: none;
 		border-radius: var(--r-pill);
 		padding: 0.55rem 0.95rem;

@@ -186,7 +186,7 @@
 			{#each series as s (s.label)}
 				{#each s.values as v, i (i)}
 					{#if v != null && Number.isFinite(v)}
-						<circle cx={xAt(i)} cy={yAt(v)} r={i === activeIdx ? 3.6 : 2} fill={s.color} stroke="#fff" stroke-width={i === activeIdx ? 1 : 0.5} />
+						<circle cx={xAt(i)} cy={yAt(v)} r={i === activeIdx ? 3.6 : 2} fill={s.color} stroke="var(--c-surface)" stroke-width={i === activeIdx ? 1 : 0.5} />
 					{/if}
 				{/each}
 			{/each}

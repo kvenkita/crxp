@@ -53,7 +53,7 @@
 		position: relative;
 		height: 0.55rem;
 		border-radius: var(--r-pill);
-		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+		box-shadow: inset 0 0 0 1px rgba(var(--c-black-rgb), 0.1);
 	}
 	.marker {
 		position: absolute;

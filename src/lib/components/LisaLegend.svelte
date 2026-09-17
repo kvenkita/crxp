@@ -61,7 +61,7 @@
 		height: 0.9rem;
 		border-radius: 3px;
 		flex-shrink: 0;
-		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+		box-shadow: inset 0 0 0 1px rgba(var(--c-black-rgb), 0.12);
 	}
 	.ns {
 		display: flex;
