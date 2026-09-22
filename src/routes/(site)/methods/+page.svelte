@@ -247,12 +247,15 @@
 	<h2 id="lisa">Spatial clusters (LISA)</h2>
 	<p>
 		The spatial-cluster map uses Local Indicators of Spatial Association (Local Moran's I) with an
-		8-nearest-neighbor spatial weights matrix and a conditional-permutation significance test: each
-		tract is held fixed while its hypothetical neighbors are drawn <em>without replacement</em> from the
-		other tracts (999 times). Because every tract is tested at once, significance is then
+		8-nearest-neighbor spatial weights matrix. Because many indicators are strongly skewed (a few
+		tracts far above the rest), each indicator is first converted to <em>rank-based normal scores</em>,
+		so the test reflects where a tract ranks in the region and a handful of extreme tracts cannot
+		mask real clusters. Significance uses a conditional-permutation test: each tract is held fixed
+		while its hypothetical neighbors are drawn <em>without replacement</em> from the other tracts
+		(9,999 times). Because every tract is tested at once, significance is then
 		<strong>FDR-controlled</strong> (Benjamini–Hochberg) so chance alone doesn't light up dozens of
 		tracts. Significant tracts are labeled High–High (hot spots), Low–Low (cold spots), or High–Low /
-		Low–High spatial outliers.
+		Low–High spatial outliers; "high" and "low" are relative to the region's ranking.
 	</p>
 	<figure>
 		<img src="{base}/img/methods/lisa.png" alt="A map of significant High-High and Low-Low clusters and spatial outliers." loading="lazy" />

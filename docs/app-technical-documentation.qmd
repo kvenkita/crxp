@@ -234,7 +234,8 @@ flowchart LR
   name** above the scatter.
 - **Spatial clusters (LISA)** — local Moran's I quadrants (High-High, Low-Low, High-Low, Low-High,
   not significant) from `analytics/lisa/<id>.json`, computed once in the pipeline with a
-  without-replacement conditional-permutation null (999 permutations) and **Benjamini–Hochberg FDR**.
+  without-replacement conditional-permutation null (9,999 permutations) on rank-based normal scores, and
+  **Benjamini–Hochberg FDR**.
 
 LISA and z-scores are precomputed by the pipeline and consumed as-is (the app has no client-side LISA
 implementation, which avoids a second statistical code path drifting from the source of truth).
