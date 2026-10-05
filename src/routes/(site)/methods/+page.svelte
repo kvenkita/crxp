@@ -23,6 +23,17 @@
 	let activeId = $state(sections[0].id);
 	let navEl;
 
+	// Neighborhood-name source (OSM by default; a local points file when the region supplied one).
+	let nbSource = $state({ source: 'osm' });
+	onMount(async () => {
+		try {
+			const r = await fetch(`${base}/data/areas/neighborhoods-source.json`);
+			if (r.ok) nbSource = await r.json();
+		} catch {
+			// keep the OSM default
+		}
+	});
+
 	function go(id) {
 		open = false;
 		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -268,15 +279,22 @@
 	<h2 id="neighborhoods">Neighborhood names</h2>
 	<p>
 		To help residents orient themselves, each tract is labeled with one or more nearby
-		<strong>named neighborhoods</strong>. Names and locations come from
-		<a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>,
-		which records them as points. We approximate each neighborhood's extent with a <strong>Voronoi area</strong>
+		<strong>named neighborhoods</strong>.
+		{#if nbSource.source === 'osm'}
+			Names and locations come from
+			<a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>,
+			which records them as points.
+		{:else}
+			Names and locations come from a regional neighborhood points file
+			({#if nbSource.attributionUrl}<a href={nbSource.attributionUrl} target="_blank" rel="noopener noreferrer">{nbSource.attribution}</a>{:else}{nbSource.attribution}{/if}).
+		{/if}
+		We approximate each neighborhood's extent with a <strong>Voronoi area</strong>
 		(every location belongs to its nearest named point), measure how much of each tract falls in each
 		neighborhood's area, and label the tract with the neighborhood(s) covering the largest share, up to
 		three. A tract with no nearby named neighborhood (none within about 8 km) falls back to its city or
 		county. These labels are approximate and for orientation only: neighborhood
-		boundaries are informal and contested, and OpenStreetMap coverage varies. Neighborhood names ©
-		<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).
+		boundaries are informal and contested{#if nbSource.source === 'osm'}, and OpenStreetMap coverage varies. Neighborhood names ©
+			<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL).{:else}.{/if}
 	</p>
 
 	<h2 id="open">Open &amp; reproducible</h2>

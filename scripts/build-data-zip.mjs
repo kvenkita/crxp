@@ -57,6 +57,11 @@ function dictionaryCsv(indicators) {
 }
 
 function readme(year) {
+	const nbPath = path.join(DATA, 'areas', 'neighborhoods-source.json');
+	const nb = fs.existsSync(nbPath) ? JSON.parse(fs.readFileSync(nbPath, 'utf8')) : { source: 'osm' };
+	const nbCredit = nb.source === 'osm'
+		? 'neighborhood names © OpenStreetMap contributors (ODbL).'
+		: `neighborhood names from ${nb.attribution}.`;
 	return [
 		'Carolinas Regional Explorer — data download',
 		`Carolinas Regional Explorer · UNC Charlotte Urban Institute · ${year}`,
@@ -70,7 +75,7 @@ function readme(year) {
 		'',
 		'Geography: 2020 U.S. Census tracts, 14-county Charlotte region.',
 		'Sources: U.S. Census ACS 5-Year, CDC PLACES, USGS NLCD, EOG VIIRS.',
-		'Indicator data is public-domain; neighborhood names © OpenStreetMap contributors (ODbL).',
+		`Indicator data is public-domain; ${nbCredit}`,
 		'See the Methods page for methodology and limitations.',
 		''
 	].join('\n');
