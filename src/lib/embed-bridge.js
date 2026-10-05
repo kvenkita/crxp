@@ -1,5 +1,5 @@
 // Cross-origin state bridge for when this app runs inside the container site's
-// iframe (https://carolinasregionalexplorer.com/map embeds /explore/?topnav=1).
+// iframe (https://carolinasexplorer.com/map embeds /explore/?topnav=1).
 // The container and this app are on different origins, so the container can't
 // read this iframe's URL. We postMessage the user-facing query string to the
 // parent on every change so it can mirror our state into its own address bar,
@@ -16,8 +16,9 @@ const EMBED_PARAMS = ['topnav'];
 // security boundary, so we only ever hand it an exact origin from this list
 // (or the '*' fallback below) — never an unverified parent origin.
 const ALLOWED_STATIC = new Set([
-	'https://carolinasregionalexplorer.netlify.app', // production container (current)
-	'https://carolinasregionalexplorer.com', // production container (future custom domain)
+	'https://carolinasexplorer.com', // production container
+	'https://carolinasregionalexplorer.netlify.app', // legacy container domain
+	'https://carolinasregionalexplorer.com', // legacy container domain
 	'https://review-container.netlify.app', // review container
 	'http://localhost:1111', // container dev server
 	'http://127.0.0.1:1111'

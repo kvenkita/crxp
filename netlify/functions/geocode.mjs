@@ -1,11 +1,11 @@
 // Server-side geocoding proxy. Two modes:
-//   ?suggest=<text>  -> Geoapify autocomplete, constrained to the 14-county region.
+//   ?suggest=<text>  -> Geoapify autocomplete, constrained to the region's bounding box.
 //                       Returns { ok, suggestions:[{label,lat,lon}] }. Needs GEOAPIFY_API_KEY.
 //   ?address=<text>  -> U.S. Census geocoder (keyless), returns the 2020 tract directly:
 //                       { ok, matchedAddress, lat, lon, geoid }. Used as the Enter fallback.
 // The Geoapify key is read from the environment and never sent to the browser.
 const GEOAPIFY = 'https://api.geoapify.com/v1/geocode/autocomplete';
-const REGION_RECT = '-81.8181,34.4078,-79.7987,36.1088'; // 14-county bbox: lon1,lat1,lon2,lat2
+import { REGION_RECT } from '../region.mjs'; // generated from the region's county geometry
 
 const CENSUS = 'https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress';
 const BENCHMARK = 'Public_AR_Current';

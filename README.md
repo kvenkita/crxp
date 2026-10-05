@@ -60,7 +60,7 @@ site name, and nav links carry the flag forward — a brand-less embed view of t
 ### Broadcasting map state to the parent window
 
 When `/explore/` runs inside a **cross-origin** iframe (e.g. the container site at
-`carolinasregionalexplorer.com/map` embeds it with `?topnav=1`), the container can't read the
+`carolinasexplorer.com/map` embeds it with `?topnav=1`), the container can't read the
 iframe's URL. So the app posts its state to the parent on every change, letting the container
 mirror it into its own address bar and keep `/map?…` URLs shareable and deep-linkable:
 
@@ -77,7 +77,7 @@ window.parent.postMessage({ type: 'crxp:state', search: '?i=household-income&z=1
   camera changes (it reacts to the same reactive source that writes the address bar, not
   `page.url` — `replaceState` doesn't reactively update `page.url`).
 - **`targetOrigin`** is resolved from the parent origin (`ancestorOrigins`/`document.referrer`)
-  against an allowlist — `https://carolinasregionalexplorer.com`, Netlify deploy previews
+  against an allowlist — `https://carolinasexplorer.com`, Netlify deploy previews
   (`https://<deploy>--<site>.netlify.app`), and `http://localhost:1111` / `http://127.0.0.1:1111`
   (container dev server). A verified allowlisted origin is targeted exactly; otherwise it falls
   back to `'*'` (the payload is non-sensitive). An unverified origin is never targeted directly.

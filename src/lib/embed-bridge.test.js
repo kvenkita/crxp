@@ -36,6 +36,11 @@ describe('resolveTarget', () => {
 		expect(resolveTarget()).toBe('https://carolinasregionalexplorer.com');
 	});
 
+	it('targets the production container domain exactly', () => {
+		setReferrer('https://carolinasexplorer.com/map');
+		expect(resolveTarget()).toBe('https://carolinasexplorer.com');
+	});
+
 	it('allows netlify deploy previews', () => {
 		setReferrer('https://deploy-preview-12--crxp.netlify.app/map');
 		expect(resolveTarget()).toBe('https://deploy-preview-12--crxp.netlify.app');

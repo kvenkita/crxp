@@ -21,3 +21,8 @@ export function fcBbox(fc) {
 export function bboxRect(b, decimals = 4) {
 	return b.map((v) => Number(v.toFixed(decimals))).join(',');
 }
+
+/** Expand [w, s, e, n] by `pad` degrees on every side. */
+export function padBbox(b, pad) {
+	return [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad];
+}
