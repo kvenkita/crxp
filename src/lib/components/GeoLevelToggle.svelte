@@ -1,5 +1,5 @@
 <script>
-	let { value = 'tract', onChange = () => {} } = $props();
+	let { value = 'tract', onChange = () => {}, allowed = ['tract', 'county'], disabledTitle = '' } = $props();
 	const levels = [
 		{ key: 'tract', label: 'Tracts' },
 		{ key: 'county', label: 'Counties' }
@@ -12,6 +12,8 @@
 			class="seg-btn"
 			class:active={value === l.key}
 			aria-pressed={value === l.key}
+			disabled={!allowed.includes(l.key)}
+			title={allowed.includes(l.key) ? undefined : disabledTitle}
 			onclick={() => onChange(l.key)}
 		>
 			{l.label}
@@ -40,5 +42,9 @@
 		background: var(--c-surface);
 		color: var(--c-teal);
 		box-shadow: var(--shadow-sm);
+	}
+	.seg-btn:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 </style>

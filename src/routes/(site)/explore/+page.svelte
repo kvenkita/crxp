@@ -8,6 +8,7 @@
 
 	import MapView from '$lib/components/MapView.svelte';
 	import GeoLevelToggle from '$lib/components/GeoLevelToggle.svelte';
+	import { levelsForMode, levelForMode } from '$lib/map/levels.js';
 	import YearSlider from '$lib/components/YearSlider.svelte';
 	import Legend from '$lib/components/Legend.svelte';
 	import PercentileStrip from '$lib/components/PercentileStrip.svelte';
@@ -226,6 +227,13 @@
 		map.setGeoLevel(explorer.geoLevel);
 		map.applyChoropleth(choropleth.valuesByGeoid, choropleth.breaks, choropleth.colors, choropleth.reliabilityByGeoid);
 		map.setLegendFilter(selection.legendFilter, choropleth.valuesByGeoid);
+	});
+
+	// Clusters and bivariate maps exist only for tracts: leave the county view when entering them
+	// (including from a shared URL with geo=county).
+	$effect(() => {
+		const lvl = levelForMode(analysis.mode, explorer.geoLevel);
+		if (lvl !== explorer.geoLevel) changeGeoLevel(lvl);
 	});
 
 	// BIVARIATE (variable A = primary indicator, variable B = analysis.biB)
@@ -541,7 +549,12 @@
 			</div>
 			<div class="panel-section" data-tour="geo-level">
 				<span class="field-label">Geographic level</span>
-				<GeoLevelToggle value={explorer.geoLevel} onChange={changeGeoLevel} />
+				<GeoLevelToggle
+					value={explorer.geoLevel}
+					onChange={changeGeoLevel}
+					allowed={levelsForMode(analysis.mode)}
+					disabledTitle="Clusters and bivariate maps are available for census tracts only"
+				/>
 			</div>
 		</div>
 
