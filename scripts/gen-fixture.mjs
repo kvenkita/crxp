@@ -17,7 +17,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'static', 'data');
 
-const DROPBOX = 'C:/Users/kyle/UNC Charlotte Dropbox/Kailas Venkitasubramanian/Charlotte Regional Explorer';
+const argVal = (flag) => {
+	const i = process.argv.indexOf(flag);
+	return i > -1 ? process.argv[i + 1] : undefined;
+};
+// Source-asset folder (tract GeoJSON + legacy ACS CSVs). Override with --src <dir>.
+const DROPBOX = argVal('--src') ?? 'C:/Users/kyle/UNC Charlotte Dropbox/Kailas Venkitasubramanian/Charlotte Regional Explorer';
+const REGION_NAME = argVal('--region-name') ?? 'Charlotte 14-county region';
 const GEOJSON = path.join(DROPBOX, 'Charlotte Regional Explorer', 'UICharlotteReg_FeaturesToJSO.geojson');
 const ACS_CSV = path.join(DROPBOX, 'Data', 'RegionalExplorerACS_all_years.csv');
 // Extended ACS file (median income, etc.); has duplicated rows per (geoid,year) — dedupe on read.
@@ -421,7 +427,7 @@ writeJSON(path.join(OUT, 'aggregates.json'), aggregates);
 // ---------- manifest ----------
 console.log('Writing manifest + areas + meta…');
 const manifest = {
-	region: 'Charlotte 14-county region',
+	region: REGION_NAME,
 	years: YEARS,
 	categories: CATEGORIES,
 	indicators: INDICATORS.map((ind) => ({

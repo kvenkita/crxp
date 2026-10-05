@@ -3,7 +3,7 @@
  * (from NCDOT + GISTANS municipal shapefiles). Overwrites the placeholder
  * county rectangles and the empty places set produced by gen-fixture.
  *
- * Run AFTER gen-fixture:  node scripts/gen-geo.mjs
+ * Run AFTER gen-fixture:  node scripts/gen-geo.mjs [--shp <dir with the municipal shapefiles>]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +12,12 @@ import mapshaper from 'mapshaper';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, '..', 'static', 'data');
-const SHP = 'C:/Users/kyle/UNC Charlotte Dropbox/Kailas Venkitasubramanian/Charlotte Regional Explorer/Data';
+const argVal = (flag) => {
+	const i = process.argv.indexOf(flag);
+	return i > -1 ? process.argv[i + 1] : undefined;
+};
+// Folder holding the municipal-boundary shapefiles. Override with --shp <dir>.
+const SHP = argVal('--shp') ?? 'C:/Users/kyle/UNC Charlotte Dropbox/Kailas Venkitasubramanian/Charlotte Regional Explorer/Data';
 
 const NC = new Set(['ANSON', 'CABARRUS', 'CATAWBA', 'CLEVELAND', 'GASTON', 'IREDELL', 'LINCOLN', 'MECKLENBURG', 'ROWAN', 'STANLY', 'UNION']);
 const SC = new Set(['YORK', 'CHESTER', 'LANCASTER']);

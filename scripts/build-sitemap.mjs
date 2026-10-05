@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, '..');
 const DATA = path.join(ROOT, 'static', 'data');
 const STATIC = path.join(ROOT, 'static');
 
-const SITE = process.env.PUBLIC_SITE_URL || 'https://carolinasregionalexplorer.org';
+const SITE = process.env.PUBLIC_SITE_URL || 'https://crxp.netlify.app';
 const read = (rel) => JSON.parse(fs.readFileSync(path.join(DATA, rel), 'utf8'));
 
 const urls = ['/', '/explore/', '/indicators/', '/methods/', '/about/', '/data/'];
