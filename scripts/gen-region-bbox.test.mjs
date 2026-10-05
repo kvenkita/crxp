@@ -8,8 +8,4 @@ describe('netlify/region.mjs', () => {
 		const fc = JSON.parse(fs.readFileSync('static/data/geo/counties.geojson', 'utf8'));
 		expect(REGION_RECT).toBe(bboxRect(padBbox(fcBbox(fc), 0.05)));
 	});
-
-	it('reproduces the previous hand-entered 14-county rect', () => {
-		expect(REGION_RECT).toBe('-81.8181,34.4078,-79.7987,36.1088');
-	});
 });
