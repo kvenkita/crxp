@@ -57,6 +57,8 @@ function dictionaryCsv(indicators) {
 }
 
 function readme(year) {
+	const manifest = read('manifest.json');
+	const sources = [...new Set(manifest.indicators.map((i) => i.source))].join('; ');
 	const nbPath = path.join(DATA, 'areas', 'neighborhoods-source.json');
 	const nb = fs.existsSync(nbPath) ? JSON.parse(fs.readFileSync(nbPath, 'utf8')) : { source: 'osm' };
 	const nbCredit = nb.source === 'osm'
@@ -73,8 +75,8 @@ function readme(year) {
 		'      moe = 90% margin of error; cv = coefficient of variation (%);',
 		'      reliability = ok / caution / unreliable; blank where not applicable.',
 		'',
-		'Geography: 2020 U.S. Census tracts, 14-county Charlotte region.',
-		'Sources: U.S. Census ACS 5-Year, CDC PLACES, USGS NLCD, EOG VIIRS.',
+		`Geography: 2020 U.S. Census tracts, ${manifest.region}.`,
+		`Sources: ${sources}.`,
 		`Indicator data is public-domain; ${nbCredit}`,
 		'See the Methods page for methodology and limitations.',
 		''
