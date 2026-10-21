@@ -47,7 +47,7 @@
 		</p>
 	</header>
 
-	<section class="download">
+	<section class="download" data-tour="data-downloads">
 		<h2>Download data of the explorer</h2>
 		<p class="hint">Expand a dimension to see its data dictionary and download each indicator as CSV or JSON.</p>
 

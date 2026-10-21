@@ -109,7 +109,7 @@
 	{:else if !geoids.length}
 		<p class="loading">No areas selected. Return to the explorer and select one or more tracts.</p>
 	{:else}
-		<header class="rpt-head">
+		<header class="rpt-head" data-tour="report-summary">
 			<p class="eyebrow">Carolinas Regional Explorer</p>
 			<h1>Custom area report</h1>
 			<p class="summary">

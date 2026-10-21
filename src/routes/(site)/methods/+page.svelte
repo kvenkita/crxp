@@ -287,7 +287,7 @@
 		changing configuration. We document these choices, and their limitations, precisely so they can be
 		scrutinized and improved.
 	</p>
-	<ul>
+	<ul data-tour="methods-links">
 		<li>
 			<strong>Working paper</strong>:
 			<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7567999" target="_blank" rel="noopener noreferrer"><em>An Open, Reproducible Platform for Small-Area Community Indicators: The Carolinas Regional Explorer</em></a>

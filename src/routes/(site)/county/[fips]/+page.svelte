@@ -26,7 +26,7 @@
 <article class="container profile">
 	<nav class="crumbs"><a href="{base}/explore/">Explore</a> › <span>{county.name}</span></nav>
 
-	<CountySwitcher {counties} activeFips={county.fips} />
+	<div data-tour="county-switcher"><CountySwitcher {counties} activeFips={county.fips} /></div>
 
 	<ProfileHero kicker="County profile" name={county.name} {lead}
 		stats={[{ label: 'Census tracts', value: county.tractCount }, { label: 'State', value: county.state }]}>
@@ -40,7 +40,7 @@
 		<ShareButtons url="{base}/county/{county.fips}/" title="{county.name} profile | Carolinas Regional Explorer" />
 	</div>
 
-	<MetricCardGrid items={indicators} {categories} />
+	<div data-tour="metric-cards"><MetricCardGrid items={indicators} {categories} /></div>
 
 	<section class="methods">
 		<h2>About this profile</h2>

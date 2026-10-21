@@ -1,11 +1,20 @@
 <script>
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { shouldAutoStart, startTour } from '$lib/tour/state.svelte.js';
 
 	// Same brand-less "embed view" check as +layout.svelte: inside an iframe or
 	// with an explicit ?topnav=1, the host page carries the branding text.
 	const framed = browser && window.self !== window.top;
 	let brandless = $derived(framed || (browser && page.url.searchParams.get('topnav') === '1'));
+
+	// First visit: start the guided tour once the page has settled (never in embeds; see the tour state).
+	onMount(() => {
+		if (!shouldAutoStart({ page: 'home', search: page.url.search, framed })) return;
+		const t = setTimeout(() => startTour({ origin: '/' }), 1000);
+		return () => clearTimeout(t);
+	});
 
 	const start = [
 		{
@@ -52,6 +61,11 @@
 		<div class="hero-cta">
 			<a class="btn btn-primary" href="/explore">Open the explorer</a>
 			<a class="btn" href="/indicators">Browse indicators</a>
+			{#if !brandless}
+				<button class="btn btn-quiet" data-tour="relaunch" onclick={() => startTour({ origin: '/' })}>
+					Take a tour
+				</button>
+			{/if}
 		</div>
 	</div>
 </section>
@@ -91,6 +105,23 @@
 		gap: var(--sp-3);
 		margin-top: var(--sp-5);
 		flex-wrap: wrap;
+	}
+	.btn-quiet {
+		border-color: transparent;
+		background: transparent;
+		color: var(--c-text-2);
+		font-size: var(--t-sm);
+	}
+	.btn-quiet::before {
+		content: '?';
+		display: inline-grid;
+		place-items: center;
+		width: 1.2em;
+		height: 1.2em;
+		border-radius: 50%;
+		border: 1px solid currentColor;
+		font-size: 0.8em;
+		font-weight: 700;
 	}
 
 	.start {

@@ -27,11 +27,11 @@
 		<p class="lede">Browse every indicator. Each page explains what it measures, how it is calculated, and why it matters.</p>
 	</header>
 
-	{#each groups as cat (cat.key)}
+	{#each groups as cat, gi (cat.key)}
 		{#if cat.key === qolStartKey}
 			<h2 class="group-heading">Quality of Life Dimensions</h2>
 		{/if}
-		<section class="cat">
+		<section class="cat" data-tour={gi === 0 ? 'indicator-list' : undefined}>
 			<h2>{cat.label}</h2>
 			<div class="cards">
 				{#each cat.items as ind (ind.id)}

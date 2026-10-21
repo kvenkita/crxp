@@ -37,12 +37,12 @@
 	</header>
 
 	{#if brief?.why}
-		<section class="why">
+		<section class="why" data-tour="indicator-why">
 			<h2>Why this matters</h2>
 			<MarkdownBlock source={brief.why} />
 		</section>
 	{:else if meta}
-		<section class="why"><MarkdownBlock source={meta} /></section>
+		<section class="why" data-tour="indicator-why"><MarkdownBlock source={meta} /></section>
 	{/if}
 
 	<RegionContext />

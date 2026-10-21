@@ -40,11 +40,14 @@
 	import { terciles, BIVARIATE_MATRIX } from '$lib/map/bivariate.js';
 	import { zScores, pearson, spearman } from '$lib/analytics/spatial.js';
 	import { stateToParams, paramsToState } from '$lib/util/url.js';
+	import { shouldAutoStart, startTour } from '$lib/tour/state.svelte.js';
 
 	let map = $state(null); // MapController, set on ready
 	// Camera restore is parsed at init (not onMount) because MapView mounts — and creates the
 	// controller — before this page's onMount runs; prerender has no query string, hence the guard.
 	const initialCamera = browser ? paramsToState(page.url.searchParams) : {};
+	// the query string the page opened with (before URL syncing rewrites it), for the tour's auto-start
+	const initialSearch = browser ? page.url.search : '';
 	// current camera, synced into the URL; null at the default region view so links stay clean
 	let camera = $state(
 		initialCamera.z != null ? { z: initialCamera.z, lat: initialCamera.lat, lng: initialCamera.lng } : null
@@ -490,13 +493,42 @@
 	function onBivarCell(a, b) {
 		bivarCell = a == null ? null : { a, b };
 	}
+
+	// The guided tour opens or closes the phone-layout panels it is pointing at
+	// (src/lib/tour/Tour.svelte); on desktop these panels are always shown.
+	onMount(() => {
+		/** @param {Event} e */
+		const onTourUi = (e) => {
+			const d = /** @type {CustomEvent} */ (e).detail ?? {};
+			if (d.controls != null) controlsOpen = d.controls;
+			if (d.trend != null) trendOpen = d.trend;
+			if (d.legend != null) legendOpen = d.legend;
+		};
+		window.addEventListener('crxp:tour-ui', onTourUi);
+		return () => window.removeEventListener('crxp:tour-ui', onTourUi);
+	});
+
+	// Visitors land on the map (carolinasexplorer.com/map embeds this page), so the tour starts here:
+	// from the "Take a tour" button, or by itself on a first visit with the default view.
+	function launchTour() {
+		const topnav = new URLSearchParams(location.search).get('topnav') === '1';
+		startTour({ origin: location.pathname.slice(base.length) + location.search, topnav });
+	}
+	let tourChecked = false;
+	$effect(() => {
+		if (!booted || tourChecked) return;
+		tourChecked = true;
+		if (!shouldAutoStart({ page: 'explore', search: initialSearch, framed: window.self !== window.top })) return;
+		const t = setTimeout(launchTour, 1000);
+		return () => clearTimeout(t);
+	});
 </script>
 
 <svelte:head>
 	<title>Explore | Carolinas Regional Explorer</title>
 </svelte:head>
 
-<div class="explore">
+<div class="explore" data-tour-ready={booted ? 'true' : undefined}>
 	<aside class="panel" class:is-open={controlsOpen} aria-label="Map controls">
 		<button class="panel-toggle no-print" aria-expanded={controlsOpen} onclick={() => (controlsOpen = !controlsOpen)}>
 			<span>Indicator &amp; controls</span>
@@ -504,10 +536,10 @@
 		</button>
 		<div class="panel-body">
 		<div class="panel-header">
-			<div class="panel-section">
+			<div class="panel-section" data-tour="mode-bar">
 				<AnalysisModeBar mode={analysis.mode} onChange={changeMode} />
 			</div>
-			<div class="panel-section">
+			<div class="panel-section" data-tour="geo-level">
 				<span class="field-label">Geographic level</span>
 				<GeoLevelToggle value={explorer.geoLevel} onChange={changeGeoLevel} />
 			</div>
@@ -515,7 +547,7 @@
 
 		<div class="panel-scroll">
 		{#if analysis.mode === 'explore'}
-			<div class="panel-section browser-section">
+			<div class="panel-section browser-section" data-tour="indicator-browser">
 				<span class="field-label">Indicator</span>
 				<IndicatorBrowser variant="panel" selectedId={explorer.indicatorId} onSelect={pickIndicatorId} />
 			</div>
@@ -533,7 +565,7 @@
 				</div>
 			{/if}
 		{:else if analysis.mode === 'bivariate'}
-			<div class="panel-section">
+			<div class="panel-section" data-tour="bivariate-panel">
 				<BivariatePanel
 					indicators={manifest.indicators}
 					biA={explorer.indicatorId}
@@ -545,7 +577,7 @@
 				/>
 			</div>
 		{:else if analysis.mode === 'lisa'}
-			<div class="panel-section">
+			<div class="panel-section" data-tour="lisa-panel">
 				<LisaPanel
 					indicators={manifest.indicators}
 					lisaId={explorer.indicatorId}
@@ -557,13 +589,13 @@
 		{/if}
 		</div>
 
-		<div class="panel-footer panel-section no-print">
+		<div class="panel-footer panel-section no-print" data-tour="share">
 			<button class="btn btn-primary share-open" onclick={() => (shareOpen = true)}>Share ↗</button>
 		</div>
 		</div>
 	</aside>
 
-	<div class="map-wrap">
+	<div class="map-wrap" data-tour="map">
 		<MapView
 			center={camera ? [camera.lng, camera.lat] : null}
 			zoom={camera?.z ?? null}
@@ -581,7 +613,7 @@
 			</div>
 		{/if}
 
-		<div class="search-float no-print">
+		<div class="search-float no-print" data-tour="search">
 			<AreaSearch areas={areas?.all ?? []} onPick={pickArea} />
 			<AddressSearch
 				onLocate={locateAddress}
@@ -589,17 +621,22 @@
 				basePath={base}
 			/>
 
-			<div class="settings-float">
-				<MapSettings
-					{basemap}
-					opacity={overlayOpacity}
-					overlayVisible={overlayOn}
-					reliabilityVisible={reliabilityOn}
-					onBasemap={(b) => (basemap = b)}
-					onOpacity={(o) => (overlayOpacity = o)}
-					onToggleOverlay={(v) => (overlayOn = v)}
-					onToggleReliability={(v) => (reliabilityOn = v)}
-				/>
+			<div class="float-row">
+				<div class="settings-float" data-tour="map-settings">
+					<MapSettings
+						{basemap}
+						opacity={overlayOpacity}
+						overlayVisible={overlayOn}
+						reliabilityVisible={reliabilityOn}
+						onBasemap={(b) => (basemap = b)}
+						onOpacity={(o) => (overlayOpacity = o)}
+						onToggleOverlay={(v) => (overlayOn = v)}
+						onToggleReliability={(v) => (reliabilityOn = v)}
+					/>
+				</div>
+				<button class="tour-btn card" data-tour="relaunch" onclick={launchTour}>
+					<span class="tour-q" aria-hidden="true">?</span><span>Take a tour</span>
+				</button>
 			</div>
 		</div>
 
@@ -628,7 +665,7 @@
 				</div>
 			</div>
 		{:else if trend && indicator}
-			<div class="trend-float card no-print" class:is-open={trendOpen}>
+			<div class="trend-float card no-print" class:is-open={trendOpen} data-tour="trend">
 				<div class="trend-head">
 					<div>
 						<strong>{trendName}</strong>
@@ -670,7 +707,7 @@
 					{animKey}
 				/>
 				{#if selection.selectedIds.length}
-					<div class="sel-actions">
+					<div class="sel-actions" data-tour="generate-report">
 						<button class="link" onclick={clearTracts}>Clear selection</button>
 						<button class="btn-report" onclick={openReport}>Generate report</button>
 					</div>
@@ -680,7 +717,7 @@
 		{/if}
 
 		{#if analysis.mode === 'explore' && classes.length}
-			<div class="legend-float no-print" class:is-open={legendOpen}>
+			<div class="legend-float no-print" class:is-open={legendOpen} data-tour="legend">
 				<button class="legend-toggle" aria-expanded={legendOpen} onclick={() => (legendOpen = !legendOpen)}>
 					<span>Legend</span>
 					<span class="chev" class:open={legendOpen}>▸</span>
@@ -718,7 +755,7 @@
 			</div>
 		{/if}
 
-		<div class="bottom-bar no-print">
+		<div class="bottom-bar no-print" data-tour="year-slider">
 			{#if indicator && sliderYears.length > 1}
 				<YearSlider years={sliderYears} availableYears={ctxYears} value={explorer.year} onChange={setYear} />
 			{/if}
@@ -944,6 +981,35 @@
 	}
 	.settings-float {
 		align-self: flex-start;
+	}
+	.float-row {
+		align-self: flex-start;
+		display: flex;
+		align-items: flex-start;
+		gap: var(--sp-2);
+	}
+	.tour-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		border: 0;
+		background: var(--c-surface);
+		padding: var(--sp-2) var(--sp-3);
+		font-size: var(--t-xs);
+		font-weight: 600;
+		color: var(--c-text);
+	}
+	.tour-btn:hover {
+		color: var(--c-teal);
+	}
+	.tour-q {
+		display: inline-grid;
+		place-items: center;
+		width: 1.25em;
+		height: 1.25em;
+		border-radius: 50%;
+		border: 1px solid currentColor;
+		font-size: 0.85em;
 	}
 	.sel-actions {
 		display: flex;

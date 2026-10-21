@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
 	import { browser } from '$app/environment';
+	import Tour from '$lib/tour/Tour.svelte';
 
 	let { children } = $props();
 
@@ -71,6 +72,8 @@
 		</div>
 	</footer>
 </div>
+
+<Tour />
 
 <style>
 	.app-shell {
