@@ -70,7 +70,59 @@ consistently.
 
 **Propagation (Census formulas).** For derived measures:
 
-- **Aggregated counts** (sum of estimates): $MOE_{sum} = \sqrt{\sum_i MOE_i^2}$.
+- **Aggregated counts** (sum of estimates): $MOE_{sum} = \sqrt{\sum_i MOE_i^2}$, with one exception for
+  zero estimates (below).
+- **Zero estimates in a sum.** ACS publishes a model-based MOE even when an estimate is zero. Adding the
+  MOE of every empty category inflates the result, so when a sum includes zero estimates we count only
+  the largest of their MOEs, once:
+  $$MOE_{sum} = \sqrt{\sum_{i:\,e_i \neq 0} MOE_i^2 + \max_{j:\,e_j = 0} MOE_j^2}$$
+  This is the Census Bureau's rule ("MOE for zero estimates are based on a model. When approximating a
+  sum, use only the largest zero estimate MOE, once"; Census Bureau ACS margin-of-error training, 2016,
+  slide 26). It applies wherever CRXP adds ACS estimates: categories summed into a numerator or
+  denominator (for example uninsured people across 18 age-by-sex cells), the region's raw cells summed
+  across counties, and pooled rest-of-region and custom-area estimates. For the region it is applied at
+  two levels (each cell across counties, then the cells into the numerator), which is slightly more
+  conservative than one flat sum. Tract harmonization (@sec-harmonize) allocates each variable separately
+  and does not apply the rule. Adopted 2026-10-17; before that date
+  every zero category's MOE was counted.
+- **Published direct MOEs for many-cell sums.** The root-sum-of-squares formula treats summed cells as
+  independent. Cells of one table are not independent (people move between age-by-sex cells, and the
+  weighting controls their totals), and with many cells the approximation can be far off, as the Census
+  Bureau warns. For three indicators the Census Bureau publishes the same percentage in a subject table
+  with an MOE computed directly from the replicate weights, and CRXP uses that MOE:
+
+  | Indicator | Cells summed | Direct source | Median tract MOE, 2024 (derived → direct) |
+  |---|---|---|---|
+  | Health insurance coverage | 18 (B27001) | S2701, percent insured | 17.7 → 5.2 points |
+  | High school graduate or higher | 9 (B15003) | S1501, percent high school graduate or higher | 10.2 → 4.4 points |
+  | Limited-English-speaking households | 4 (C16002) | S1602, percent limited English-speaking households | 3.6 → 3.6 points |
+
+  (Mecklenburg County tracts.) The value is still computed from the detailed-table counts. Every row that
+  has a published percentage is checked against it (within 0.15 points, the rounding of published
+  percents), and the build stops if more than 2% of a year's rows disagree, which would mean the
+  subject-table column measures something else; with 14 counties, a single disagreeing county stops it.
+  The build also stops if the subject-table download fails for some counties, or if an indicator
+  configured for direct MOEs ends up with none. A year whose subject table does not exist keeps the
+  derived MOE, and builds without a Census API key use derived MOEs throughout. To carry the direct MOE through tract harmonization and pooling, it is converted
+  into an equivalent numerator MOE, $MOE_{num}^{*} = \sqrt{(MOE_{\%}/100 \cdot den)^2 + p^2\, MOE_{den}^2}$,
+  which the proportion formula maps back to the published MOE exactly. Rows whose value differs from the
+  published percentage keep the derived MOE. Five other summed indicators were compared with a published
+  percentage (bachelor's degree or higher, disability, child poverty, older adults, youth); their median
+  derived MOE is within 20% of the direct one (0.83 to 1.11 times), so they keep the approximation. The
+  other summed indicators have not yet been compared; the app impact report (Plan 0C) covers them.
+  Adopted 2026-10-17.
+- **Controlled estimates.** Where ACS shows the MOE as `*****` (the API's `-555555555`), the estimate
+  "has been controlled to be equal to a fixed value and so it has no sampling error. A standard error of
+  zero should be used for these controlled estimates when completing calculations" (ACS *Accuracy of the
+  Data*, 2019–2023 5-year). County total population and county Hispanic or Latino totals are controlled
+  this way. CRXP uses an MOE of 0 for them (adopted 2026-10-17; before that they were treated as missing),
+  so a county population share carries the MOE of its numerator alone. Controls apply to counties, not
+  tracts, so CRXP reads an MOE of 0 as exact only at the county level: a county comparison in which both
+  sides are 0 is exact and is reported without a test (`no_sampling_error`). A tract MOE of 0 comes from
+  the proportion formula when every unit falls in the category (for example 13 of 13 homes occupied,
+  100% ± 0); it is not exact, so such tract comparisons and changes are listed as `zero_moe` and not
+  tested. Every other annotation
+  (`**`, `***`, `-666666666`, and so on) still means the MOE is missing.
 - **Proportion** $p = num/den$ where the numerator is a subset of the denominator:
   $$MOE_p = \frac{1}{den}\sqrt{MOE_{num}^2 - p^2\, MOE_{den}^2}$$
   If the radicand is negative, we fall back to the ratio formula (per Census guidance).
@@ -88,7 +140,8 @@ accordingly, rather than hiding it.
 :::
 
 CDC PLACES publishes a **95% confidence interval** instead of a 90% MOE; we convert the CI half-width
-to a 90%-equivalent MOE ($\times\,1.645/1.96$) so reliability is comparable with ACS.
+to a 90%-equivalent MOE ($\times\,1.645/1.96$) so reliability is comparable with ACS. PLACES values are
+never put through the significance test above (@sec-places-test).
 
 ## Geographic harmonization (2010 → 2020 tracts) {#sec-harmonize}
 
@@ -214,8 +267,45 @@ them, while the levels and their uncertainty bands are still shown:
 |---|---|---|
 | Trend-chart band note | "90% MOE; ACS 5-year estimates are rolling — compare only non-overlapping periods" | "90% model uncertainty interval; read each year's level, not the change between years" |
 | Comparable-period change markers (5-/10-year, significance-tested) | shown | **hidden** |
+| Significance tests between areas (analysis contract) | canonical families | **none**; intervals only (@sec-places-test) |
 | Custom-area report *Change* column | shown, over each indicator's own period | **rendered as "—"** |
 | County-profile card delta ("since YYYY") | shown | **hidden** (the level sparkline is retained) |
+
+### No significance tests for PLACES estimates {#sec-places-test}
+
+CRXP does not run significance tests on PLACES estimates, between areas or between years. Comparisons
+show each area's estimate with its interval and stop there; the analysis contract publishes no
+significance families for PLACES indicators (`skipped: model_based_estimates`) and lists
+`significance_test` among their disallowed uses. Adopted 2026-10-17. The reasons:
+
+1. **The test assumes independent sampling errors, and PLACES errors are not independent.** The
+   difference test (@sec-moe) treats the two estimates as independent samples. PLACES estimates come from
+   one multilevel model fit to BRFSS data (Zhang X, Holt JB, Lu H, et al., "Multilevel regression and
+   poststratification for small-area estimation of population health outcomes: a case study of chronic
+   obstructive pulmonary disease prevalence using the Behavioral Risk Factor Surveillance System", *American
+   Journal of
+   Epidemiology* 179(8):1025–1033, 2014): every tract and county shares the
+   same fixed effects, and areas in the same county or state share random effects. Their errors are
+   correlated, usually positively, so the independent-error formula misstates the standard error of a
+   difference by an amount that CDC's published intervals do not let us recover.
+2. **The intervals describe the model, not a sample of the area.** CDC's 95% intervals come from Monte
+   Carlo simulation of the fitted model. Most of an area's estimate comes from its demographic make-up
+   (age, sex, race and ethnicity, poverty) passed through the model, not from survey respondents in that
+   area. Two tracts with similar populations get similar estimates whatever their actual health, so a
+   "significant difference" would mostly restate a difference in demographic composition.
+3. **CDC frames comparison by intervals, not tests.** CDC's guidance is that areas "can be compared on
+   individual measures", that "it is not adequate to simply compare point estimates", and that "it may not
+   be appropriate to draw conclusions when comparing estimates that have very broad confidence
+   intervals". The same guidance says the data "should not be used for ranking the overall health" of
+   any area, does not support tracking local change over time, and should not be used to evaluate local
+   programs (<https://www.cdc.gov/places/faqs/using-data/index.html>).
+
+What users get instead is both intervals side by side. The analysis contract publishes each PLACES
+value with its 90%-equivalent MOE (converted from CDC's 95% interval, @sec-moe), and the CRXP agent
+engine compares two areas by those 90% intervals: where they do not overlap it says the model places one
+area higher or lower; where they overlap it says the model cannot separate the two areas, never "no
+difference". Both are labelled as model-based estimates. Rank intervals and distinctive-feature lists
+exclude PLACES as well.
 
 This is a direct application of the platform's core principle — *never let a downstream view assert more
 certainty than the source supports* (@sec-moe). PLACES model-based estimates are genuinely valuable for
@@ -315,8 +405,82 @@ This is implemented in `aggregate.build_county_region`, persisted to a `county_i
 `aggregates.json` (`countyAvg`/`regionAvg` with `countyMoe`/`regionMoe`). The app labels these lines
 **County** and **Region**.
 
+**User-supplied tract files (`tract_csv`).** A file brought in through the generic tract source has no
+published county estimate, so its county and region values are *derived from tracts*: counts are summed,
+with MOEs combined in quadrature, and every other kind is a population-weighted mean of tract values. A
+count total is published only when every tract in the area has a value; with suppressed or missing tracts
+it is left empty rather than understated. For
+rates and proportions this matches the pooled rate only when the tract denominators are proportional to
+total population; for medians and indices it is the same documented approximation used for regional
+medians. The app's metadata labels these values as derived. If the file is on 2010 tracts, counts are
+allocated to 2020 tracts by allocation factor and rates/proportions by population-weighted pseudo-counts
+(the PLACES method); medians and indices must be supplied on 2020 tracts.
+
 **Note.** The one remaining simple unweighted mean is the *ad-hoc average of a user-selected set of tracts*
 in a custom report (`series.js seriesForSet`) — a selection summary, not a published geography.
+
+## Analysis contract methods {#sec-analysis}
+
+These methods support the CRXP agent engine and are published in the analysis contract. They do not
+yet change the explorer.
+
+**Rest-of-region comparisons.** A county is compared with the rest of the region, not with a region
+that contains it, because a whole that includes the area is not an independent estimate. For poolable
+ACS indicators the rest of the region is pooled from the other counties' numerators and denominators;
+for medians, indices, and model-based estimates it is the population-weighted mean of the other
+counties' values and is flagged as approximate. For poolable indicators, tracts are compared with the
+rest of the region the same way; for other kinds a tract is compared with the whole region, which
+includes the tract, and the result is flagged as approximate. Counts (such as total population) get
+no comparison with the rest of the region, because a part is always smaller than the summed rest;
+they get change tests only. Controlled county totals have an MOE of 0 (@sec-moe), so county population
+shares are tested on their numerator's MOE; where both sides are controlled, the difference is exact and
+is listed with the reason `no_sampling_error` instead of a test. Where ACS publishes no county MOE for any
+other reason, the comparison is listed with the reason `moe_not_published` and not tested. Model-based
+PLACES estimates get no significance tests and no ranks (@sec-places-test).
+
+**Canonical significance families.** Each indicator, year, and comparison type is tested once per
+release, and p-values are adjusted with Benjamini–Hochberg across the family (q ≤ 0.10 is reported as
+significant). Every consumer reads the same results, so whether a difference is significant never
+depends on how a question is asked. The Census Bureau's own testing tools apply no multiple-comparison
+adjustment; this is a CRXP convention.
+
+**Constant dollars.** Changes in dollar indicators are computed after converting the earlier estimate
+and its MOE to the later year's dollars with the BLS R-CPI-U-RS annual average, as Census recommends
+for comparing ACS dollar values across years.
+
+**County rank intervals.** Rather than a single rank, each county gets a rank interval: the median and
+5th–95th percentile of its rank across 10,000 draws from normal distributions centered on each
+estimate (SE = MOE / 1.645). This follows Marshall and Spiegelhalter's recommendation to report the
+uncertainty of league tables instead of point ranks.
+
+**Interval-first reliability (`reliability_v2`).** A CRXP convention, adopted 2026-10-17. It is published
+in the analysis contract and used by the CRXP agent engine; the explorer keeps the CV labels of
+@sec-moe until the app parity work. Each value gets one label from one of two rules, chosen by the kind
+of measure:
+
+| Kind of measure | Rule | *Informative* | *Use with caution* | *Not informative* |
+|---|---|---|---|---|
+| Proportions, rates, shares, and any zero estimate | Share of the region's tracts (same indicator and year) whose values fall inside the value's 90% interval | up to 0.40 | 0.40 to 0.70 | over 0.70 |
+| Counts, medians, averages, indices | Coefficient of variation | up to 15% | 15% to 30% | over 30% |
+
+Non-sampled measures (satellite, LODES) are *not applicable*; values without a published MOE are *no
+MOE*. County and region values are judged against the same tract distribution as the tracts.
+
+*What the span rule measures.* It asks whether the interval is narrow compared with how much tracts in
+the region differ: whether the estimate can say where the tract stands. It is not a test of absolute
+precision. That is why it replaces the CV for proportions: the CV divides by the estimate, so a tight
+interval around a low rate (poverty of 3% ± 2 points) is labelled unreliable although the rate is known
+to be low. The span rule has the opposite edge case, and it is intended. Where almost every tract is
+high or almost every tract is near zero (occupied homes, routine checkups, limited-English households),
+the regional range is compressed, so even an interval of a few points spans most of it and many tracts
+are *not informative*. Those estimates are precise in absolute terms but cannot rank or place the tract,
+and the label says so. Health insurance and high school diplomas looked like this case before the
+2026-10-17 MOE fixes (535 and 366 tracts *not informative*), but mostly because their MOEs were
+overstated; with the Census direct MOEs the counts are 71 and 26. Users should read *not informative* as "cannot tell this tract apart from most of
+the region", not as "wrong".
+
+Cutoffs are in `config/region.yml` (`reliability_v2`); the label distributions before and after, by
+indicator, are in `docs/reports/2026-10-reliability-v2-calibration.md`.
 
 ## Density and land area {#sec-density}
 
@@ -360,12 +524,22 @@ inherently better. All ACS indicators are 2020-tract, harmonized (@sec-harmonize
 | 7 | White residents | ACS | B03002 | proportion | — | Residents who are White (non-Hispanic) |
 | 8 | Other races | ACS | B03002 | proportion | — | Residents of other or multiple races (non-Hispanic) |
 | 21 | Median age | ACS | B01002 | median | — | Median age of residents, in years |
-| 34 | Limited-English-speaking households | ACS | C16002 | proportion | more need | Households where no one 14+ speaks English "very well" |
+| 34 | Limited-English-speaking households | ACS | C16002 | proportion | more need | Households where no one 14+ speaks English "very well" (corrected 2026-10-17; see note below) |
 | 50 | Total population | ACS | B01003 | count | — | Total resident population |
 | 51 | Population density | ACS | B01003 ÷ land area | density | — | Residents per square mile of land area (@sec-density) |
 | 53 | Households with children | ACS | B11005 | proportion | — | Households with one or more people under 18 |
 | 54 | Households with seniors | ACS | B11007 | proportion | — | Households with one or more people 65+ |
 | 63 | Foreign-born residents | ACS | B05012 | proportion | — | Residents born outside the United States |
+
+::: callout-warning
+**Correction (2026-10-17): limited-English-speaking households (id 34).** Before this date the numerator
+summed C16002_003, _006, _009, and _012, which are the totals of households speaking Spanish, other
+Indo-European, Asian and Pacific Island, and other languages, so the indicator measured households that
+speak a language other than English (about a quarter of households in many tracts), not limited-English
+households. The numerator is now the limited-English cells C16002_004, _007, _010, and _013, and the values
+match the Census Bureau's published S1602 percentage (typically 1–4% of households). The explorer has shown the
+corrected values since 2026-10-20.
+:::
 
 ### Economy
 
