@@ -130,9 +130,12 @@
 		}
 		loadingText = '';
 		target = el;
+		// let the card show this step's text first, so placement and scrolling use its real height
+		await tick();
+		if (id !== run) return;
+		measure();
 		if (el) scrollToFit(el, s.placement);
 		measure();
-		await tick();
 		// preventScroll: the card is fixed on screen, and focusing must not move the page under the spotlight
 		cardEl?.focus({ preventScroll: true });
 	}

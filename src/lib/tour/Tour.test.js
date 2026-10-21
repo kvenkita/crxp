@@ -181,6 +181,39 @@ describe('Tour', () => {
 		}
 	});
 
+	it("places the card using its height with this step's text, not the Opening card's", async () => {
+		const realRect = Element.prototype.getBoundingClientRect;
+		Element.prototype.getBoundingClientRect = function () {
+			return this.hasAttribute?.('data-tour')
+				? { left: 20, top: 500, right: 720, bottom: 700, width: 700, height: 200, x: 20, y: 500, toJSON() {} }
+				: realRect.call(this);
+		};
+		// the "Opening …" card is short; the card with the step's own text is taller
+		Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+			configurable: true,
+			get() {
+				return this.classList?.contains('card') ? (this.querySelector('p.waiting') ? 120 : 300) : 0;
+			}
+		});
+		try {
+			const i = STEPS.findIndex((s) => s.id === 'methods'); // card above its target
+			const target = document.createElement('div');
+			target.setAttribute('data-tour', STEPS[i].target ?? '');
+			document.body.append(target);
+			render(Tour, { timeout: 30 });
+			startTour();
+			tour.index = i; // navigates to /methods/, so the card first shows "Opening Methods…"
+			await flush();
+			await new Promise((r) => setTimeout(r, 40));
+			await flush();
+			// above the 200 px target at y = 500: 500 - PAD 6 - GAP 14 - card 300 = 180
+			expect(screen.getByRole('dialog').getAttribute('style')).toMatch(/top:\s*180px/);
+		} finally {
+			Element.prototype.getBoundingClientRect = realRect;
+			delete (/** @type {any} */ (HTMLElement.prototype)).offsetHeight;
+		}
+	});
+
 	it('arrow keys step through the tour', async () => {
 		render(Tour, { timeout: 50 });
 		startTour();
