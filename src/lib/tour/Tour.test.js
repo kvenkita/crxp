@@ -23,6 +23,15 @@ import { goto } from '$app/navigation';
 import { tour, startTour, STORAGE_KEY } from './state.svelte.js';
 import { STEPS } from './steps.js';
 
+// tour navigation replaces the current history entry and keeps focus in the card
+const NAV = { replaceState: true, keepFocus: true };
+
+/** Let a step finish loading (its waits time out quickly in these tests). @param {number} ms */
+const settle = async (ms) => {
+	await new Promise((r) => setTimeout(r, ms));
+	await flush();
+};
+
 const flush = async () => {
 	for (let k = 0; k < 5; k++) {
 		await tick();
@@ -66,12 +75,13 @@ describe('Tour', () => {
 		await flush();
 		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 		await flush();
-		expect(goto).toHaveBeenCalledWith('/explore/');
+		expect(goto).toHaveBeenCalledWith('/explore/', NAV);
 		expect(screen.getByText(`2 / ${STEPS.length}`)).toBeTruthy();
+		await settle(150); // the ready wait and the target wait (50 ms each)
 		await fireEvent.click(screen.getByRole('button', { name: 'Back' }));
 		await flush();
 		expect(screen.getByText(`1 / ${STEPS.length}`)).toBeTruthy();
-		expect(goto).toHaveBeenLastCalledWith('/');
+		expect(goto).toHaveBeenLastCalledWith('/', NAV);
 	});
 
 	it('in the embedded view, every page the tour opens keeps ?topnav=1', async () => {
@@ -80,10 +90,10 @@ describe('Tour', () => {
 		await flush();
 		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 		await flush();
-		expect(goto).toHaveBeenLastCalledWith('/explore/?topnav=1');
+		expect(goto).toHaveBeenLastCalledWith('/explore/?topnav=1', NAV);
 		tour.index = STEPS.findIndex((s) => s.id === 'report');
 		await flush();
-		expect(goto).toHaveBeenLastCalledWith(expect.stringMatching(/^\/report\/\?tracts=[\d,]+&geo=tract&topnav=1$/));
+		expect(goto).toHaveBeenLastCalledWith(expect.stringMatching(/^\/report\/\?tracts=[\d,]+&geo=tract&topnav=1$/), NAV);
 	});
 
 	it('started from the map, the tour begins there and returns to the same URL at the end', async () => {
@@ -96,12 +106,79 @@ describe('Tour', () => {
 		await flush();
 		expect(goto).not.toHaveBeenCalled(); // the welcome card shows on the map itself
 		tour.index = STEPS.findIndex((s) => s.id === 'data');
-		await flush();
+		await settle(60);
 		vi.mocked(goto).mockClear();
 		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 		await flush();
-		expect(goto).toHaveBeenCalledWith('/explore/?topnav=1');
+		expect(goto).toHaveBeenCalledWith('/explore/?topnav=1', NAV);
 		expect(screen.getByRole('heading', { name: STEPS.at(-1)?.title })).toBeTruthy();
+	});
+
+	it('the tour adds no history entries, so Back leaves the page as it would without the tour', async () => {
+		render(Tour, { timeout: 20 });
+		startTour();
+		await flush();
+		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+		await flush();
+		await fireEvent.click(screen.getByRole('button', { name: 'Close tour' }));
+		await flush();
+		expect(vi.mocked(goto).mock.calls.length).toBeGreaterThan(1);
+		for (const [, opts] of vi.mocked(goto).mock.calls) expect(opts).toEqual(NAV);
+	});
+
+	it('Next, Back and the arrow keys wait while a page is loading, so its demo is never skipped', async () => {
+		nav.url = new URL('http://localhost/');
+		render(Tour, { timeout: 400 });
+		startTour();
+		await flush();
+		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+		await flush(); // on /explore/ now, waiting for the page to be ready
+		expect(screen.getByText('Opening Explore…')).toBeTruthy();
+		expect(/** @type {HTMLButtonElement} */ (screen.getByRole('button', { name: 'Next' })).disabled).toBe(true);
+		await fireEvent.keyDown(window, { key: 'ArrowRight' });
+		await fireEvent.keyDown(window, { key: 'ArrowLeft' });
+		await flush();
+		expect(tour.index).toBe(1);
+	});
+
+	it('on a phone, the sheet moves to the top when the target is in the lower half of the screen', async () => {
+		const realRect = Element.prototype.getBoundingClientRect;
+		let targetTop = 700;
+		Element.prototype.getBoundingClientRect = function () {
+			return this.hasAttribute?.('data-tour') || this.hasAttribute?.('data-tour-ready')
+				? { left: 20, top: targetTop, right: 370, bottom: targetTop + 40, width: 350, height: 40, x: 20, y: targetTop, toJSON() {} }
+				: realRect.call(this);
+		};
+		const real = { w: window.innerWidth, h: window.innerHeight };
+		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+		Object.defineProperty(window, 'innerHeight', { configurable: true, value: 844 });
+		try {
+			const i = STEPS.findIndex((s) => s.id === 'year-slider');
+			const target = document.createElement('div');
+			target.setAttribute('data-tour', STEPS[i].target ?? '');
+			const ready = document.createElement('div');
+			ready.setAttribute('data-tour-ready', 'true');
+			document.body.append(target, ready);
+			nav.url = new URL('http://localhost/explore/');
+
+			render(Tour, { timeout: 30 });
+			startTour();
+			tour.index = i;
+			await flush();
+			await new Promise((r) => setTimeout(r, 60));
+			await flush();
+			expect(screen.getByTestId('tour-spot')).toBeTruthy();
+			expect(screen.getByRole('dialog').classList.contains('sheet-top')).toBe(true);
+
+			targetTop = 120; // a target near the top keeps the sheet at the bottom
+			await new Promise((r) => setTimeout(r, 600)); // the 500 ms re-measure
+			await flush();
+			expect(screen.getByRole('dialog').classList.contains('sheet-top')).toBe(false);
+		} finally {
+			Element.prototype.getBoundingClientRect = realRect;
+			Object.defineProperty(window, 'innerWidth', { configurable: true, value: real.w });
+			Object.defineProperty(window, 'innerHeight', { configurable: true, value: real.h });
+		}
 	});
 
 	it('arrow keys step through the tour', async () => {
@@ -111,6 +188,7 @@ describe('Tour', () => {
 		await fireEvent.keyDown(window, { key: 'ArrowRight' });
 		await flush();
 		expect(tour.index).toBe(1);
+		await settle(150); // the ready wait and the target wait (50 ms each)
 		await fireEvent.keyDown(window, { key: 'ArrowLeft' });
 		await flush();
 		expect(tour.index).toBe(0);
@@ -201,7 +279,7 @@ describe('Tour', () => {
 		nav.url = new URL('http://localhost/data/'); // browser Back/Forward, outside the tour
 		await fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 		await flush();
-		expect(goto).toHaveBeenLastCalledWith('/explore/');
+		expect(goto).toHaveBeenLastCalledWith('/explore/', NAV);
 	});
 
 	it('on a phone, centered-on-mobile steps show no spotlight even when the target exists', async () => {

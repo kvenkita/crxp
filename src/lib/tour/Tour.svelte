@@ -31,6 +31,12 @@
 	let narrow = $derived(vw <= mobileWidth);
 	let step = $derived(STEPS[tour.index]);
 	let isLast = $derived(tour.index === STEPS.length - 1);
+	// on a phone, a target in the lower half of the screen (the year slider, the legend) would sit under
+	// the bottom sheet, so the sheet moves to the top
+	let sheetTop = $derived.by(() => {
+		const r = /** @type {{top:number, height:number} | null} */ (rect);
+		return narrow && !!r && !loadingText && r.top + r.height / 2 > vh / 2;
+	});
 	let pos = $derived(
 		narrow || !rect || loadingText
 			? null
@@ -55,6 +61,11 @@
 		if (!tour.topnav || /[?&]topnav=1(&|$)/.test(href)) return href;
 		return href + (href.includes('?') ? '&' : '?') + 'topnav=1';
 	}
+
+	// Tour navigation replaces the current history entry (so Back after the tour leaves the page, not
+	// the tour's stops; inside carolinasexplorer.com/map the iframe's pushes would land in the tab's
+	// history) and keeps focus in the card instead of moving it to the page.
+	const NAV = { replaceState: true, keepFocus: true };
 
 	/** @param {import('./steps.js').Step} s */
 	const pageName = (s) => (s.route ? s.page : pathOf(tour.origin) === '/' ? 'Home' : 'the map');
@@ -89,7 +100,7 @@
 		let navigated = false;
 		if (currentPath() !== pathOf(route)) {
 			loadingText = `Opening ${pageName(s)}…`;
-			await goto(hrefFor(route));
+			await goto(hrefFor(route), NAV);
 			if (id !== run) return;
 			navigated = true;
 		}
@@ -187,11 +198,15 @@
 		};
 	});
 
+	// Next and Back wait while a page is loading: moving on mid-load would skip that page's demo
+	// actions, and the card would then describe a view the map is not showing. Close always works.
 	function next() {
+		if (loadingText) return;
 		if (isLast) end(true);
 		else goToStep(tour.index + 1);
 	}
 	function back() {
+		if (loadingText) return;
 		if (tour.index > 0) goToStep(tour.index - 1);
 	}
 
@@ -204,7 +219,7 @@
 		target = null;
 		rect = null;
 		loadingText = '';
-		if (currentPath() !== pathOf(origin)) await goto(hrefFor(origin));
+		if (currentPath() !== pathOf(origin)) await goto(hrefFor(origin), NAV);
 		restore();
 		await tick();
 		/** @type {HTMLElement | null} */ (document.querySelector('[data-tour="relaunch"]'))?.focus();
@@ -257,6 +272,7 @@
 		<div
 			class="card"
 			class:centered={!pos && !narrow}
+			class:sheet-top={sheetTop}
 			style={pos ? `left:${pos.left}px; top:${pos.top}px` : ''}
 			bind:this={cardEl}
 			role="dialog"
@@ -286,9 +302,9 @@
 				<span class="count">{tour.index + 1} / {STEPS.length}</span>
 				<div class="btns">
 					{#if tour.index > 0}
-						<button class="btn" onclick={back}>Back</button>
+						<button class="btn" onclick={back} disabled={!!loadingText}>Back</button>
 					{/if}
-					<button class="btn btn-primary" onclick={next}>{isLast ? 'Get started' : 'Next'}</button>
+					<button class="btn btn-primary" onclick={next} disabled={!!loadingText}>{isLast ? 'Get started' : 'Next'}</button>
 				</div>
 			</div>
 		</div>
@@ -352,6 +368,17 @@
 		overflow-y: auto;
 		border-radius: var(--r-lg) var(--r-lg) 0 0;
 		padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+	}
+	.narrow .card.sheet-top {
+		top: 0;
+		bottom: auto;
+		border-radius: 0 0 var(--r-lg) var(--r-lg);
+		padding-top: calc(var(--sp-4) + env(safe-area-inset-top, 0px));
+		padding-bottom: var(--sp-4);
+	}
+	.btns .btn:disabled {
+		opacity: 0.5;
+		cursor: default;
 	}
 
 	.card-top {

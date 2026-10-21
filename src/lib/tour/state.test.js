@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
 	tour,
 	TOUR_VERSION,
@@ -103,6 +103,52 @@ describe('shouldAutoStart', () => {
 		expect(shouldAutoStart({ local, session: broken })).toBe(false);
 		expect(() => startTour({ session: broken })).not.toThrow();
 		expect(() => finishTour(broken)).not.toThrow();
+	});
+});
+
+describe('storage the browser refuses to open', () => {
+	// With site data blocked (and in some cross-site iframes), merely reading window.localStorage throws.
+	/** @param {string} name */
+	const block = (name) =>
+		Object.defineProperty(window, name, {
+			configurable: true,
+			get() {
+				throw new DOMException('blocked', 'SecurityError');
+			}
+		});
+	afterEach(() => {
+		delete (/** @type {any} */ (window)).localStorage;
+		delete (/** @type {any} */ (window)).sessionStorage;
+	});
+	it('auto-start is skipped without throwing', () => {
+		block('localStorage');
+		block('sessionStorage');
+		expect(shouldAutoStart({ page: 'explore' })).toBe(false);
+		expect(shouldAutoStart({ page: 'home' })).toBe(false);
+	});
+	it('the tour can still be started, finished and closed', () => {
+		block('localStorage');
+		block('sessionStorage');
+		startTour();
+		expect(tour.active).toBe(true);
+		finishTour();
+		expect(tour.active).toBe(false);
+		startTour();
+		tour.dontShow = true;
+		closeTour();
+		expect(tour.active).toBe(false);
+	});
+});
+
+describe('tracking parameters', () => {
+	it('do not count as a shared map view', () => {
+		expect(shouldAutoStart({ page: 'explore', search: '?fbclid=abc123', local, session })).toBe(true);
+		expect(shouldAutoStart({ page: 'explore', search: '?topnav=1&utm_source=newsletter&utm_medium=email', framed: true, local, session })).toBe(true);
+	});
+	it('any map state does', () => {
+		for (const q of ['?i=poverty-rate', '?z=9&lat=35.2&lng=-80.8', '?mode=lisa', '?sel=37119001100', '?pins=1']) {
+			expect(shouldAutoStart({ page: 'explore', search: q, local, session }), q).toBe(false);
+		}
 	});
 });
 
