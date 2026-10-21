@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { svelteTesting } from '@testing-library/svelte/vite';
 
 export default defineConfig({
 	plugins: [
@@ -13,7 +14,9 @@ export default defineConfig({
 			adapter: adapter({
 				fallback: '404.html'
 			})
-		})
+		}),
+		// tests only: resolve Svelte's browser build so components can mount under jsdom
+		svelteTesting()
 	],
 	test: {
 		environment: 'jsdom',
