@@ -68,7 +68,10 @@
 		is computed to the Census-tract level, carries its source and vintage, and, where it comes from a
 		survey, carries a margin of error. This page explains, in plain language, where the data comes from
 		and how it is processed, classified, and analyzed. For the full technical treatment and citations,
-		see the project's methodology guide and working paper.
+		see the project's
+		<a href="https://kvenkita.github.io/crxp/methodology-guide.html" target="_blank" rel="noopener noreferrer">methodology guide</a>
+		and
+		<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7567999" target="_blank" rel="noopener noreferrer">working paper</a>.
 	</p>
 
 	<h2 id="geography">Geography &amp; how areas are combined</h2>
@@ -284,6 +287,29 @@
 		changing configuration. We document these choices, and their limitations, precisely so they can be
 		scrutinized and improved.
 	</p>
+	<ul>
+		<li>
+			<strong>Working paper</strong>:
+			<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7567999" target="_blank" rel="noopener noreferrer"><em>An Open, Reproducible Platform for Small-Area Community Indicators: The Carolinas Regional Explorer</em></a>
+			(SSRN), which documents the architecture, methodology, and replication of the platform. Please cite
+			it if you use the Explorer.
+		</li>
+		<li>
+			<strong>Methodology guide</strong>:
+			<a href="https://kvenkita.github.io/crxp/methodology-guide.html" target="_blank" rel="noopener noreferrer">methods, definitions, and caveats for every indicator</a>.
+		</li>
+		<li>
+			<strong>Application code</strong>:
+			<a href="https://github.com/kvenkita/crxp" target="_blank" rel="noopener noreferrer">github.com/kvenkita/crxp</a>,
+			the map, indicator pages, and downloads you are using now.
+		</li>
+		<li>
+			<strong>Data pipeline</strong>:
+			<a href="https://github.com/kvenkita/crxp-data-public" target="_blank" rel="noopener noreferrer">github.com/kvenkita/crxp-data-public</a>,
+			the code, configuration, and processed data behind every indicator, with instructions for
+			rebuilding them from their public sources.
+		</li>
+	</ul>
 
 	<h2 id="availability">Data availability</h2>
 	<p>
