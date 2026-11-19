@@ -62,10 +62,15 @@
 		</section>
 	{/if}
 
-	{#if aboutMd}
+	<!-- The cross-release caveat lives in the data contract (manifest trendNote), not in the
+	     editorial briefs, so every PLACES measure carries the same wording automatically. -->
+	{#if aboutMd || (indicator.crossReleaseTrend && indicator.trendNote)}
 		<section class="about">
 			<h2>About the data</h2>
-			<MarkdownBlock source={aboutMd} />
+			{#if aboutMd}<MarkdownBlock source={aboutMd} />{/if}
+			{#if indicator.crossReleaseTrend && indicator.trendNote}
+				<p class="trend-note">{indicator.trendNote}</p>
+			{/if}
 		</section>
 	{/if}
 
@@ -156,6 +161,13 @@
 	.about :global(.prose) {
 		font-size: var(--t-sm);
 		color: var(--c-text-2);
+	}
+	.about .trend-note {
+		font-size: var(--t-xs);
+		color: var(--c-text-3);
+		font-style: italic;
+		line-height: 1.35;
+		margin: var(--sp-2) 0 0;
 	}
 	.related {
 		border-top: 1px solid var(--c-border);
