@@ -416,10 +416,14 @@
 	let provenanceFlags = $derived.by(() => {
 		if (!indicator) return null;
 		const src = indicator.source ?? '';
+		// An indicator is harmonized if ACS enters it at all, including as the denominator of a
+		// ratio whose numerator comes from elsewhere: jobs-housing balance is a LODES indicator
+		// whose household denominator is ACS, so its pre-2020 years are reallocated too.
+		const usesAcs = /american community survey|\bACS\b/i.test(`${src} ${indicator.description ?? ''}`);
 		return {
 			vintage: indicator.vintage ?? '',
 			modelBased: /model-based|places/i.test(src),
-			harmonized: /american community survey/i.test(src) && (indicator.years ?? []).some((y) => y < 2020)
+			harmonized: usesAcs && (indicator.years ?? []).some((y) => y < 2020)
 		};
 	});
 
@@ -693,7 +697,7 @@
 					<div class="prov-flags">
 						{#if provenanceFlags.vintage}<span class="prov">{provenanceFlags.vintage}</span>{/if}
 						{#if provenanceFlags.modelBased}<span class="prov prov-model" title="Model-based small-area estimates (CDC PLACES, multilevel regression & poststratification), not a direct count">model-based</span>{/if}
-						{#if provenanceFlags.harmonized}<span class="prov prov-harm" title="Pre-2020 years are reallocated from 2010 to 2020 census tracts (population-weighted); read pre/post-2020 change with extra caution">pre-2020 harmonized</span>{/if}
+						{#if provenanceFlags.harmonized}<span class="prov prov-harm" title="Pre-2020 years are put on 2020 tract boundaries by population-weighted reallocation from 2010 tracts; read pre/post-2020 change with extra caution">pre-2020 harmonized</span>{/if}
 					</div>
 				{/if}
 				<!-- Comparable-period change + significance is an ACS rolling-vintage concept. CDC PLACES

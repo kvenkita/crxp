@@ -111,7 +111,7 @@
 	</p>
 
 	<h2 id="sources">Data sources</h2>
-	<p>The current release has 65 indicators from four public sources, across eight of the
+	<p>The current release has 68 indicators from five public sources, across eight of the
 		ten themes (Safety and Arts &amp; Culture are still being populated):</p>
 	<ul>
 		<li>
@@ -130,6 +130,13 @@
 			<strong>USGS National Land Cover Database (NLCD)</strong>: environment measures: forest,
 			cropland/farmland, wetlands, developed land, impervious surface (annual land cover from 2001
 			onward), and continuous tree-canopy cover.
+		</li>
+		<li>
+			<strong>U.S. Census Bureau, LEHD Origin-Destination Employment Statistics (LODES)</strong>
+			(annual, latest 2024): three economy measures that count jobs where the work happens rather
+			than where the worker lives: total workplace jobs, job density, and jobs per household. LODES
+			is a noise-infused full count built from state unemployment-insurance records, not a survey
+			sample, so it carries no margin of error. Values are summed from 2020 census blocks to tracts.
 		</li>
 		<li>
 			<strong>EOG VIIRS Nighttime Lights</strong>: light pollution (mean night-light radiance).
